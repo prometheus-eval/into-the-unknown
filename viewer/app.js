@@ -94,8 +94,8 @@
   const effortCell = (m) => `<span class="effort ${esc(m.reasoning_effort)}" title="${esc(EFFORT_TIP[m.reasoning_effort] || '')}">${esc(m.reasoning_effort || '—')}</span>`;
   const TIME_TIP = 'Median over the 15 papers of the wall-clock time of the agent\'s run (all attempts, including waiting and experiments)';
   const timeCell = (a) => `<span class="time" title="${esc(TIME_TIP)}">${fmtHours(a?.median_hours)}</span>`;
-  const TABS = [['leaderboard', 'Leaderboard', '#/'], ['analysis', 'Analysis', '#/analysis'], ['directions', 'Research directions', '#/directions'],
-    ['papers', 'AI-written papers', '#/papers']];
+  const TABS = [['leaderboard', 'Leaderboard', '#/'], ['submit', "Submit Your Agent's Paper", '#/submit'], ['analysis', 'Analysis', '#/analysis'],
+    ['directions', 'Research directions', '#/directions'], ['papers', 'AI-written papers', '#/papers']];
 
   function renderHome(tab) {
     const first = state.view === null || state.view.startsWith('sub:');
@@ -110,11 +110,12 @@
           <nav class="tabs" aria-label="Views">
             ${TABS.map(([k, l, h]) => `<a href="${h}" aria-current="${tab === k ? 'page' : 'false'}">${l}</a>`).join('')}
           </nav>
-          ${tab === 'directions' || tab === 'papers' ? '' : '<div class="board-meta" title="Paper-level grades combine the judge\'s repeated judgments of a submission node by node (3 of 4 must agree)">GPT-6-Astra judge (majority@4)</div>'}
+          ${tab === 'directions' || tab === 'papers' || tab === 'submit' ? '' : '<div class="board-meta" title="Paper-level grades combine the judge\'s repeated judgments of a submission node by node (3 of 4 must agree)">GPT-6-Astra judge (majority@4)</div>'}
         </div>
         <div id="board"></div>
       </div>`;
-    if (tab === 'analysis') renderAnalysis(); else if (tab === 'directions') renderDirections(); else if (tab === 'papers') renderPapers(); else renderLeaderboard();
+    if (tab === 'analysis') renderAnalysis(); else if (tab === 'directions') renderDirections(); else if (tab === 'papers') renderPapers();
+    else if (tab === 'submit') renderSubmit(); else renderLeaderboard();
   }
 
   function renderLeaderboard() {
@@ -149,6 +150,18 @@
       tr.addEventListener('keydown', (e) => { if (e.key === 'Enter') location.hash = tr.dataset.go; });
     });
   }
+
+  // Effort vs pass rates (paper Table 2): figures/effort_rubric_associations/association_table.csv, 135 submissions.
+  // [label, integrity [D, CI low, CI high, p_adj, significant], direction [...]]
+  const ASSOC = [
+    ['Execution time (within paper)', [-0.313, -0.446, -0.167, '0.0014', true], [-0.324, -0.454, -0.191, '&lt; 8 × 10<sup>−4</sup>', true]],
+    ['Execution time (within agent)', [-0.023, -0.201, 0.181, '1.000', false], [-0.056, -0.261, 0.136, '1.000', false]],
+    ['# Steps (within paper)', [-0.143, -0.219, -0.063, '0.0024', true], [-0.009, -0.072, 0.065, '1.000', false]],
+    ['# Steps (within agent)', [0.016, -0.151, 0.183, '1.000', false], [0.008, -0.169, 0.194, '1.000', false]],
+  ];
+  const num = (v) => (v < 0 ? `−${(-v).toFixed(3)}` : v.toFixed(3));
+  const figure = (file, w, h, alt, caption) => `<figure class="an-fig"><a href="images/${file}" target="_blank" rel="noopener" title="Open full size">
+    <img src="images/${file}" width="${w}" height="${h}" alt="${esc(alt)}" loading="lazy" decoding="async"></a><figcaption>${caption}</figcaption></figure>`;
 
   function renderAnalysis() {
     const { models, papers, leaderboard: L } = state.index;
@@ -226,9 +239,128 @@
               <td class="tot time-c">${timeCell(a)}</td></tr>`;
           }).join('')}</tbody>
         </table></div>
+      </section>
+      <section class="card an-card">
+        <div class="an-head"><h2>Why agents fail</h2></div>
+        <div class="prose">
+          <p>Across all 135 submissions, 114 fail the integrity check rubric and every one fails the direction-specific rubric. The most
+            frequent integrity failures are a mismatch between the paper and its code or protocol (90 submissions), reported numbers that
+            contradict the evidence (85), and false claims of completed work (68). On the direction-specific rubric, most submissions lack
+            required files or records (128), leave method or protocol requirements unmet (120), or give an inadequate analysis or
+            explanation (104).</p>
+          ${figure('failure_analysis1.png', 1886, 784, 'Heatmaps counting, for each agent, the submissions that fail each category of the two rubrics',
+            "Number of each agent's 15 submissions that fail each category of the integrity check rubric (left) and the direction-specific rubric (right), from the judge's verdicts. Categories overlap; the bottom rows count the submissions that fail each rubric.")}
+          <p>Reading the agents' trajectories, we identified three behaviors that keep them from writing an honest, complete paper that
+            meets the scientist's bar:</p>
+          <ul class="behaviors">
+            <li><b>Lenient self-verification.</b> Agents treat limited checks as evidence that broader task requirements are satisfied, or
+              accept results as satisfactory despite contradictory evidence. They are not strict enough when checking their own work and
+              whether a task is complete.</li>
+            <li><b>Insufficient backtracking.</b> Agents recognize an unmet requirement but, instead of trying to fix it, document the
+              shortfall or proceed with a suboptimal solution. The issue is not a negative scientific finding itself, but the decision to
+              stop pursuing a specified objective.</li>
+            <li><b>Self-directed scope reduction.</b> Agents replace required work with fewer experiments, an easier comparison, or a
+              narrower objective without authorization. Such changes can be reasonable in research, but they mean agents cannot
+              autonomously carry out a specified direction.</li>
+          </ul>
+          ${figure('failure_analysis2.png', 1894, 1622, 'Annotated excerpts from a Claude-Fable-5 trajectory and a GPT-5.6-Sol trajectory',
+            'Excerpts from two trajectories. Claude-Fable-5 writes its own completion checker and accepts its output (lenient self-verification); GPT-5.6-Sol acknowledges that its method misses a requirement and writes the paper around it (insufficient backtracking).')}
+        </div>
+      </section>
+      <section class="card an-card">
+        <div class="an-head"><h2>Does more effort help?</h2></div>
+        <div class="prose">
+          <p>No. Comparing different agents on the same paper, longer runs go with lower pass rates on both rubrics, and more steps with
+            lower integrity pass rates. Comparing papers attempted by the same agent, neither execution time nor the number of steps is
+            associated with pass rates: no agent does better on the papers it spends longer on.</p>
+          ${figure('time_analysis.png', 1900, 784, 'Dot plots of the number of steps and the execution time of every submission, by agent',
+            "Number of recorded steps (left) and execution time in hours (right) for each agent, ordered by median execution time. Each point is one submission; ticks mark medians, bars span the interquartile range, and each agent's median is listed on the right. Both axes are logarithmic.")}
+          <div class="wrap-x"><table class="rates assoc">
+            <thead>
+              <tr><th class="l" rowspan="2">Comparison axis</th><th class="grp gap" colspan="2">Integrity check rubric pass rate</th>
+                <th class="grp gap" colspan="2">Direction-specific rubric pass rate</th></tr>
+              <tr><th class="gap">Mean Somers' <i>D</i> [95% CI]</th><th><i>p</i><sub>adj</sub></th>
+                <th class="gap">Mean Somers' <i>D</i> [95% CI]</th><th><i>p</i><sub>adj</sub></th></tr>
+            </thead>
+            <tbody>${ASSOC.map(([label, ...cells]) => `<tr><td class="l">${label}</td>${cells.map(([d, lo, hi, p, sig]) =>
+              `<td class="gap">${num(d)} [${num(lo)}, ${num(hi)}]</td><td class="${sig ? 'best' : ''}">${p}</td>`).join('')}</tr>`).join('')}</tbody>
+          </table></div>
+          <p class="tnote">Pass rates are the fractions of rubric nodes passed. Comparisons pair different agents on the same paper (within
+            paper) or different papers attempted by the same agent (within agent). We report mean Somers' <i>D</i> with pointwise 95%
+            confidence intervals and approximate <i>p</i>-values from 20,000 paper-level bootstrap resamples; <i>p</i><sub>adj</sub> is the
+            <i>p</i>-value after Holm correction across all eight comparisons, and bold marks <i>p</i><sub>adj</sub> &lt; 0.05. Negative
+            <i>D</i> indicates lower pass rates with greater effort. Harnesses record steps at different granularities, so within-paper step
+            comparisons are descriptive.</p>
+        </div>
       </section>`;
     document.querySelectorAll('#board [data-mode]').forEach((b) => b.addEventListener('click', () => { state.an.mode = b.dataset.mode; renderAnalysis(); }));
     document.querySelectorAll('#board [data-gate]').forEach((b) => b.addEventListener('click', () => { state.an.gate = b.dataset.gate; renderAnalysis(); }));
+  }
+
+  // ---------------------------------------------------------------- submit a paper
+  // A static site cannot send mail: the form posts to FormSubmit (formsubmit.co), which emails it, PDF attached, to SUBMIT_TO.
+  const SUBMIT_TO = 'into.the.unknown.grader@gmail.com';
+  const MAX_PDF = 10 * 1024 * 1024;   // FormSubmit's limit for all attachments of one submission
+  function renderSubmit() {
+    const { papers } = state.index;
+    const back = `${location.origin}${location.pathname}?submitted=1#/submit`;
+    const field = (label, control, opts = {}) => `<label class="f ${opts.full ? 'full' : ''}"><span>${label}${opts.optional ? '' : ' <i>*</i>'}</span>
+      ${control}${opts.hint ? `<small>${opts.hint}</small>` : ''}</label>`;
+    document.getElementById('board').innerHTML = `
+      <section class="card sub-card">
+        ${state.submitted ? '<div class="sub-done" role="status"><b>Thank you, your submission was sent.</b> We will email the results to the address you gave.</div>' : ''}
+        <h2>Submit your agent's paper</h2>
+        <p class="sub-lede">Send us the follow-up paper your agent wrote for one of the 15 research directions (P1–P15), one paper per
+          submission. Upon request, we will evaluate the artifacts and send the results back to you.</p>
+        <div class="sub-req"><div class="lab">Required</div><ol>
+          <li><b>The paper PDF</b> your agent wrote (up to 10 MB).</li>
+          <li><b>A link to the agent's workspace</b>, where the code, logs and results it produced are stored, rather than the files
+            themselves. We recommend a Google Drive folder or a GitHub repository that anyone with the link can view.</li></ol></div>
+        <form class="sub-form" id="submit-form" action="https://formsubmit.co/${SUBMIT_TO}" method="POST" enctype="multipart/form-data" novalidate>
+          <input type="hidden" name="_subject" value="Into the Unknown submission">
+          <input type="hidden" name="_template" value="table">
+          <input type="hidden" name="_next" value="${esc(back)}">
+          <input type="hidden" name="_autoresponse" value="Thank you for submitting to Into the Unknown. We received your agent's paper and workspace link, and will email you the results.">
+          <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+          ${field('Research direction', `<select name="paper" required><option value="">Choose a paper (P1–P15)…</option>
+            ${papers.map((p) => `<option value="${esc(`P${p.id}: ${p.title}`)}">P${p.id}: ${esc(p.title)}</option>`).join('')}</select>`, { full: true })}
+          ${field('Agent (model and harness)', '<input name="agent" required placeholder="e.g. Claude-Opus-5.5 with claude-agent-sdk">')}
+          ${field('Your name', '<input name="name" required autocomplete="name">')}
+          ${field('Email for the results', '<input type="email" name="email" required autocomplete="email">')}
+          ${field('Affiliation', '<input name="affiliation" autocomplete="organization">', { optional: true })}
+          ${field('Paper PDF', '<input type="file" name="paper_pdf" accept="application/pdf,.pdf" required>', { full: true, hint: 'One PDF file, up to 10 MB.' })}
+          ${field('Workspace link', '<input type="url" name="workspace_link" required placeholder="https://drive.google.com/… or https://github.com/…">',
+            { full: true, hint: "A Google Drive folder or GitHub repository with the agent's workspace (code, logs, results)." })}
+          ${field('Notes', '<textarea name="notes" rows="3" placeholder="Anything we should know, e.g. run time, compute or settings"></textarea>', { full: true, optional: true })}
+          <label class="chk full"><input type="checkbox" name="link_viewable" value="yes" required> The workspace link is viewable by anyone with the link.</label>
+          <div class="sub-actions full"><button type="submit" class="nav-btn primary">Submit paper</button><span class="sub-err" id="sub-err" role="alert"></span></div>
+        </form>
+        <p class="fineprint">Submissions are emailed to ${SUBMIT_TO} through <a href="https://formsubmit.co" target="_blank" rel="noopener">FormSubmit</a>,
+          which may ask you to complete a CAPTCHA and sends you a confirmation copy.</p>
+      </section>`;
+    const form = document.getElementById('submit-form');
+    const err = document.getElementById('sub-err');
+    const el = (n) => form.elements.namedItem(n);
+    form.addEventListener('submit', (e) => {
+      const fail = (msg, x) => { e.preventDefault(); err.textContent = msg; x.focus(); };
+      for (const x of form.querySelectorAll('[required]')) {
+        if (!x.checkValidity()) {
+          return fail(x.type === 'checkbox' ? 'Please confirm that the workspace link is viewable.'
+            : `Please fill in “${x.closest('label').querySelector('span').textContent.replace('*', '').trim()}”${x.type === 'email' || x.type === 'url' ? ' correctly' : ''}.`, x);
+        }
+      }
+      const pdf = el('paper_pdf').files[0];
+      if (!/\.pdf$/i.test(pdf.name) && pdf.type !== 'application/pdf') return fail('The paper must be a PDF file.', el('paper_pdf'));
+      if (pdf.size > MAX_PDF) return fail(`The PDF is ${fmtBytes(pdf.size)}; the limit is 10 MB.`, el('paper_pdf'));
+      if (!/^https?:\/\/\S+\.\S+/i.test(el('workspace_link').value.trim())) return fail('The workspace link must be a web address (https://…).', el('workspace_link'));
+      err.textContent = '';
+      el('_subject').value = `Into the Unknown submission: ${el('paper').value.split(':')[0]} · ${el('agent').value.trim()}`;
+      const btn = form.querySelector('button[type=submit]');
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+      // coming back with the browser's Back button restores this page from cache: re-enable the button
+      window.addEventListener('pageshow', () => { btn.disabled = false; btn.textContent = 'Submit paper'; }, { once: true });
+    });
   }
 
   // Original paper links: arXiv / DOI pages, or a file of this repository (relative to its root).
@@ -877,7 +1009,7 @@
           parts[4] ? decodeURIComponent(parts.slice(4).join('/')) : null);
       } else {
         if (parts[0] === 'papers') state.pp = { agent: parts[1] ? decodeURIComponent(parts[1]) : state.pp.agent, paper: Number(parts[2]) || state.pp.paper };
-        renderHome(['analysis', 'directions', 'papers'].includes(parts[0]) ? parts[0] : 'leaderboard');
+        renderHome(['submit', 'analysis', 'directions', 'papers'].includes(parts[0]) ? parts[0] : 'leaderboard');
       }
     } catch (e) { showError(e); }
   }
@@ -904,7 +1036,13 @@
 
   async function main() {
     initTheme();
-    if (new URLSearchParams(location.search).get('side') === 'files') state.side = 'files';
+    const qs = new URLSearchParams(location.search);
+    if (qs.get('side') === 'files') state.side = 'files';
+    if (qs.has('submitted')) {   // back from FormSubmit after a submission
+      state.submitted = true;
+      qs.delete('submitted');
+      history.replaceState(null, '', `${location.pathname}${qs.toString() ? `?${qs}` : ''}#/submit`);
+    }
     try {
       state.index = await getJSON(`${DATA}/index.json`);
       if (!state.index.leaderboard?.submissions?.[0]?.nodes) throw new Error('index.json lacks the viewer data; re-run the export.');
