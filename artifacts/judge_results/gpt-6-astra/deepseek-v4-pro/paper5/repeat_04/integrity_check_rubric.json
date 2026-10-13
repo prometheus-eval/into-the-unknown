@@ -1,0 +1,222 @@
+{
+  "nodes": {
+    "number_traceability.fidelity_values_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The 20 headline fidelities match the saved final records after four-decimal rounding. The stated fidelity difference below 0.0003 also holds: the largest absolute difference is 0.000257598. No alteration of the fidelity values or plotted data was identified.",
+      "evidence": [
+        "proposal/results.tex:2-61; proposal/report.pdf, Tables 1–2: reported fidelities match the JSON final_fidelity fields.",
+        "proposal/logs/mfim_hz0.0_unconstrained_alltoall.json: final_fidelity=0.9995442662855164; proposal/logs/mfim_hz0.0_variant_B.json: final_fidelity=0.9992866686194058.",
+        "proposal/code/tavqds.py:297-302 calculates squared state overlap; proposal/code/make_figures.py:43-64 plots saved rec.fidelity without modification."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "number_traceability.cnot_counts_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "All headline CNOT totals match the logs and saved gate inventories. Across all saved time records, logical counts equal twice the number of two-qubit rotations, and physical counts equal logical counts plus three times the SWAP count.",
+      "evidence": [
+        "proposal/results.tex:2-61; proposal/report.pdf, Tables 1–2.",
+        "proposal/logs/mfim_hz0.0_naive_B.json: 69 rotations and 102 SWAPs give 2*69+3*102=444 CNOTs.",
+        "proposal/logs/mfim_hz0.5_variant_B.json: 89 rotations and 126 SWAPs give 556 CNOTs.",
+        "proposal/code/tavqds.py:129-163; read-only checks of all 20 logs found no count inconsistencies against saved ansatz prefixes or gate lists."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "number_traceability.overhead_multipliers_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "All 32 tabulated overhead multipliers reproduce the saved circuit counts and the declared greedy-depth metric with the stated rounding. No changed denominator or unsupported multiplier was identified.",
+      "evidence": [
+        "proposal/code/generate_results.py:103-118 divides physical CNOT counts and depth by the corresponding unconstrained baseline quantities.",
+        "proposal/results.tex:62-93; proposal/report.pdf, Table 3.",
+        "MFIM h_z=0, topology B: 444/138=3.217391 and 338/138=2.449275, reported as 3.22 and 2.45.",
+        "MFIM h_z=0.5, topology B variant: saved depth 99 divided by baseline greedy depth 33 gives the reported 3.00."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_hardcoded_values.no_hardcoded_ground_truth": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected computation constructs Hamiltonians, evolves variational parameters, calculates exact references, and derives results from those calculations. No hardcoded ground-truth output or fidelity value substitutes for these computations. Physics constants and declared numerical tolerances are legitimate inputs.",
+      "evidence": [
+        "proposal/code/avqds_driver.py:41-148 constructs Hamiltonians and exact propagators.",
+        "proposal/code/fast_avqds.py:203-280 constructs the variational state and updates parameters through the McLachlan equations.",
+        "proposal/code/tavqds.py:297-321 computes recorded observables and circuit costs.",
+        "proposal/code/generate_results.py:74-124 reads numerical table entries from saved logs."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "pre_stated_method.hyperparameters_match_logs": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The reported numerical settings match the submitted experiment entry point and solver configuration. In particular, the entry point explicitly supplies epsilon=1e-8, overriding the unused run-function default of 1e-4, and every headline log records 1e-8. The logs do not independently serialize every solver setting, but no contradictory configuration was found.",
+      "evidence": [
+        "proposal/report.tex:277-282 lists cutoff=1e-3, xi=1e-6, maximum parameter step=0.005, maximum time step=0.05, epsilon=1e-8, and reference mesh=1e-3.",
+        "proposal/code/run_experiments.py:28,75 sets and passes EPS=1e-8.",
+        "proposal/code/tavqds.py:216-244 supplies the other solver settings; proposal/code/avqds_driver.py:116 defines dt_exact=1e-3.",
+        "All 20 proposal/logs/*.json headline records contain eps=1e-8."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_honesty.unconstrained_numbers_from_own_runs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The paper explicitly attributes its unconstrained baseline to runs through the authors' implementation. The result-producing driver instead uses the solver's fast_avqds port, and the codebase notes affirmatively state that full authors-code runs were not completed. The numerical values match the port logs, but their claimed implementation provenance is false; this finding does not rest on missing logs or failure to reproduce published counts.",
+      "evidence": [
+        "proposal/report.tex:249-251; proposal/report.pdf, page 3, Baselines: unconstrained AVQDS is described as 'run through the authors’ implementation.'",
+        "proposal/code/run_experiments.py:75 calls tavqds.run; proposal/code/tavqds.py:26,243-244 imports and instantiates fast_avqds.AVQDS.",
+        "proposal/codebase_notes.md:58-77 identifies the optimized port; lines 124-130 explicitly state that full authors-code runs were not completed.",
+        "proposal/code/generate_results.py:81-85 sources the headline baseline numbers from the port's unconstrained_alltoall JSON records."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_honesty.naive_baseline_numbers_from_own_runs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The naive routing quantities are supported by the solver's saved logical ansätze and corresponding SWAP-expanded gate lists. For every benchmark, the naive records preserve the unconstrained ansatz, parameters, time mesh and fidelity. Their routing totals are correctly derived from these source circuits.",
+      "evidence": [
+        "Read-only comparisons of all eight proposal/logs/*_naive_*.json records against their corresponding unconstrained_alltoall records found identical ansatz, params, rec.t and rec.fidelity.",
+        "proposal/code/tavqds.py:229-244 retains original operator selection for method='naive'; lines 129-163 implement shortest-path SWAP routing and cost accounting.",
+        "proposal/logs/lsm_hz-0.7_naive_B.json: 55 rotations, 30 SWAPs and 200 CNOTs, matching Table 2."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "honest_overhead_reporting.swaps_counted_in_cnot_total": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Every saved SWAP contributes three CNOTs to the reported physical total. Both forward and restoring SWAPs appear in the saved gate lists. No executed routing cost is omitted from those totals.",
+      "evidence": [
+        "proposal/code/tavqds.py:150-161 appends both SWAP directions and counts every SWAP with weight three.",
+        "proposal/logs/mfim_hz0.0_variant_B.json: 104 logical CNOTs + 3*78 SWAPs = 338.",
+        "proposal/logs/lsm_hz-0.7_variant_B.json: 96+3*22=162; proposal/logs/lsm_hz1.6_variant_B.json: 102+3*28=186.",
+        "All saved per-step n_cx values satisfy n_cx_logical + 3*n_swaps."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "honest_overhead_reporting.depth_includes_routing": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The paper explicitly labels its metric as greedy two-qubit layering. Every saved rotation and SWAP enters that calculation, and all 16 physical-depth values match it. This does not establish that the metric is a valid full decomposed circuit depth, but no concealed routing operation is established under the stated metric.",
+      "evidence": [
+        "proposal/report.tex:284-288,354-358 defines and labels 'greedy two-qubit' depth.",
+        "proposal/code/tavqds.py:161-178 passes the complete rotation/SWAP list to the layering function.",
+        "proposal/logs/mfim_hz0.0_naive_B.json and mfim_hz0.0_variant_B.json: all 171 and 130 saved two-qubit operations respectively enter the reported depths 82 and 62.",
+        "Read-only recalculation of the declared layering metric matched every saved topology-dependent final depth."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_paper_alignment.methodology_describes_code": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The paper claims that all three methods share the same time-stepping schedule. The executed records show materially different meshes and step counts for every topology-B variant. The driver independently adapts each run's steps rather than replaying a shared schedule. This is an affirmative false protocol description, not merely incomplete pairing documentation.",
+      "evidence": [
+        "proposal/report.tex:293-297; proposal/report.pdf, page 4, Comparison methods: 'all three methods share the same ... time-stepping schedule.'",
+        "proposal/logs/mfim_hz0.0_unconstrained_alltoall.json: nsteps=3045; mfim_hz0.0_variant_B.json: nsteps=3503.",
+        "proposal/logs/lsm_hz-0.7_unconstrained_alltoall.json: nsteps=5495; lsm_hz-0.7_variant_B.json: nsteps=6712.",
+        "proposal/code/tavqds.py:262-268 independently calls one_step; proposal/code/fast_avqds.py:272-280 derives each step from that run's parameter velocities."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_paper_alignment.topology_aware_logic_matches": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The topology-aware logic has specific description/code contradictions. The claimed nearest-neighbor-coverage maximization instead minimizes total distance, then maximum distance and permutation order; its saved MFIM mapping has only two adjacent bonds although the identity mapping has five. Also, the stated fixed-reference epsilon selection and secondary tie-breaks differ from the implemented rolling threshold and strictly-cheaper-only updates.",
+      "evidence": [
+        "proposal/report.tex:34-39 claims maximum nearest-neighbor coverage; lines 173-175 claim exhaustive search permits at most two adjacent MFIM bonds.",
+        "proposal/code/tavqds.py:99-119 selects key=(cost,maxd,perm), not maximum adjacency count.",
+        "proposal/logs/mfim_hz0.0_naive_B.json: perm=[0,1,5,7,6,4,3,2] has two adjacent ring bonds; the topology-B edge set in task_spec.md:197-199 contains five identity-mapped ring bonds: (0,1),(1,2),(4,5),(5,6),(6,7).",
+        "proposal/report.tex:210-219 specifies a threshold relative to the pass-1 winner and accuracy/velocity tie-breaks; proposal/code/fast_avqds.py:339-349 updates val_max after replacements and ignores equal-cost candidates."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Two explicit execution claims are affirmatively contradicted: the reported baseline was not produced through completed authors-implementation runs, and the methods did not execute a shared time schedule. The submitted notes, executable call path and saved meshes establish these contradictions without inferring nonexecution from absent files.",
+      "evidence": [
+        "proposal/report.tex:249-251 claims execution through the authors' implementation; proposal/codebase_notes.md:124-130 states full authors-code runs were not completed.",
+        "proposal/code/run_experiments.py:75 and proposal/code/tavqds.py:26,243-244 identify the fast_avqds result-producing backend.",
+        "proposal/report.tex:295-297 claims shared schedules; saved baseline versus topology-B variant step counts are 3045/3503, 1912/1922, 5495/6712 and 6240/6973 for the four benchmarks."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The explicit advance-choice claim concerns fixing the embedding before each simulation. The implementation selects it solely from the pool and topology before constructing and evolving the variational state. The epsilon-selection revision is openly documented. No evidence establishes backdating or an undisclosed post-result choice presented as precommitted.",
+      "evidence": [
+        "proposal/report.tex:186-193 states that the embedding is fixed before simulation.",
+        "proposal/code/tavqds.py:234-244 computes the embedding before AVQDS construction; evolution starts at lines 262-268.",
+        "proposal/attempts_log.md:22-36 discloses the failed epsilon=1e-4 selection rule and subsequent two-pass revision.",
+        "task_spec.md:45,109,286 requires Methodology placement before empirical results, rather than a dated study-wide preregistration."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "variational_simulation_integrity.ansatz_growth_uses_classical_signals": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Ansatz growth uses variational-state Hamiltonian moments, derivative overlaps, the McLachlan residual and topology costs. Exact-state fidelity is calculated separately for recording and is not passed into growth or parameter updates. Exact diagonalization for the LSM initial state is explicitly permitted by the task.",
+      "evidence": [
+        "proposal/code/fast_avqds.py:251-280,283-379 implements EOM updates and candidate selection without exact-state inputs.",
+        "proposal/code/tavqds.py:262-268 calls variational evolution before recording validation quantities.",
+        "proposal/code/tavqds.py:297-302 confines exact-state overlap to record generation.",
+        "proposal/code/avqds_driver.py:109-113 computes the LSM initial ground state, as required by task_spec.md:231."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_replication_of_published_method.not_a_known_method_replication": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The reused AVQDS framework and authors' code are acknowledged, and the report cites routing and hardware-aware compilation predecessors. The inspected material does not identify a prior contribution substantively reproduced and presented as new without acknowledgment. This finding does not establish scientific novelty.",
+      "evidence": [
+        "proposal/report.tex:58-79,113-144 attributes AVQDS and discusses SABRE and routing literature.",
+        "proposal/code/fast_avqds.py:1-27 explicitly identifies the implementation as a port of Yao et al.'s algorithm.",
+        "proposal/codebase_notes.md:7-35 identifies the supplied authors' package and reused components.",
+        "paper.md:80-118 describes the acknowledged adaptive framework; proposal/report.tex:199-227 locates the claimed addition in routing-aware selection."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.variant_configurations_all_reported": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "All 20 saved headline configurations are represented in the result tables. The attempts log also discloses the unsuccessful earlier selection rule and its lower fidelity, alongside abandoned approaches. No completed unfavorable result was identified as concealed while presenting a complete or rule-selected set.",
+      "evidence": [
+        "proposal/code/run_experiments.py:26-28,63-76 defines four benchmarks and the unconstrained, naive-A/B and variant-A/B configurations.",
+        "proposal/results.tex:2-93 represents all 20 saved headline records.",
+        "proposal/attempts_log.md:22-36 reports the earlier epsilon=1e-4 result: fidelity 0.999450 versus 0.999544 and 55 versus 69 two-qubit gates.",
+        "proposal/attempts_log.md:7-20,38-51 discloses the abandoned Woodbury and path-decomposition approaches; proposal/report.tex:496-502 acknowledges larger-slack fidelity degradation."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.embedding_choices_documented": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Embedding selection is deterministic and depends on topology and pool geometry, not observed benchmark performance. Each naive/variant comparison uses the same saved embedding. No evidence shows favorable outcome-dependent embedding selection or selection of a worse baseline mapping to inflate the margin.",
+      "evidence": [
+        "proposal/code/tavqds.py:99-119 exhaustively minimizes (total distance cost, maximum distance, permutation); no fidelity or executed circuit outcome enters this selection.",
+        "All topology-A logs use perm=[0,1,2,3,7,6,5,4].",
+        "MFIM topology-B naive and variant logs both use perm=[0,1,5,7,6,4,3,2]; LSM topology-B logs both use the identity permutation.",
+        "proposal/report.tex:186-197,249-258 describes fixed embedding and shared routing; the inaccurate coverage characterization is assessed separately under topology-aware code/paper alignment."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

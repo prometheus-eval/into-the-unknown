@@ -36,7 +36,7 @@ from pathlib import Path
 
 # Crash-durable trajectory capture (streams events to disk; saves a canonical
 # trajectory on SIGTERM/exception/exit). Lives next to this runner.
-from trajectory_stream import streaming_events, install_crash_saver  # noqa: E402
+from trajectory_stream import streaming_events, install_crash_saver, stream_events  # noqa: E402
 
 # ---- auth + environment (before importing the SDK) ----
 # An OPENAI_API_KEY would make the SDK bill against the API instead of the
@@ -49,6 +49,15 @@ from openai_codex.client import CodexConfig  # noqa: E402
 MODEL = os.environ.get("CODEX_MODEL", "gpt-5.6-sol")
 EFFORT = os.environ.get("CODEX_EFFORT", "max")  # low|medium|high|xhigh|max|ultra
 MAX_RESUMES = int(os.environ.get("CODEX_MAX_RESUMES", "5"))
+# Restart of a run that already started (e.g. a harness update or a node failure): continue its Codex thread with its
+# attempt count and elapsed time, so the restart neither grants nor costs attempts. Same account and workspace; the
+# events streamed before the restart are kept in the trajectory.
+RESUME_THREAD = os.environ.get("CODEX_RESUME_THREAD") or None
+RESUME_ATTEMPT = int(os.environ.get("CODEX_RESUME_ATTEMPT", "1"))
+PRIOR_ELAPSED_S = float(os.environ.get("CODEX_PRIOR_ELAPSED_S", "0"))
+RESTART_NOTE = ("the run was restarted on a new machine (a harness update or an infrastructure failure), so every process you had running "
+                "(background tasks, daemons, servers, experiments) was stopped. Check what finished, relaunch what "
+                "still has to run, and continue where you left off")
 
 # Gateway mode: when CODEX_GATEWAY_BASE_URL is set, route model calls through a
 # custom OpenAI-compatible provider (e.g. a LiteLLM gateway serving
@@ -567,15 +576,17 @@ def run(args) -> int:
     goal_text = GOAL_FILE.read_text(errors="ignore") if GOAL_FILE.exists() else None
     MAX_RETRIES = int(os.environ.get("CODEX_MAX_RETRIES", "5"))
 
+    prior = stream_events(workspace) if RESUME_THREAD else []
     events = streaming_events(workspace, {
         "runner": "codex-sdk", "model": MODEL, "effort": EFFORT,
         "workspace": str(workspace), "max_resumes": MAX_RESUMES,
     })
+    list.extend(events, prior)    # already in the .jsonl: kept in the trajectory, not streamed again
     install_crash_saver(events)   # a batch-job walltime kill / crash still leaves a trajectory
     complete = False
-    reason = ""
-    attempt = 1
-    thread_id = None
+    reason = RESTART_NOTE if RESUME_THREAD else ""
+    attempt = RESUME_ATTEMPT if RESUME_THREAD else 1
+    thread_id = RESUME_THREAD
     timed_out = False
     retries = 0
     limit_waits = 0
@@ -588,20 +599,22 @@ def run(args) -> int:
     os.environ[RUN_TAG_VAR] = f"{os.getpid()}-{time.time_ns()}"
     with Codex(CodexConfig(codex_bin=CODEX_BIN) if CODEX_BIN else None) as codex:
         start_credit_guard(codex, note)
-        # Start one persistent thread; full_access + auto_review == unattended
-        # autonomous execution (write files, run experiments) with no approval stalls.
-        thread = codex.thread_start(
-            model=MODEL,
-            config=_cfg(EFFORT),
-            cwd=str(workspace),
-            sandbox=Sandbox.full_access,
-            approval_mode=ApprovalMode.auto_review,
-            developer_instructions=goal_text,
-        )
-        thread_id = getattr(thread, "id", None)
-        events.note_meta(thread_id=thread_id)
-        _safe_print(f"\n[run] === Attempt 1 (initial) === thread={str(thread_id)[:8]} "
-                    f"model={MODEL} effort={EFFORT}")
+        thread = None
+        if not RESUME_THREAD:
+            # Start one persistent thread; full_access + auto_review == unattended
+            # autonomous execution (write files, run experiments) with no approval stalls.
+            thread = codex.thread_start(
+                model=MODEL,
+                config=_cfg(EFFORT),
+                cwd=str(workspace),
+                sandbox=Sandbox.full_access,
+                approval_mode=ApprovalMode.auto_review,
+                developer_instructions=goal_text,
+            )
+            thread_id = getattr(thread, "id", None)
+            _safe_print(f"\n[run] === Attempt 1 (initial) === thread={str(thread_id)[:8]} "
+                        f"model={MODEL} effort={EFFORT}")
+        events.note_meta(thread_id=thread_id, attempt=attempt)
         prompt = INITIAL_PROMPT
 
         def infra_wait(e):
@@ -650,7 +663,15 @@ def run(args) -> int:
                     elif not count_retry(e2, "resume failed"):
                         return None
 
-        while not complete and not timed_out:
+        if RESUME_THREAD:
+            note(attempt=attempt, resume=True, reason="runner restarted", restarted_thread=RESUME_THREAD,
+                 prior_elapsed_s=PRIOR_ELAPSED_S, prior_events=len(prior))
+            _safe_print(f"\n[run] === Attempt {attempt} (continued after a runner restart; thread {RESUME_THREAD[:8]}, "
+                        f"{len(prior)} earlier events kept) ===")
+            thread = resume_thread()
+            prompt = resume_prompt(RESTART_NOTE)
+
+        while thread is not None and not complete and not timed_out:
             # --- run one turn on the persistent thread (with resume-on-error) ---
             try:
                 res = thread.run(prompt)
@@ -709,12 +730,13 @@ def run(args) -> int:
             _safe_print(f"\n[run] === Attempt {attempt} (resume: {_short(reason, 120)}) ===")
             prompt = resume_prompt(reason)
 
-    elapsed = time.monotonic() - start
+    elapsed = time.monotonic() - start + PRIOR_ELAPSED_S   # a restarted run counts its time before the restart
     metadata = {
         "model": MODEL, "effort": EFFORT, "runner": "codex-sdk",
         "thread_id": thread_id, "attempts": attempt, "max_resumes": MAX_RESUMES,
         "retries": retries, "infra_waits": limit_waits, "background_waits": bg_waits, "completed": complete, "completion_reason": reason,
         "timed_out": timed_out, "elapsed_seconds": round(elapsed, 1),
+        "restarted_thread": RESUME_THREAD, "prior_elapsed_seconds": PRIOR_ELAPSED_S or None,
     }
     out = events.finalize(metadata)   # idempotent; the crash saver may already have written it
     _safe_print(f"\n[run] Trajectory: {out} ({len(events)} events)")

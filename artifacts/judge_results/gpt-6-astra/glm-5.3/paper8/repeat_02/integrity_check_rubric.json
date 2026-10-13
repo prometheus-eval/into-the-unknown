@@ -1,0 +1,187 @@
+{
+  "nodes": {
+    "number_traceability.errors_and_margins_in_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Figure 2 represents nonzero measured errors as zero for both methods on four ICs. This materially contradicts the saved evaluations; it is not a rounding or aggregation difference. The main table's principal errors and margins otherwise reconcile with the records.",
+      "evidence": [
+        "proposal/report.pdf, p. 5, Figure 2: the right panel has zero-height bars for both combination ICs and both unseen-family ICs.",
+        "proposal/report.tex:382-389 identifies these bars as per-IC errors at rho=5.",
+        "proposal/logs/runs/reaction_spectral_fnl/eval.json, unseen_ic_combos and unseen_ic_families, per_seed/per_spec at rho=5: seed means are 0.0333919, 0.0330642, 0.1312485 and 0.9479375 for 2+sin(2x), gauss_a2_pi_2, 1+tanh(2sinx) and bump_wpi2, respectively.",
+        "proposal/code/make_figures.py:76-99 retrieves all bars from the unseen_ic_params dictionaries and substitutes (0.0, 0.0) when those four ICs are absent."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "number_traceability.breadth_and_latent_values_in_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The final model's reported latent statistics are attributed to the wrong analysis. The quoted values match a log for the earlier encoder-path-only model, whereas the final mechanism record contains materially different distances and explained variance.",
+      "evidence": [
+        "proposal/report.tex:409-412 and report.pdf p. 6 report minimum latent distance 1.07, mean 6.4 and two-PC explained variance 73–78%.",
+        "proposal/logs/mechanism_run.log:2-3 contains explained variances [0.770871, 0.776284, 0.729326] and seed-0 distances mean=6.393775, min=1.073233.",
+        "proposal/logs/mechanism_run.log:9,24,28 reports errors 0.1616, 0.7503 and 0.5260 for 1+sin(x), bump_wpi2 and gauss_spi12 at rho=5; these match reaction_spectral/eval.json, not reaction_spectral_fnl/eval.json.",
+        "proposal/code/mechanism.py:44 selects reaction_spectral_fnl. proposal/logs/mechanism.json, aggregate, instead records PCA fractions [0.948243, 0.960873, 0.869179], pairwise means [2.122755, 3.067130, 1.769252] and minima [0.122562, 0.251764, 0.280857]."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_hardcoded_values.no_hardcoded_reference_or_encodings": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Literal zero results substitute for available computed errors in the submitted plot. The finding concerns this substitution, not the legitimate analytic IC functions, Fourier transform, reference solutions or registered constants.",
+      "evidence": [
+        "proposal/code/make_figures.py:78-81 loads combination/family results but does not use those dictionaries in the plotting loop.",
+        "proposal/code/make_figures.py:90-99 looks only in parameter-split results, falls back to (0.0, 0.0), and plots those literal values.",
+        "proposal/figures/fig_curves.pdf and proposal/report.pdf p. 5, Figure 2, visibly contain the resulting zero-height combination/family bars.",
+        "proposal/logs/runs/reaction_naive_v2/eval.json and reaction_spectral_fnl/eval.json contain nonzero errors for all four affected ICs."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "pre_stated_method.settings_match_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The paper's explicit unchanged-decoder configuration claim differs from the configuration producing the headline results. Although the changed inputs are described elsewhere, the assertion that the reference decoder remained unchanged is false. Epochs, seeds, point counts and the reported final parameter counts otherwise match the records.",
+      "evidence": [
+        "proposal/report.tex:247-254 states that all arms share the reference protocol 'exactly' and that the 'decoder, coordinate encoder, and concatenation' are unchanged.",
+        "task_spec.md:75-79 explicitly includes modvec and its original coefficient/coordinate input interface in the held-fixed decoder.",
+        "workdir_outside_proposal/code/P2INN/model.py:33,75-78 defines Linear(5,50) on coefficients and coordinates.",
+        "proposal/logs/runs/reaction_spectral_fnl/net_seed0.pt stores modvec_mode='functional' and modvec.weight shape (50,7); reaction_naive_v2/net_seed0.pt stores mode='rep' and shape (50,21). Their meta.json files record the corresponding executed configurations."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_and_control_honesty.numbers_from_own_runs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The control's plotted combination/family errors are falsely presented as results of its own runs: they are literal zeros rather than the saved measurements. The baseline and control training records exist, and this finding does not allege copied baseline tables or deliberate baseline weakening.",
+      "evidence": [
+        "proposal/report.pdf p. 5, Figure 2, labels the red bars as the unstructured control's errors at rho=5.",
+        "proposal/logs/runs/reaction_naive_v2/eval.json: seed-averaged errors at rho=5 are 0.174929 for 2+sin(2x), 0.378047 for gauss_a2_pi_2, 0.120953 for 1+tanh(2sinx), and 0.608078 for bump_wpi2; all four are plotted as zero.",
+        "proposal/code/make_figures.py:90-99 establishes the zero-substitution mechanism.",
+        "proposal/logs/summary_main.json records independently logged baseline values 0.0806217 for 1+sin(x) and 0.00822524 for gauss_pi_2, separately identifying the cited reference-paper value 0.0089."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "attribution_integrity.non_degenerate_integrity": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected implementation and ablations do not establish an ignored or collapsed IC encoding. Predictions use the IC inputs and materially change when conditioning is removed or exchanged. Incorrect latent reporting does not establish the distinct predicate of falsely claiming use of an actually unused encoding.",
+      "evidence": [
+        "proposal/code/spec_model.py:132-165 routes IC information through the parameter encoder and, for the final model, query-aligned modvec features.",
+        "proposal/logs/runs/reaction_spectral_fnl/eval.json: shuffling increases mean errors from 0.091553 to 0.361155 on unseen parameters, 0.038789 to 0.200445 on combinations, and 0.175156 to 0.593998 on coefficient–IC compositions.",
+        "proposal/logs/mechanism.json, aggregate.code_swap_sensitivity, records relative prediction changes approximately 0.305–0.513 across seeds.",
+        "proposal/report.tex:344-367 explicitly reports the unseen-family loss and seen-setting regression rather than treating those failures as successful attribution."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "held_fixed_disclosure.deviations_disclosed": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "There are affirmative false compliance statements, beyond the disclosed architectural departure itself. The report asserts that the reference decoder is unchanged, and the notes explicitly assert a five-input, IC-free modvec for every arm, while the headline checkpoints use seven and twenty-one inputs. Disclosure elsewhere does not make those specific statements true.",
+      "evidence": [
+        "proposal/report.tex:94-98 and 247-254 claim that the decoder is held fixed or unchanged.",
+        "proposal/codebase_notes.md:12-20 specifically claims Linear(5,50), coefficients/coordinates only, held fixed for every arm, with specification information entering only through h_param.",
+        "proposal/code/spec_model.py:88-93 and 156-163 implements seven-input functional modulation and 5+rep_dim input modulation; saved headline checkpoint shapes confirm (50,7) and (50,21).",
+        "proposal/report.tex:212-233 does disclose the additional IC pathways. The finding is therefore limited to the contradictory affirmative preservation claims, not merely the prohibited design choice."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_paper_alignment.methodology_describes_code": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The claimed analysis of the model's actual h_param does not follow the implemented forward path. The diagnostic sends raw Fourier codes directly into the trained parameter encoder, bypassing the standardization used during training and prediction. It therefore analyzes different activations without disclosing that change.",
+      "evidence": [
+        "proposal/report.tex:460-468 and 499-506 describe the diagnostic as the model's h_param at rho=5.",
+        "proposal/code/mechanism.py:27-38 obtains rep_for(...) and calls net.param_embed(eq, rt) directly.",
+        "proposal/code/eval_spec.py:137-155 returns raw representations for final-format checkpoints; proposal/code/spec_model.py:106-110,139-141 standardizes those representations before param_embed in the actual forward pass.",
+        "proposal/logs/runs/reaction_spectral_fnl/meta.json:10-11 and net_seed0.pt specify standardize=true. The checkpoint's DC-code mean is 1.056097 and standard deviation 0.734814, confirming that the omitted transformation is not identity."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The report explicitly claims reference validation at every CDR evaluation specification, but the implemented validation loop and its complete saved record cover only three of the seventeen tested specifications. This is a contradicted execution claim, not simply a judgment that the solver validation was scientifically insufficient.",
+      "evidence": [
+        "proposal/report.tex:575-584 states that both transfer attempts and 'the reference validation at every evaluation specification' are logged; proposal/attempts_log.md:89-91 repeats the claim.",
+        "proposal/code/ref_validation.py:80-105 enumerates exactly five refinement-test specifications: two 1+sin(x) cases, one bump case, and two OOD cases.",
+        "proposal/logs/ref_validation/ref_validation.json, cdr_split_solver, contains those five specifications and separate single-physics overlap checks.",
+        "proposal/logs/runs/multifamily_spectral_fnl/eval.json, unseen_type_cdr, contains seventeen specifications. Only the two 1+sin(x) cases and the bump case overlap the refinement checks; for example, 1+tanh(2sinx) at (beta,nu,rho)=(5,2,3) is evaluated but absent from that validation loop and record."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "insufficient_evidence",
+      "confidence": "medium",
+      "reason": "The preserved snapshot cannot resolve the claimed fixation before comparison runs. It contains a final amended plan with self-reported timestamps and launch-script selection rules, but no preserved initial plan version or independently ordered decision history. Later design iterations are disclosed; their existence and the plan's later modification do not establish undisclosed selection or backdating.",
+      "evidence": [
+        "proposal/report.tex:753-765 claims preregistration before comparison runs and discloses two subsequent design iterations.",
+        "proposal/code/specification_encoder_plan.md:3-4 gives a 03:55 timestamp; lines 58-64 disclose a 04:35 IC amendment.",
+        "proposal/code/launch_wave3.sh:2-6 states the validation-only selection rule; saved validation means favor the selected functional model, 0.078368 versus 0.382253.",
+        "proposal/logs/wave1_main.log and wave3_main.log contain completion messages without absolute run timestamps; train_seed*.jsonl records contain elapsed durations rather than a versioned preregistration chronology."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_training_on_held_out.held_out_specs_never_trained": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "All inspected training manifests exclude the headline held-out ICs, noninteger/extrapolated coefficients and combined PDE types. Saved tuning evaluations use the designated within-family validation ICs, and the selected final candidate follows the documented validation ranking. No affirmative prohibited training or selection flow is established.",
+      "evidence": [
+        "proposal/code/train_spec.py:55-88 constructs training sets exclusively from TRAIN_ICS and integer coefficients 1–10.",
+        "All proposal/logs/**/meta.json specification lists were checked: reaction runs contain trained ICs with integer rho; multi-family runs contain single-physics coefficient vectors, not the evaluated CD/CDR combinations.",
+        "proposal/code/eval_spec.py:62-70 defines tuning validation as sin_c1_A0.75 and gauss_s13, distinct from the headline held-out sets in spec_zoo.py:97-130.",
+        "proposal/logs/exp2_tuning/*/eval*.json contains validation evaluations; launch_wave3.sh:2-6 and the three-seed validation records support the final candidate ranking.",
+        "The bump3x meta.json files retain the original 130 training specifications rather than training on failing held-out cases."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.all_specs_seeds_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The record does not establish concealed outcome-dependent selection. Completed unfavorable interfaces, seeds, family results and transfer failures are retained and reported. The erroneous zero bars affect entire split categories through a faulty lookup, including favorable and unfavorable results; that demonstrates incorrect plotting but not outcome-dependent selection.",
+      "evidence": [
+        "proposal/report.tex:737-745 reports the unsuccessful initial Fourier arm, code-routed arm, constant ablation, multi-family failures and single-seed budget probes.",
+        "proposal/report.tex:344-367 discloses the final model's unseen-family loss and specialist-setting regression.",
+        "proposal/logs/runs/*/eval.json preserves seeds 0,1,2 for ordinary comparison arms; the two budget-probe evaluations explicitly use seed 0.",
+        "proposal/attempts_log.md:8-64 and 77-91 describes the negative initial comparison and both unsuccessful PDE-transfer attempts.",
+        "proposal/code/make_figures.py:90-99 substitutes zeros based on missing dictionary keys, without testing outcomes or filtering by error magnitude."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_replication_of_published_method.not_a_known_method_replication": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The inspected materials do not identify an unacknowledged prior contribution substantively reproduced as new. The submission credits P²INN and discusses operator learning, conditional representations and physics-informed DeepONets. This finding does not certify novelty beyond the supplied evidence.",
+      "evidence": [
+        "proposal/report.tex:126-161 explicitly attributes P²INN, DeepONet, Fourier neural operators, conditional neural representations and PI-DeepONet, and states the claimed distinction.",
+        "paper.md:159-223 describes the original coefficient-only encoder and concatenated decoder; proposal/report.tex:197-235 describes the added functional IC representation and query-aligned pathway.",
+        "proposal/code/spec_zoo.py:157-182 and spec_model.py:113-130 implement the described sampled-function Fourier construction."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_external_code.external_code_attributed": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected methodology code uses attributed reference components and standard libraries. No affirmative evidence identifies prohibited external methodology reuse or an external implementation presented as original work.",
+      "evidence": [
+        "proposal/codebase_notes.md:3-50 credits the supplied P²INN architecture, residual, reference constructions and metric implementation to Cho et al.",
+        "proposal/codebase_notes.md:81-85 attributes NumPy FFT, PyTorch and matplotlib.",
+        "proposal/code/spec_data.py:25-36 explicitly imports the supplied systems module; its logistic, spectral and splitting formulas correspond to workdir_outside_proposal/code/P2INN/data_gen/systems.py:50-180.",
+        "proposal/report.tex:618-622 supplies the P²INN citation; the inspected encoder and analysis files contain standard-library and submission-local dependencies rather than an identified unattributed external implementation."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

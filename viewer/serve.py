@@ -32,7 +32,7 @@ def main():
     except OSError:
         server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), handler)  # port taken: use any free one
     url = f'http://127.0.0.1:{server.server_address[1]}/viewer/'
-    print(f'Shoulders of Giants Leaderboard: {url}  (Ctrl+C to stop)', flush=True)
+    print(f'Into the Unknown Leaderboard: {url}  (Ctrl+C to stop)', flush=True)
     if not args.no_browser:
         threading.Timer(0.4, webbrowser.open, [url]).start()
     try:

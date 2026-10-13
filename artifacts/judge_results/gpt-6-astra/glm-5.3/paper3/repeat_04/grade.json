@@ -1,0 +1,1027 @@
+{
+ "model": "glm-5.3",
+ "paper": 3,
+ "repeat": 4,
+ "rubric_revision": "science-task-alignment-v2-scope",
+ "grading_policy_version": "science-gates-v2-g1-unresolved-fail",
+ "context": {
+  "partial_work_claimed": true
+ },
+ "gates": {
+  "G1": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "pre_stated_method.settings_match_logs",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For pre stated method: settings match logs, is there affirmative evidence that run settings quoted in the paper materially differ from the settings that produced the cited results?",
+     "reason": "Identify evidence that run settings quoted in the paper materially differ from the settings that produced the cited results. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The reported preprocessing configuration materially contradicts the experiment loader: the paper specifies Tikhonov high-pass inputs, but the loader retains the low-pass component. This changes the signals supplied to both the template and reference runs.",
+     "evidence": [
+      "proposal/report.tex:332–338 specifies the paper's preprocessing, including Tikhonov high-pass filtering with lambda_hp=5 and npd=16; lines 485–488 apply that preprocessing to color runs.",
+      "proposal/code/data.py:109–112 assigns `S, _ = signal.tikhonov_filter(S, 5.0, 16)` and returns S.",
+      "workdir_outside_proposal/code/sporco/sporco/signal.py:273–301 explicitly defines and returns `(slp, shp)`, meaning low-pass first and high-pass second.",
+      "proposal/code/exp1_recovery.py:82–96 and proposal/code/exp2_multichannel.py:77–110 obtain their experiment inputs from this loader."
+     ]
+    },
+    {
+     "node_id": "code_paper_alignment.methodology_matches_code",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For code paper alignment: methodology matches code, is there affirmative evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence?",
+     "reason": "Identify evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "There are affirmative method-description contradictions. The claimed high-pass preprocessing actually selects low-pass data. Additionally, the equivalence validation is described as sharing only FFT plumbing and the Sherman–Morrison formula, but its supposedly independent implementation also reuses the template's constraint projection and initialization helpers.",
+     "evidence": [
+      "proposal/report.tex:333–335 and 485–488 versus proposal/code/data.py:109–112 and workdir_outside_proposal/code/sporco/sporco/signal.py:299–301 establish the high-pass/low-pass contradiction.",
+      "proposal/report.tex:617–622 states that the two equivalence implementations share 'no shared code beyond FFT plumbing and the Sherman–Morrison formula'; the same claim appears on report.pdf page 8.",
+      "proposal/code/exp4_equiv.py:56 imports prox_C_spatial, _bcrop, _zpad, and _normalise from template; lines 106–108 use those initialization helpers and line 146 calls the shared projection.",
+      "proposal/code/template.py:224–230 defines the shared support-and-normalization projection, a substantive component of the claimed independent dictionary-update check."
+     ]
+    },
+    {
+     "node_id": "held_fixed_disclosure.deviations_disclosed",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For held fixed disclosure: deviations disclosed, is there affirmative evidence that the paper claims compliance with a held-fixed condition that the executed implementation or configuration materially contradicts?",
+     "reason": "Identify evidence that the paper claims compliance with a held-fixed condition that the executed implementation or configuration materially contradicts. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The submission claims compliance with the prescribed preprocessing while retaining low-pass images, without disclosing that deviation. It also explicitly calls the color runs paper-scale despite their smaller recorded dimensions. The finding concerns contradicted compliance claims, not merely failure to complete the required scale.",
+     "evidence": [
+      "task_spec.md:56 freezes the paper's preprocessing and color-experiment scale; paper.md:670–672 specifies high-pass filtering, and paper.md:1478 specifies K=40, 256×256 images, and M=64.",
+      "proposal/report.tex:333–335 claims the paper's high-pass preprocessing, but proposal/code/data.py:110 retains the first, low-pass return documented in workdir_outside_proposal/code/sporco/sporco/signal.py:273–301.",
+      "proposal/report.tex:807–810 says the color runs are 'at the paper's color-experiment scale'.",
+      "proposal/logs/multichannel_log.txt:3 and proposal/code/exp2_multichannel.py:50–57 specify K=8, 128×128, M=16. These smaller dimensions are also stated in report.tex:485–488, but the paper-scale claim remains false."
+     ]
+    },
+    {
+     "node_id": "integrity.execution_claims",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "Is there affirmative evidence that an experiment, derivation, inspection, or repair is explicitly claimed as performed but affirmative code/trajectory/artifact evidence establishes that this claim is false?",
+     "reason": "Cite the explicit claim and affirmative evidence that contradicts it. Mere absence of logs, derivation steps, a plan file, or a timestamp is insufficient.",
+     "judge_reason": "Although the numerical runs are supported by saved records, explicit claims about what was performed are contradicted: the color experiment was not executed at the original paper's scale, and the claimed independently implemented equivalence check shares more substantive code than stated.",
+     "evidence": [
+      "proposal/report.tex:807–810, also report.pdf page 10, claims color runs at the paper's color-experiment scale; paper.md:1478 defines that scale as K=40, 256×256, M=64.",
+      "proposal/code/exp2_multichannel.py:50–57 and proposal/logs/multichannel/summary.json, config, establish execution at K=8, 128×128, M=16.",
+      "proposal/report.tex:617–622 claims two independent implementations sharing only FFT plumbing and Sherman–Morrison; proposal/code/exp4_equiv.py:56, 106–108, and 146 instead reuse the template's initialization and constraint-projection code."
+     ]
+    }
+   ],
+   "unresolved_reasons": [],
+   "assessment_status": "fail",
+   "failure_basis": [
+    "detected_violation"
+   ]
+  },
+  "G2": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "deliverables.recovery_runs_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are template-instance special-case recovery runs logged for the recovered dictionary-update families (ISM, Cns, and at least one of FISTA/CG)?",
+     "reason": "Logs missing for at least one claimed recovered update family.",
+     "judge_reason": "All four families have trajectories and final dictionaries, but the required per-filter norm records are absent. The driver computes transient norm summaries, which the recovery harness does not save. Final norms can be calculated from the dictionaries, but this does not supply the prescribed logged norm records.",
+     "evidence": [
+      "proposal/code/cdl.py:279–294",
+      "proposal/code/exp1_recovery.py:130–154",
+      "proposal/logs/recovery/*_seed*.json and corresponding NPZ archives",
+      "task_spec.md:156",
+      "Inspection of workdir_outside_proposal found no additional run records"
+     ]
+    },
+    {
+     "node_id": "framework_specification.template_stated_before_results",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the template (master operator-splitting/MM problem and design axes) fully stated in the methodology before any empirical results are described?",
+     "reason": "Key template or axis choices first appear after empirical results, or are altered mid-paper without acknowledgment.",
+     "judge_reason": "The rubric's stricter requirement that the full specification precede any empirical numbers is not met. Recovery and collapse deviations appear in the abstract and introduction before the master equations and complete axis specification.",
+     "evidence": [
+      "proposal/report.tex:45–59",
+      "proposal/report.tex:120–146",
+      "proposal/report.tex:219–309"
+     ]
+    },
+    {
+     "node_id": "evidence_completeness.required_reporting_coverage",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Does reporting cover the experiments, completed seeds, required metrics, uncertainty summaries, and attempts required by this task and its applicable declared protocol? Assess coverage against the task, respecting optional work and permitted reporting alternatives. An omission alone is not evidence of favorable-result selection.",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "The submission reports its completed recovery seeds, both reduced color representations, and the tolerance sweep, but required coverage remains incomplete. It supplies no paper-scale color experiment and omits the prescribed per-filter norm records. The lower-scale results and available final dictionaries do not fulfill those specific reporting requirements.",
+     "evidence": [
+      "proposal/logs/multichannel/summary.json, K=8, N=128, M=16",
+      "proposal/code/exp1_recovery.py:130–154",
+      "proposal/report.tex:485–488",
+      "task_spec.md:33, 56, 156",
+      "Inspection of proposal/ and workdir_outside_proposal/"
+     ]
+    }
+   ],
+   "unresolved_reasons": []
+  },
+  "G3": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "framework_specification.template_is_shared_derivation",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "partially_shared",
+     "accepted_values": [
+      "single_shared_derivation"
+     ],
+     "question": "Is the template a single shared operator-splitting / MM derivation and driver instantiated by axis choices, rather than a dispatcher or wrapper over SPORCO's separate solvers?",
+     "reason": "A shared derivation covers some updates, but at least one update is instantiated by a separately authored solver body outside the shared driver. A shared base class, master problem, or disclosure does not by itself make the update derivation shared; assess the objective mathematical/code structure.",
+     "judge_reason": "ISM, CG, consensus, and Cns-CG share substantive ADMM machinery and interchangeable linear kernels. FISTA follows a separately authored gradient/momentum/backtracking recursion selected by the outer branch; the report introduces it as an alternative update rather than deriving it from a common splitting/MM recursion. Housing both recursions in one class does not establish the strongest shared-derivation condition.",
+     "evidence": [
+      "proposal/report.tex:228–259",
+      "proposal/code/template.py:426–533",
+      "proposal/code/template.py:645–715",
+      "proposal/code/cdl.py:259–271"
+     ]
+    },
+    {
+     "node_id": "framework_specification.design_axes_defined",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "axes_partial",
+     "accepted_values": [
+      "axes_explicit_and_orthogonal"
+     ],
+     "question": "Are the design axes explicit, independent, and non-redundant, rather than labels attached to the methods post-hoc?",
+     "reason": "Axes are named but at least one is redundant with another or its independence is not established.",
+     "judge_reason": "The axes and value sets are explicit, but they are not independent. The tiles split requires the frequency domain, gradient updates require the PGM state, and the single Sherman–Morrison solver is restricted by block rank. The domain setting has no independent effect for several other combinations.",
+     "evidence": [
+      "proposal/report.tex:261–300",
+      "proposal/code/template.py:305–318",
+      "proposal/code/template.py:378–389, 429–431, 525–533",
+      "proposal/report.tex:679–690"
+     ]
+    },
+    {
+     "node_id": "multichannel_instantiation.instantiation_multichannel_dict",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "runs_no_convergence",
+     "accepted_values": [
+      "runs_and_converges"
+     ],
+     "question": "Is the multichannel_dict multi-channel representation realized from the same template as a runnable instance on color data, and does it converge?",
+     "reason": "The multichannel_dict representation runs but the functional does not reach <= 0.6x initial, or is not within a few percent of the matched lambda=0.1 reference converged value, or the run is at a materially undersized (toy) scale rather than the paper's color-experiment scale (M=64, 8x8 support, C=3).",
+     "judge_reason": "MC-D runs and matches λ=0.1 references exactly, with final/initial ratios 0.04658 and 0.12881. However, the runs use only 16 filters and 128×128 images, versus the required 64 filters and paper-scale color experiment. The rubric explicitly excludes such materially reduced runs from its converged tier.",
+     "evidence": [
+      "proposal/logs/multichannel/summary.json, config",
+      "proposal/logs/multichannel/mcd_cns.json",
+      "proposal/logs/multichannel/mcd_pgm.json",
+      "proposal/code/exp2_multichannel.py:50–57",
+      "paper.md:1473–1478"
+     ]
+    },
+    {
+     "node_id": "multichannel_instantiation.instantiation_singlechannel_dict",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "runs_no_convergence",
+     "accepted_values": [
+      "runs_and_converges"
+     ],
+     "question": "Is the singlechannel_dict multi-channel representation realized from the same template as a runnable instance on color data, and does it converge?",
+     "reason": "The singlechannel_dict representation runs but the functional does not reach <= 0.6x initial, or is not within a few percent of the matched lambda=0.1 reference converged value, or the run is at a materially undersized (toy) scale rather than the paper's color-experiment scale (M=64, 8x8 support, C=3).",
+     "judge_reason": "SC-D runs with ordinary CBPDN at λ=0.1 and exactly matches its references, with reduction ratios 0.02966 and 0.13207. It nevertheless uses M=16 and 128×128 images, so it does not meet the required color-experiment scale.",
+     "evidence": [
+      "proposal/logs/multichannel/summary.json, config",
+      "proposal/logs/multichannel/scd_cns.json",
+      "proposal/logs/multichannel/scd_pgm.json",
+      "proposal/code/exp2_multichannel.py:76–118",
+      "paper.md:1478"
+     ]
+    },
+    {
+     "node_id": "baseline_verification.held_fixed_constraints_respected",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are the CDL functional, the C_PN support-plus-unit-norm constraint, and the alternating-minimization / CBPDN coupling held fixed as defined by the paper?",
+     "reason": "A required functional, constraint, or coupling is changed. Disclosure alone does not satisfy the scientific constraint.",
+     "judge_reason": "The required parity protocol is not retained: the loader passes the low-pass component into the CDL objective, whereas the source paper and held-fixed data requirement specify the high-pass residual. The implementation otherwise retains λ=0.1, single-inner-iteration auxiliary coupling, and SPORCO-style support/normalization.",
+     "evidence": [
+      "proposal/code/data.py:109–112, S, _ = signal.tikhonov_filter(S, 5.0, 16)",
+      "workdir_outside_proposal/code/sporco/sporco/signal.py:273–301, return order is low-pass then high-pass",
+      "paper.md:670–672",
+      "task_spec.md:53–56",
+      "proposal/code/cdl.py:242–271"
+     ]
+    },
+    {
+     "node_id": "design_axis_analysis.axes_analysis_depth",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "moderate",
+     "accepted_values": [
+      "deep"
+     ],
+     "question": "How deeply does the paper analyze the design axes and the design space (are the axes real and orthogonal; is the grid of cells marked recovered/new/equivalent/empty)?",
+     "reason": "Analysis presents the grid and discusses the axes but does not fully establish orthogonality or reason about all cells.",
+     "judge_reason": "The paper provides a populated selected-cell grid and reasons about rank-one degeneracies, gradient-splitting vacuity, and unexplored volume FISTA. It does not establish independent axes or enumerate the full Cartesian grid; several axis combinations are constrained or redundant.",
+     "evidence": [
+      "proposal/report.tex:655–696",
+      "proposal/code/make_figures.py:181–199",
+      "proposal/code/template.py:305–318"
+     ]
+    },
+    {
+     "node_id": "design_axis_analysis.equivalences_fall_out_as_algebra",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "partial",
+     "accepted_values": [
+      "yes_derived"
+     ],
+     "question": "Do known equivalences (e.g. 3D == consensus-in-DFT; a representation as an enlarged-K problem; two representations as corners of a common-plus-unique split) drop out as algebra on axis settings?",
+     "reason": "At least one equivalence is derived from axes but others are asserted.",
+     "judge_reason": "The channel-folding/DFT correspondence and rank-one ISM reduction have algebraic explanations. Other extensions, particularly the claimed tiles-CG correspondence and inherited collapse, are asserted without working through the transformed CG update and its configuration.",
+     "evidence": [
+      "proposal/report.tex:591–612",
+      "proposal/report.tex:671–696",
+      "proposal/code/exp4_equiv.py:95–150"
+     ]
+    },
+    {
+     "node_id": "design_axis_analysis.selection_map_present",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "partial",
+     "accepted_values": [
+      "regime_map_with_duality"
+     ],
+     "question": "Does the paper give a regime-selection rule -- a stated recommendation mapping a problem's regime (channel count C, training-image count K, degree of channel correlation) to the best axis settings -- that uses the K-C duality (C sets the rank of the sparse-coding subproblem as K sets the rank of the dictionary update)?",
+     "reason": "Some regime-to-setting guidance is given (e.g. 'use consensus when K is large'), but it is incomplete or does not tie the recommendations to the K-C duality.",
+     "judge_reason": "The paper recommends ISM for small K, discusses consensus parallelism and FISTA at larger scale, and favors MC-D for shared channel structure. It does not provide a complete C/K/correlation decision rule with corresponding recommendations for dual regimes; the duality is principally restated.",
+     "evidence": [
+      "proposal/report.tex:698–724",
+      "proposal/report.tex:475–483"
+     ]
+    },
+    {
+     "node_id": "mechanism_analysis.depth",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "moderate",
+     "accepted_values": [
+      "deep"
+     ],
+     "question": "How deeply does the mechanism analysis explain the axis choices from the diagonal-plus-rank-K structure of the per-frequency dictionary-update systems -- why a choice changes cost/convergence, and in which (C, K, correlation) regime it should or should not help?",
+     "reason": "The analysis correctly identifies the diagonal-plus-rank-K per-frequency structure and its relevance, but does not connect each individual axis to it, or does not turn the reasoning into a regime (C, K, correlation) prediction.",
+     "judge_reason": "The analysis substantively connects rank-K versus rank-one systems to ISM, CG, consensus, and gradient costs. The independent role of the domain axis and C/correlation-dependent advantages are less developed, and the single-size timing comparisons do not isolate the proposed scaling mechanisms.",
+     "evidence": [
+      "proposal/report.tex:732–773",
+      "proposal/report.tex:698–724",
+      "proposal/logs/recovery/summary.json, config.K=4 and wall_time_s records"
+     ]
+    },
+    {
+     "node_id": "originality_and_literature.literature_engagement",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "moderate",
+     "accepted_values": [
+      "substantial"
+     ],
+     "question": "How substantively does the paper engage with the sparse-optimization, CDL, operator-splitting/MM, and multi-channel/hyperspectral CSC literature?",
+     "reason": "Paper cites several relevant references but does not deeply discuss the comparison.",
+     "judge_reason": "The paper discusses several relevant CDL, consensus ADMM, proximal-gradient, and color-representation references and states its intended distinction. Engagement is mostly a concise account of algorithm origins and positioning, with limited comparison to broader MM or subsequent multi-channel work.",
+     "evidence": [
+      "proposal/report.tex:833–866",
+      "proposal/report.tex:894–952"
+     ]
+    },
+    {
+     "node_id": "originality_and_literature.spec_independence",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "transliterated",
+     "accepted_values": [
+      "fully_independent"
+     ],
+     "question": "How independent is the paper's structure and terminology from the task spec?",
+     "reason": "Paper structure and terminology directly mirror the task spec.",
+     "judge_reason": "The paper directly adopts the task's terminology and progression: template, design axes, special-case recovery, multi-channel representations, what the template reveals, characterization, mechanism, failure analysis, and compute cost. Results are also grouped by evaluation categories.",
+     "evidence": [
+      "proposal/report.tex:219, 261, 330, 463, 523, 655, 726, 775, 816",
+      "proposal/report.tex:358–398",
+      "task_spec.md:94"
+     ]
+    }
+   ],
+   "unresolved_reasons": [
+    {
+     "node_id": "compute_cost_analysis.cost_quantified",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "missing_judgment",
+     "observed_value": null,
+     "accepted_values": [
+      "quantified"
+     ],
+     "question": "Is the computational cost quantified (e.g. wall-clock or per-iteration cost across axis choices and vs SPORCO)?",
+     "reason": "No valid judgment for this node; no pass or substantive violation is inferred.",
+     "judge_reason": "Measured timings exist across axis choices, including 554.72 seconds for recovery and 999.84 seconds for color comparisons. However, each recovery/color timer combines template and reference execution, so no relative template-versus-SPORCO cost is available. This misses the 'quantified' tier's explicit reference-comparison condition, while 'mentioned' explicitly requires an absence of measured numbers and 'absent' plainly does not apply. The answer set lacks a fitting intermediate value.",
+     "evidence": [
+      "rubric.json, compute_cost_analysis.cost_quantified answer definitions",
+      "proposal/report.tex:818–830",
+      "proposal/code/exp1_recovery.py:89–128",
+      "proposal/code/exp2_multichannel.py:95–133",
+      "proposal/logs/recovery/summary.json, wall_time_s",
+      "proposal/logs/multichannel/summary.json, wall_time_s"
+     ]
+    }
+   ]
+  }
+ },
+ "cumulative": {
+  "G1": {
+   "status": "fail",
+   "blocked_by": []
+  },
+  "G2": {
+   "status": "fail",
+   "blocked_by": [
+    "G1"
+   ]
+  },
+  "G3": {
+   "status": "fail",
+   "blocked_by": [
+    "G1",
+    "G2"
+   ]
+  }
+ },
+ "outcome": "integrity_failure",
+ "passes": {
+  "G1": false,
+  "G2": false,
+  "G3": false
+ },
+ "nodes": {
+  "integrity:number_traceability.values_trace_to_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:number_traceability.trajectories_trace_to_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:no_hardcoded_values.no_hardcoded_references": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:pre_stated_method.settings_match_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:test_set_integrity.results_from_actual_runs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:baseline_honesty.sporco_numbers_from_own_runs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:code_paper_alignment.methodology_matches_code": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:genuine_abstraction_integrity.template_not_dispatcher": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:recovery_matching_integrity.match_against_actual_reference": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:held_fixed_disclosure.deviations_disclosed": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:no_axis_switching.axes_committed_before_validation": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:integrity.execution_claims": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:integrity.precommitment_claims": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:selective_reporting.all_cells_and_attempts_reported": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:no_replication_of_published_method.not_a_known_followup_replication": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:no_external_code.external_code_attributed": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "direction:deliverables.report_pdf_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.logs_directory_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.framework_plan_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.recovery_runs_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.multichannel_runs_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.reveal_runs_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.sporco_reference_runs_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.main_results_table_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.design_space_grid_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.codebase_notes_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.attempts_log_present": {
+   "rubric": "direction",
+   "role": "conditional",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.methodology_section_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:framework_specification.template_stated_before_results": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:framework_specification.template_is_shared_derivation": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "partially_shared"
+  },
+  "direction:framework_specification.design_axes_defined": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "axes_partial"
+  },
+  "direction:special_case_recovery.recovery_of_ism": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "recovered_within_tol"
+  },
+  "direction:special_case_recovery.recovery_of_cns": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "recovered_within_tol"
+  },
+  "direction:special_case_recovery.recovery_of_fista": {
+   "rubric": "direction",
+   "role": "composite_member",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "recovered_within_tol"
+  },
+  "direction:special_case_recovery.recovery_of_cg": {
+   "rubric": "direction",
+   "role": "composite_member",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "recovered_within_tol"
+  },
+  "direction:recovery_coverage.required_three_recovered": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:recovery_coverage.exact_solves_recovered": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:multichannel_instantiation.instantiation_multichannel_dict": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "runs_no_convergence"
+  },
+  "direction:multichannel_instantiation.instantiation_singlechannel_dict": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "runs_no_convergence"
+  },
+  "direction:reveal.uninstantiated_cell_filled": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "filled_and_runs"
+  },
+  "direction:reveal.degenerate_collapse_check": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "collapses_to_reference"
+  },
+  "direction:reveal.equivalence_rederived": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "derived_from_axes"
+  },
+  "direction:baseline_verification.sporco_reference_reproduced": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "reproduced"
+  },
+  "direction:baseline_verification.held_fixed_constraints_respected": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:experimental_completeness.recovery_matrix_complete": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:experimental_completeness.multichannel_seeds_sufficient": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "single_seed"
+  },
+  "direction:experimental_completeness.reveal_consistency_run": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:design_axis_analysis.axes_analysis_depth": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "moderate"
+  },
+  "direction:design_axis_analysis.equivalences_fall_out_as_algebra": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "partial"
+  },
+  "direction:design_axis_analysis.selection_map_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "partial"
+  },
+  "direction:mechanism_analysis.subsection_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:mechanism_analysis.depth": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "moderate"
+  },
+  "direction:failure_analysis.subsection_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:failure_analysis.incompleteness_engaged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "engaged"
+  },
+  "direction:compute_cost_analysis.subsection_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:compute_cost_analysis.cost_quantified": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "undetermined",
+   "value": null
+  },
+  "direction:originality_and_literature.contribution_originality": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "meaningful_extension"
+  },
+  "direction:originality_and_literature.literature_engagement": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "moderate"
+  },
+  "direction:originality_and_literature.spec_independence": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "transliterated"
+  },
+  "direction:writing_quality.journal_quality_structure": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "reasonable"
+  },
+  "direction:writing_quality.limitations_discussion_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "substantive"
+  },
+  "direction:writing_quality.rendered_pdf_clean": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "minor_issues"
+  },
+  "direction:writing_quality.main_results_table_complete": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:contract.experiment_completeness.all_experiments_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:contract.effort_evidence.attempts_log_corroborates": {
+   "rubric": "direction",
+   "role": "conditional",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:evidence_completeness.quantitative_sources_documented": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:evidence_completeness.required_reporting_coverage": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  }
+ }
+}

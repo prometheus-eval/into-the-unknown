@@ -269,12 +269,22 @@ def stamp():
     return datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S_%fZ')
 
 
-def make_jobs(keys=PAPER_AGENTS):
+def make_jobs(keys=PAPER_AGENTS, papers=None, repeats=None):
     return [dict(id=f'{key}/P{new}/repeat_{repeat:02d}', source_id=f'{key}/P{new}',
                  model_key=key, model=model, new_paper_id=new, original_paper_id=old,
                  repeat=repeat)
             for key, model, _ in MODELS if key in keys
-            for new, old in enumerate(PAPERS, 1) for repeat in range(1, 5)]
+            for new, old in enumerate(PAPERS, 1) if not papers or new in papers for repeat in (repeats or range(1, 5))]
+
+
+def batch_papers(m=None):
+    """Papers a batch judges: all 15 unless it was prepared with --papers."""
+    return list((m or {}).get('papers') or range(1, 16))
+
+
+def batch_repeats(m=None):
+    """Repeats a batch judges: 1-4 unless it was prepared with --repeats (e.g. 2 3 4 to add to an earlier repeat 1)."""
+    return list((m or {}).get('repeats_selected') or range(1, 5))
 
 
 def select_agents(names):
@@ -319,11 +329,13 @@ def pause(root, reason):
         pass
 
 
-def discover_sources(keys=PAPER_AGENTS):
+def discover_sources(keys=PAPER_AGENTS, papers=None):
     """Every solver workspace <agent>/paper<i>/ under SOG_SUBMISSIONS (src/solver/run.sh's layout)."""
     sources = {}
     for key, model, directory in (m for m in MODELS if m[0] in keys):
         for new, old in enumerate(PAPERS, 1):
+            if papers and new not in papers:
+                continue
             source = base.SUBMISSIONS / directory / f'paper{new}'
             if not (source / 'proposal').is_dir():
                 raise RuntimeError(f'Missing submission: {source}/proposal')
@@ -346,14 +358,20 @@ def discover_sources(keys=PAPER_AGENTS):
                 archived_task_sha256=archived, current_task_sha256=digest(current),
                 task_revised_since_generation=archived != digest(current),
                 protected_hashes={str(p): digest(p) for p in protected if p.is_file()})
-        print(f'PREFLIGHT {key}: 15 sources verified', flush=True)
+        print(f'PREFLIGHT {key}: {len(papers) if papers else 15} sources verified', flush=True)
     return sources
 
 
-def prepare(keys=PAPER_AGENTS):
+def prepare(keys=PAPER_AGENTS, papers=None, repeats=None):
     base.mounted()
+    papers = sorted(set(papers)) if papers else None
+    if papers and (keys == PAPER_AGENTS or not set(papers) <= set(range(1, 16))):
+        raise SystemExit('--papers selects papers 1-15 of a batch of other agents (prepare --agents)')
+    repeats = sorted(set(repeats)) if repeats else None
+    if repeats and (keys == PAPER_AGENTS or not set(repeats) <= {1, 2, 3, 4}):
+        raise SystemExit('--repeats selects repeats 1-4 of a batch of other agents (prepare --agents)')
     # Verify every submission's identity and task provenance before any inference.
-    sources = discover_sources(keys)
+    sources = discover_sources(keys, papers)
     n_sub = len(sources)
 
     base.JUDGE_RUNS.mkdir(parents=True, exist_ok=True)
@@ -391,14 +409,14 @@ def prepare(keys=PAPER_AGENTS):
     fixed = {name: digest(root / name) for name in CODE_FILES}
     for dirname in ('frozen', 'inputs', 'source_inputs'):
         fixed.update({f'{dirname}/{p}': h for p, h in base.hashes(root / dirname).items()})
-    jobs = make_jobs(keys)
+    jobs = make_jobs(keys, papers, repeats)
     for job in jobs:
         cell = root / job['id']
         cell.mkdir(parents=True)
         (cell / 'verdicts').mkdir()
         write(cell / 'state.json', dict(status='pending', job=job, stages={}, updated_utc=utc()))
     manifest = dict(created_utc=utc(), model=base.MODEL, effort=base.EFFORT,
-        total_submissions=n_sub, repeats=4, total_evaluations=len(jobs), total_rubric_sessions=2 * len(jobs),
+        total_submissions=n_sub, repeats=len(repeats) if repeats else 4, total_evaluations=len(jobs), total_rubric_sessions=2 * len(jobs),
         concurrency=SLOTS_PER_ACCOUNT * len(ACCOUNTS), slots_per_account=SLOTS_PER_ACCOUNT,
         accounts=[dict(a) for a in ACCOUNTS], stage_cost_estimate=STAGE_COST, cleanup_completed_snapshots=True,
         avoid_credits=AVOID_CREDITS, model_order=list(keys), jobs=jobs, sources=sources,
@@ -406,7 +424,9 @@ def prepare(keys=PAPER_AGENTS):
         codex_bin=str(base.CODEX), codex_sha256=digest(base.CODEX), python=sys.executable,
         quota_pause_percent=90, automatic_retries=0, pilot_excluded=True,
         isolation='Separate read-only ephemeral stage/repeat sessions; shared per-submission physical snapshot, prior judgments excluded. Prompt-level read blinding, not OS-level read isolation.',
-        scope=f'All {n_sub} submissions ({len(keys)} agents x 15 papers). Four fresh assessments each.',
+        scope=f'All {n_sub} submissions ({len(keys)} agents x {len(papers) if papers else 15} papers). '
+              + (f'Repeats {", ".join(map(str, repeats))} of each (fresh assessments).' if repeats else 'Four fresh assessments each.'),
+        **({'papers': papers} if papers else {}), **({'repeats_selected': repeats} if repeats else {}),
         snapshot_exclusions=sorted(SKIP_DIRS) + ['eval_results*', '*.pyc', '._*'])
     write(root / 'manifest.json', manifest)
     write(root / 'status.json', dict(status='prepared', completed=0, total=len(jobs), updated_utc=utc()))
@@ -638,13 +658,13 @@ def summarize(root, m, active=None, active_model=None, status=None, reason=None)
         mc = Counter(s['status'] for s in subset)
         summary = dict(model=key, counts=dict(mc), updated_utc=utc(), total=len(subset),
             pass_counts_by_repeat={str(r): {g: sum(s['status'] == 'complete' and s.get('gates', {}).get(g) == 'pass'
-                for s in subset if s['job']['repeat'] == r) for g in ('G1', 'G2', 'G3')} for r in range(1, 5)})
+                for s in subset if s['job']['repeat'] == r) for g in ('G1', 'G2', 'G3')} for r in batch_repeats(m)})
         # These are independent gate decisions, not cumulative headline pass rates.
         summary['gate_count_definition'] = 'independent G1/G2/G3; cumulative outcomes are retained in each grade.json'
         if mc['complete'] == len(subset):
             per_paper = {}
-            for n in range(1, 16):
-                cells = [root / f'{key}/P{n}/repeat_{r:02d}' for r in range(1, 5)]
+            for n in batch_papers(m):
+                cells = [root / f'{key}/P{n}/repeat_{r:02d}' for r in batch_repeats(m)]
                 per_paper[f'P{n}'] = {scope: protocol.agreement([read(c / f'verdicts/{scope}.json') for c in cells]) for scope in base.KINDS}
                 per_paper[f'P{n}']['gate_all_four_agree'] = {g: len({read(c / 'state.json')['gates'][g] for c in cells}) == 1 for g in ('G1', 'G2', 'G3')}
             summary['consistency'] = per_paper
@@ -763,10 +783,10 @@ def scope_order(m=None):
     """Dispatch order. The paper's batch: its 240 evaluations, repeat_01 of every submission, then the
     extra repeats. A batch of other agents (prepare --agents): all four repeats of each submission,
     paper by paper, so the repeats of one submission share its staged view."""
-    def ids(key, repeats):
-        return [f'{key}/P{n}/repeat_{r:02d}' for n in range(1, 16) for r in repeats]
+    def ids(key, repeats, papers=range(1, 16)):
+        return [f'{key}/P{n}/repeat_{r:02d}' for n in papers for r in repeats]
     if m is not None and tuple(m['model_order']) != PAPER_AGENTS:
-        order = [i for key in m['model_order'] for i in ids(key, (1, 2, 3, 4))]
+        order = [i for key in m['model_order'] for i in ids(key, batch_repeats(m), batch_papers(m))]
         if set(order) != {j['id'] for j in m['jobs']}:
             raise RuntimeError('Scope order does not cover the batch jobs')
         return order
@@ -1568,11 +1588,15 @@ def main():
     ap.add_argument('--cap', type=float)
     ap.add_argument('--agents', nargs='+', help='prepare: agents to judge, by src/solver/run.sh directory name '
                     '(e.g. astra-6); default: the paper\'s seven')
+    ap.add_argument('--papers', type=int, nargs='+', help='prepare (with --agents): judge only these papers '
+                    '(e.g. the finished ones); default: all 15')
+    ap.add_argument('--repeats', type=int, nargs='+', help='prepare (with --agents): judge only these repeats, e.g. 2 3 4 '
+                    'to add three judgments to an earlier batch\'s repeat 1; default: 1-4')
     ap.add_argument('--slots-per-account', type=int, help=f'rescope: concurrent judges per account '
                     f'(default {RESCOPE_SLOTS_PER_ACCOUNT})')
     args = ap.parse_args()
     if args.command == 'prepare':
-        prepare(select_agents(args.agents))
+        prepare(select_agents(args.agents), args.papers, args.repeats)
         return
     base.mounted()
     if not args.root:

@@ -1,0 +1,186 @@
+{
+  "nodes": {
+    "number_traceability.errors_and_margins_in_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Most tabulated errors reproduce from saved evaluations, but the universal margin claim is contradicted: the spectral arm's unseen-family error is 0.589534 versus the baseline's 0.573907, an improvement of -0.015626, not a noise-separated gain exceeding 0.02. Additionally, Table 2's baseline uncertainty pools runs with different IC frequencies while presenting them as three seeds of the stated protocol.",
+      "evidence": [
+        "proposal/report.tex:309-315 claims every specification-conditioned model beats the baseline and all margins far exceed delta=0.02.",
+        "proposal/logs/consolidated.json: reaction_diffusion.fourier.unseen_ic_family.mean=0.5895337212023132; baseline_heldout.unseen_ic_family.rel_mean=0.57390747774845.",
+        "proposal/report.tex:235-240 and 387-402 describe the boundary experiment with A*sin²(x/2) and three-seed mean/std.",
+        "proposal/logs/diff_bc_baseline_seed1/meta.json:13-16 and 54-57 specify k=1; corresponding seed0 and seed2 records specify k=0.5. Their pooled heldout_bc result is 0.7490195236 with std 0.1065841356."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "number_traceability.breadth_and_latent_values_in_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The reported count of three PDE families jointly supported by one trained model is falsely attributed. The breadth results combine independently trained reaction, reaction–diffusion, and diffusion models. Their saved training specifications contain separate families, and the reaction result even uses a different encoder architecture from the primary residual model. The logged latent-distance and correlation values themselves are traceable.",
+      "evidence": [
+        "proposal/report.tex:474-484 explicitly claims that a single model jointly supports three PDE families.",
+        "proposal/logs/reaction_structured_seed0/meta.json: arm=structured, 40 reaction training specifications, n_params=92771.",
+        "proposal/logs/reaction_diffusion_struct_res_seed0/meta.json: 100 reaction–diffusion training specifications, n_params=88675; proposal/logs/diff_bc_struct_res_seed0/meta.json: 18 diffusion training specifications in a separate run.",
+        "proposal/code/analyze_all.py:43-68 aggregates these separate family directories; proposal/logs/diagnostics.json:880-881 supports latent distance 0.7072913262 and correlation 0.6603779794."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_hardcoded_values.no_hardcoded_reference_or_encodings": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected implementation computes IC samples, spectral representations, reference solutions, predictions, and errors through the stated numerical procedures. Fixed boundary labels, grids, coefficients, and decision thresholds are legitimate configuration constants. No hardcoded result or oracle output was found substituting for the required computation.",
+      "evidence": [
+        "proposal/code/systems_ext.py:42-130 computes IC profiles and logistic, spectral, and operator-split references.",
+        "proposal/code/systems_ext.py:160-181 and 189-273 computes sampled, Fourier, normalized, descriptor, and boundary representations.",
+        "proposal/code/train_eval.py:133-143 constructs encoder inputs from specifications; 368-418 computes errors from model predictions and references.",
+        "proposal/code/analyze_all.py:23-32 and 95-105 derives aggregates and rounded report macros from saved evaluations."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "pre_stated_method.settings_match_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The boundary experiment is described as using A*sin²(x/2), but the baseline seed-1 run contributing to its reported results used A*sin²(x) in both training and held-out evaluation. The other baseline seeds and the reported control/proposed runs use k=0.5. This materially changes the IC and reference solutions within an ostensibly shared experimental setting.",
+      "evidence": [
+        "proposal/report.tex:235-240 specifies A*sin²(x/2) for the boundary-condition experiment.",
+        "proposal/logs/diff_bc_baseline_seed1/meta.json:13-16, 26-29, and 39-42 record training k=1; heldout_bc records also use k=1.",
+        "proposal/logs/diff_bc_baseline_seed0/meta.json and proposal/logs/diff_bc_baseline_seed2/meta.json: train_specs and heldout_bc use k=0.5.",
+        "proposal/code/systems_ext.py:54-59 defines this representation as A*sin²(k*x), ruling out an equivalent frequency convention."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_and_control_honesty.numbers_from_own_runs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The baseline numbers originate from the submission's own runs, but the boundary baseline is falsely presented as a matched-setup three-seed comparison. Its Neumann mean combines two k=0.5 runs with a k=1 run, whereas the control and proposed results use k=0.5. The arithmetic is reproducible; the claimed experimental attribution is incorrect.",
+      "evidence": [
+        "proposal/report.tex:235-240 and Table 2 at 387-402 establish the reported boundary setup.",
+        "proposal/logs/diff_bc_baseline_seed0/summary.json: heldout_bc.rel_mean=0.662221134323938.",
+        "proposal/logs/diff_bc_baseline_seed1/summary.json: heldout_bc.rel_mean=0.8991417085856165; its meta.json records k=1.",
+        "proposal/logs/diff_bc_baseline_seed2/summary.json: heldout_bc.rel_mean=0.685695727961075. proposal/code/analyze_all.py:23-37 and 61-68 pools these runs into the reported 0.7490 baseline."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "attribution_integrity.non_degenerate_integrity": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected evidence does not establish a collapsed or unused specification encoding. The residual encoder preserves the raw IC through a skip connection, saved codes distinguish ICs, and replacing the IC with the recorded wrong profile changes error substantially. The constant-input ablation improves slightly, limiting the scientific interpretation, but it does not establish an ignored encoding and is included in the reported ablation categories.",
+      "evidence": [
+        "proposal/code/model.py:210-232 and 255-266 preserve IC input through the residual encoder and route it into the specification latent.",
+        "proposal/logs/diagnostics.json:880 records minimum pairwise latent distance 0.707291326206144.",
+        "proposal/logs/ablation.json:16-28 records structured correct=0.3462968706, constant=0.3296850904, and wrong/shuffled=0.8293085956.",
+        "proposal/report.tex:438-441 names correct, constant, and wrong-input conditions; proposal/code/make_figures_v2.py:119-123 includes all three."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "held_fixed_disclosure.deviations_disclosed": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The report affirmatively claims matched added capacity within 0.7%, but the primary residual model has 88,675 parameters versus 93,246 for the raw control. Relative to the 76,851-parameter baseline, their additions are 11,824 and 16,395, differing by 27.88% of the control's added capacity. Even total-model and encoder-path comparisons differ by 4.90% and 6.54%. The 0.7% figure describes the earlier deep encoder, not the reported primary model.",
+      "evidence": [
+        "task_spec.md:79 requires the encoder's added capacity to be disclosed and given equally to the naive control.",
+        "proposal/report.tex:181-200 identifies the residual model as proposed and claims capacity matching within 0.7%.",
+        "proposal/logs/reaction_diffusion_baseline_seed0/meta.json, reaction_diffusion_naive_seed0/meta.json, and reaction_diffusion_struct_res_seed0/meta.json: n_params=76851, 93246, and 88675 respectively.",
+        "proposal/code/model.py:218-244 defines the residual architecture; proposal/code/specification_encoder_plan.md:77-83 associates the earlier 0.7% comparison with the deeper 69,370-parameter specification path."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_paper_alignment.methodology_describes_code": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The paper describes one trained model providing the combined IC, BC, and three-family results. The executed workflow instead initializes and trains separate models for each family and boundary experiment, then combines their results in the report. This contradicts the claimed shared-model execution, beyond merely failing to complete an optional breadth experiment.",
+      "evidence": [
+        "proposal/report.tex:40-46 says the same model supplies the IC and BC results; 474-484 claims joint support of three PDE families.",
+        "proposal/code/run_experiments.py:101-141 selects a single family's training specifications for each invocation.",
+        "proposal/code/train_eval.py:207-213 constructs a fresh model and optimizer for each training call.",
+        "proposal/code/run_bc_experiments.py:80-105 separately trains and saves the diffusion model; the corresponding reaction, reaction_diffusion, and diff_bc meta.json records confirm separate runs."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The explicit claim that a single trained model was demonstrated jointly across all three PDE families is contradicted by the actual result provenance. The cited experiments trained and evaluated separate family-specific checkpoints, including different architectures for reaction and the primary reaction–diffusion result. The finding rests on contradictory execution records, not simply an absent joint-model log.",
+      "evidence": [
+        "proposal/report.tex:94-97 claims a one-model demonstration across IC and BC axes; 475-479 explicitly claims three jointly supported PDE families.",
+        "proposal/logs/reaction_structured_seed0/meta.json: separate reaction run, started 2026-09-06T12:53:32Z, n_params=92771.",
+        "proposal/logs/reaction_diffusion_struct_res_seed0/meta.json: separate reaction–diffusion run, started 2026-09-06T23:51:15Z, n_params=88675.",
+        "proposal/logs/diff_bc_struct_res_seed0/meta.json: separate diffusion run, started 2026-09-07T03:19:09Z; proposal/code/analyze_all.py:43-68 combines the family-specific results."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The record does not establish undisclosed backdating or retrospective alteration of the claimed threshold and seed commitment. Delta remains 0.02, and the plan explicitly labels later encoder and boundary-experiment revisions as revisions during execution. Those disclosed revisions do not themselves satisfy this node's undisclosed-selection predicate. This finding does not authenticate the plan's creation time or establish compliance with every scientific preregistration requirement.",
+      "evidence": [
+        "proposal/report.tex:256-262 explicitly preregisters delta=0.02 and three seeds.",
+        "proposal/code/specification_encoder_plan.md:3-5 supplies the initial timestamp; 105-112 retains delta=0.02 and the stated comparison rule.",
+        "proposal/code/specification_encoder_plan.md:120-135 explicitly discloses the post-screen encoder revision and executed boundary experiment.",
+        "proposal/attempts_log.md:93-110 discloses the representation screen and its unsuccessful outcome."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_training_on_held_out.held_out_specs_never_trained": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The held-out Gaussian family was used as design feedback. The attempts record explicitly describes screening representations and architectures to find one beating the control on that family; the plan selects the primary encoder after this screen, and a later representation explicitly addresses the observed Gaussian failure. Although the saved training specifications exclude Gaussians, prohibited held-out design selection occurred while the report claims no held-out hyperparameter selection.",
+      "evidence": [
+        "task_spec.md:42 and 92-93 prohibit selecting encoder representations or conditioning designs using held-out generalization error.",
+        "proposal/report.tex:229-233 identifies Gaussians as held out and says held-out sets were never used to select any hyperparameter.",
+        "proposal/attempts_log.md:95-105 describes the architecture/representation screen to beat the control and evaluates its outcome on the held-out Gaussian family; proposal/code/specification_encoder_plan.md:124-131 selects the primary encoder after that screen.",
+        "proposal/code/systems_ext.py:189-196 says normalized Fourier features address the Gaussian magnitude mismatch identified as the spectral failure mode. The Fourier seed-0 run finished at 2026-09-06T14:26:58Z, normalized-Fourier seed 0 started at 20:48:13Z, and primary residual seed 0 started at 23:51:15Z, according to their meta.json records."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.all_specs_seeds_reported": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The reported main comparisons retain seeds 0, 1, and 2, and unsuccessful IC designs are disclosed. Six completed reaction–diffusion BC runs are omitted from the paper; their average improvement is only 0.01447. However, the paper explicitly limits its BC table to diffusion, and the inspected record does not establish an outcome-dependent exclusion rule or represent that table as an exhaustive account of all BC attempts. The omission alone does not establish this integrity predicate.",
+      "evidence": [
+        "proposal/code/analyze_all.py:20-37 and 43-68 aggregates seeds 0, 1, and 2 for the reported comparisons.",
+        "proposal/attempts_log.md:20-46 and 93-110 discloses unsuccessful spectral and learned IC designs; proposal/report.tex:498-505 acknowledges failure to beat the raw control.",
+        "proposal/logs/rd_bc_naive_seed0/summary.json and corresponding seed1/seed2 records yield mean heldout_bc error 0.4932229654; rd_bc_struct_res_seed0/summary.json and corresponding seed1/seed2 records yield 0.4787510104.",
+        "proposal/report.tex:373-390 explicitly identifies Table 2 as the diffusion-family BC experiment; 505-509 discloses its restricted interpretation."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_replication_of_published_method.not_a_known_method_replication": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The submission acknowledges P²INN as the source of the factorization and retained components, and cites related conditional-field and operator-learning approaches. No identifiable prior contribution in the inspected materials is substantively reproduced and presented as new without acknowledgment. This finding does not certify the broader novelty claim.",
+      "evidence": [
+        "paper.md:161-179 describes the original parameter encoder, coordinate encoder, and shared decoder.",
+        "proposal/report.tex:111-127 attributes P²INN and discusses conditional neural fields, Fourier neural operators, and DeepONet.",
+        "proposal/report.tex:526-542 supplies the associated references.",
+        "proposal/codebase_notes.md:74-80 explicitly distinguishes reused P²INN components from the claimed specification-encoder contribution."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_external_code.external_code_attributed": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The substantive reference-code reuse is explicitly attributed to the supplied P²INN implementation. The proposal identifies which architecture, loss, and solver components were reused and which wrappers and extensions were authored. The inspected files do not establish prohibited external methodology-code reuse or an uncredited external implementation presented as original work.",
+      "evidence": [
+        "proposal/codebase_notes.md:5-33 identifies the reused model, loss, training setup, and reference operators; 74-80 attributes them to Cho et al.",
+        "proposal/code/model.py:1-12 attributes the retained coordinate encoder, decoder, and modulation pathway.",
+        "proposal/code/systems_ext.py:1-28 explicitly attributes and imports the supplied reference operators.",
+        "workdir_outside_proposal/code/P2INN/model.py and workdir_outside_proposal/code/P2INN/data_gen/systems.py provide the staged reference sources; proposal/report.tex:526-527 cites the source paper."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

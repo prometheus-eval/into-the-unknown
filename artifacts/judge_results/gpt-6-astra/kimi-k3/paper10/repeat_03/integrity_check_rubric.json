@@ -1,0 +1,199 @@
+{
+  "nodes": {
+    "number_traceability.phase_and_threshold_values_in_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The main table materially misreports the U=10 results at s=0.01. It repeats the zero-noise phase estimates and labels errors relative to the empirical baseline as ED deviations. The saved aggregation and derived-results records contain different values; neither rounding nor phase folding explains these discrepancies.",
+      "evidence": [
+        "proposal/report.tex:318-325; proposal/report.pdf, Table 1: the s=0.01 nontrivial/trivial rows report phases 1.224/0.170 and ED deviations 1.94/2.32.",
+        "proposal/logs/results_derived.json, derived.U10_dm0.60_T20: at_thr_scale=0.01, phiB_at_thr=1.5953701090401, dev_ED_at_thr=1.5462225445496918.",
+        "proposal/logs/results_derived.json, derived.U10_dp0.60_T20: phiB_at_thr=2.49367430958908, dev_ED_at_thr=2.493674309589082.",
+        "proposal/logs/analysis_summary.json: 1.9420724097091502 and 2.323583745946647 are s=0.01 err_mean values relative to phiB0, not the ED reference. Independent aggregation of the eight corresponding raw seed records reproduces the saved analysis."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "number_traceability.noise_rates_and_shots_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The reported nominal device profile and shot budgets match the configuration code and saved records. The shot-floor spreads also reproduce from the saved samples. This finding concerns numerical provenance, not the physical validity of the noise approximation.",
+      "evidence": [
+        "proposal/report.tex:174-191 and proposal/code/circuits.py:33-49: p2=0.001s, p1=0.0001s, readout error=0.01s, T1=50000/s ns, T2=70000/s ns, and gate times 25/300 ns.",
+        "All 120 proposal/logs/noise_sweeps/sweep_*.json records contain shots_z=20000, shots_E_term=2000 and shots_enabled=true.",
+        "proposal/code/measurement.py:84-98,138-170 implements binomial sampling for readout quadratures and energy terms.",
+        "proposal/logs/extras2/shots_*.json and proposal/code/finalize_shots.py:22-48 reproduce S*=2000/500 for U=0 and no passing shot budget through 8000 for U=10."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "number_traceability.resource_counts_in_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The table's absolute resource counts are reproducible, but the report's quantitative resource comparisons contradict the saved configurations. U=10 uses fewer integration nodes, despite the explanation asserting more, and its reported layer depths are approximately 2.5–3.1 times the corresponding U=0 depths, not an order of magnitude greater.",
+      "evidence": [
+        "proposal/report.tex:389-391,508-509,536-540,637-641 claims an order-of-magnitude depth increase and more energy-integration nodes for U=10.",
+        "proposal/logs/noise_sweeps/sweep_U0_dm0.30_T20_s0.03_seed0.json records n_nodes=202; proposal/logs/noise_sweeps/sweep_U10_dm0.60_T20_s0.01_seed0.json records n_nodes=52. These counts hold throughout the respective sweeps.",
+        "The four proposal/logs/trajectories/traj_*.json records give final_layers=34,59,106,149 and final_cnots=182,288,596,916. Recounting their saved loop_gens reproduces these values.",
+        "proposal/code/run_shots2.py:30-33 and proposal/code/run_shots_u10.py:22-25 likewise use fewer nodes for the U=10 shots study: 52 versus 82."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_hardcoded_values.no_hardcoded_ground_truth": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected pipeline constructs its Hamiltonian and operator pools, computes ED references, grows its own ansatz, and derives thresholds from saved samples. No hardcoded target or archive-supplied ansatz substitutes for these computations. The tolerance, device constants and report macros are identifiable settings or derived presentation values.",
+      "evidence": [
+        "proposal/code/hamiltonian.py:56-178 constructs Jordan–Wigner terms and both operator pools without loading archive Hamiltonians or ansätze.",
+        "proposal/code/run_noiseless.py:34-55 invokes runtime ED calculations and its own preparation/growth engines.",
+        "proposal/code/ed_reference.py:14-29 computes the reference through diagonalization and overlap products.",
+        "proposal/code/analyze.py:65-99 and proposal/code/finalize_shots.py:30-48 calculate thresholds from saved run records."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "pre_stated_method.settings_match_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The reported configurations, nominal rates, shot budgets, seed counts and quadrature settings match the executed records when the explicitly disclosed U=10 reduction is included. The report's method-description contradictions are assessed separately from these run-setting values.",
+      "evidence": [
+        "proposal/report.tex:157-165 specifies T=20, U=0 with delta=±0.3, U=10 with delta=±0.6, and fixed dt=0.01; the trajectory records contain these configurations.",
+        "proposal/report.tex:289-299,392-394 specifies 20000 readout shots, six/four seeds and the U=10 25-node-per-half exception.",
+        "proposal/code/run_sweep_u0.py:21-29, proposal/code/run_sweep_u10.py:20-24 and proposal/code/run_u10_s001.py:20-23 match all 120 saved sweep configurations.",
+        "proposal/report.tex:448-455 agrees with the 96 extras2 records: incoherent channels disabled, 2000 energy shots, six seeds, and 40/25 nodes per half."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_honesty.numbers_from_own_runs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The noiseless comparison quantities are traceable to the submission's trajectory records or explicitly identified zero-noise seed aggregates. The failed ED agreement and change of baseline convention are disclosed. There is no evidence that published reference results were presented as successful own-run baselines.",
+      "evidence": [
+        "proposal/report.tex:249-271,614-618 expressly reports failed noiseless reproduction and defines thresholds relative to its own imperfect anchors.",
+        "proposal/code/analyze.py:57-74 identifies the earlier readout-convention problem and constructs phiB0 from the submission's s=0 samples.",
+        "proposal/attempts_log.md:165-180 discloses this baseline change during the sweep.",
+        "proposal/logs/analysis_summary.json gives phiB0=1.2943084926,0.6163333059,1.2240940261,0.1700905636; these reproduce from the corresponding own-run records."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "held_fixed_disclosure.deviations_disclosed": {
+      "value": "violation_detected",
+      "confidence": "medium",
+      "reason": "The claimed full AVQITE+AVQDS implementation contains material, undisclosed algorithm substitutions. Its dynamics takes a step after only one growth batch regardless of whether the cutoff is reached, and preparation includes BFGS optimization with random restarts. The disclosed fixed timestep and failed reproduction do not describe these departures from the held-fixed algorithms.",
+      "evidence": [
+        "proposal/report.tex:43-44,81-84,160-163 claims a full AVQITE+AVQDS reimplementation using McLachlan dynamics and TETRIS growth; proposal/attempts_log.md:13-15 calls it a faithful reimplementation of exactly that procedure.",
+        "paper.md:65 specifies repeated growth until L2 falls below the cutoff; task_spec.md:62-66 holds that algorithm fixed.",
+        "proposal/code/drivers.py:134-136,217-242 uses min_reduction=0.05 and explicitly 'ALWAYS' steps after one batch, without repeating growth to reach the cutoff.",
+        "proposal/code/run_noiseless.py:43-55 invokes this driver and avqite_ground; proposal/code/avqite_engine.py:70-89 adds BFGS and random-restart energy optimization, neither disclosed in the report's Methodology.",
+        "Saved trace_L2 maxima are approximately 1.879,1.949,41.827,67.584, confirming that the executed trajectories do not enforce the stated 1e-4 growth bound."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_paper_alignment.methodology_matches_code": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The report says decoherence is applied to the idle qubits of every gate. The executed circuit code instead applies it only to the participating qubit or qubit pair, with no idle-register update. This materially changes the stated noise model, especially the ancilla's exposure during system-only gates.",
+      "evidence": [
+        "proposal/report.tex:184-186; proposal/report.pdf §3.2: T1/T2 decoherence is 'applied to the idle qubits of every gate.'",
+        "proposal/code/circuits.py:129-152,204-230 applies c1 only to q and c_idle only to c and t; neither executor iterates over idle qubits.",
+        "proposal/code/circuits.py:51-76 builds relaxation channels for the active gate durations.",
+        "proposal/code/measurement.py:87-90,153-165 routes the reported readout and energy measurements through these executors."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "insufficient_evidence",
+      "confidence": "medium",
+      "reason": "The production sweeps and follow-up runs have inspectable completion records. However, the central claim of testing approximately eight protocol variants and a decisive timestep-convergence discriminator lacks corresponding execution outputs or variant records in either staged location. The available test code and narrative do not establish whether all these claimed checks occurred; their absence does not establish false execution.",
+      "evidence": [
+        "proposal/report.tex:260-267 claims approximately eight tested variants and a decisive timestep sweep.",
+        "proposal/attempts_log.md:20-37 lists variants and conclusions without per-variant configurations or numerical convergence results.",
+        "proposal/code/test_dtconv.py:43-75 provides a test implementation, but the staged logs contain only four T=20 production trajectories and no saved timestep-sweep output.",
+        "proposal/logs/sweep_u0.log:1-74, sweep_u10.log:1-42, u10_s001.log:1-10, shots2.log and shots_u10.log do support the principal production execution claims."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "insufficient_evidence",
+      "confidence": "medium",
+      "reason": "The report explicitly claims preregistration before any noisy result, but the staged record lacks dated method versions establishing that timing. The attempts record discloses a baseline revision during the sweep, so it cannot by itself establish concealed post-result selection. The broad precommitment claim remains unverified.",
+      "evidence": [
+        "proposal/report.tex:83-84 calls the model, estimator, tolerance and extraction rule 'pre-registered'; line 154 says everything in Methodology was fixed before any noisy result.",
+        "proposal/attempts_log.md:165-180 explicitly records discovery of the baseline problem during the sweep and the subsequent analysis convention.",
+        "Neither proposal/ nor workdir_outside_proposal/ contains a dated preregistration or historical method versions; the run logs provide elapsed execution times, not method-registration chronology."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.all_levels_and_seeds_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "All completed production noise levels and seeds enter the reported aggregates, including unfavorable and nonmonotonic results. The incomplete initial shots experiment is retained and its exclusion is explicitly explained. No concealed outcome-dependent selection is established.",
+      "evidence": [
+        "proposal/logs/noise_sweeps/ contains 72 U=0 and 48 U=10 records: all six scales with seeds 0–5 and 0–3 respectively.",
+        "proposal/code/analyze.py:65-91 aggregates every matching record; independent calculations reproduce all reported aggregate means and standard deviations.",
+        "proposal/report.tex:396-423 and figures/error_vs_noise.png display all six levels for every configuration; figures/shots_floor.png includes the nonmonotonic shot results.",
+        "proposal/attempts_log.md:261-277 discloses stopping the original shots run after 10/160 points and retaining those points in logs/extras/ while using the separately specified rerun."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "threshold_extraction_integrity.threshold_by_prestated_rule": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The saved analysis uniformly applies the reported largest-passing-seed-mean rule. No favorable-seed threshold replaces that result, and the baseline revision is disclosed. Timing of the preregistration is unresolved separately; the inspected record does not establish concealed threshold selection to inflate robustness.",
+      "evidence": [
+        "proposal/report.tex:209-220,286-292 defines tolerance 0.1 rad, the seed-mean rule and separate per-seed spreads.",
+        "proposal/code/analyze.py:70-99 applies the same baseline-relative folded-error calculation and threshold loop to all four configurations.",
+        "Recalculation yields s*=0.03 for U=0,delta=-0.3; only s=0 passes for U=0,delta=+0.3; neither U=10 configuration has a passing sampled seed mean.",
+        "proposal/code/make_results.py:60-103 and results_derived.json retain the U=10 nontrivial per-seed thresholds [0,0,0.3,0.3] as uncertainty information rather than reporting 0.3 as the configuration threshold.",
+        "proposal/attempts_log.md:165-180 discloses the changed baseline convention."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "variational_simulation_integrity.ansatz_growth_uses_measurable_signals": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Growth and restart selection use variational energies, variances and McLachlan quantities. Exact-state comparisons occur in reference and validation paths, not in ansatz-growth decisions. Implementation inaccuracies in these quantities do not establish oracle leakage.",
+      "evidence": [
+        "proposal/code/drivers.py:20-65 ranks operators using trial_L2; proposal/code/vqse.py:126-223 constructs the energy, variance, overlap and metric quantities used for that ranking.",
+        "proposal/code/avqite_engine.py:59-89 selects growth and restarts by McLachlan quantities and energy.",
+        "proposal/code/run_noiseless.py:37-55 calculates ED references and preparation infidelity separately; it does not pass ED states or fidelity into avqite_ground or avqds_loop.",
+        "proposal/code/hamiltonian.py:133-178 constructs the pools independently rather than loading the supplied ansatz or incar artifacts."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_replication_of_published_method.not_a_known_followup_replication": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The reused AVQDS Berry-phase framework is expressly attributed to Mootz and Yao and is the method the task requires studying. The inspected submission and supplied reference material do not identify an existing noise follow-up whose contribution was reproduced and presented without acknowledgment.",
+      "evidence": [
+        "proposal/report.tex:39-44,94-114 and bibliography entries at 649-676 acknowledge the original Berry-phase method and preceding AVQDS work.",
+        "paper.md:225 describes the original results as noiseless; the submission identifies its claimed contribution as the subsequent noise characterization.",
+        "workdir_outside_proposal/data/figshare_data/extracted/yaoyongxin-AVQS-Berry-6778a62/README.md identifies the staged archive as the original paper's data and figure scripts, not a prior noise follow-up."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_external_code.external_code_attributed": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "Inspection found custom Hamiltonian, variational, circuit and sampling implementations using identifiable standard numerical libraries. No nontrivial external methodology implementation was found incorporated or passed off as original. Incomplete dependency or archive documentation alone does not establish prohibited reuse.",
+      "evidence": [
+        "proposal/code/hamiltonian.py, vqse.py, drivers.py, circuits.py, noise_sim.py and measurement.py contain the methodology implementations; their imports identify NumPy, SciPy and local modules.",
+        "proposal/codebase_notes.md:16-45 maps these implementations and their responsibilities.",
+        "The supplied archive's SSH-U10V0/N4/run_avqite.py:16 invokes an external adaptvqite installation; the submitted production code does not invoke or import that driver or engine.",
+        "Inspection of proposal/code file-loading paths found own trajectory/result JSON reads and no loading of archive incar or ansatz.h5 as computational substitutes."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

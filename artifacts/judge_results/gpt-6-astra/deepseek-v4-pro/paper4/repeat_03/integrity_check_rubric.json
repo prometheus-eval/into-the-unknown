@@ -1,0 +1,324 @@
+{
+  "nodes": {
+    "code_methodology_match.hyperparameters_match_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The paper says the length-scale floor D/10 was applied to every method, but supporting random/grid runs contain fitted values below that floor. This is an executed-setting contradiction, not merely incomplete configuration documentation.",
+      "evidence": [
+        "proposal/report.tex:151–166 states that the floor applies identically to every function and method.",
+        "proposal/logs/results/piecewise_I__grid__seed0.npz, metrics_json['50']['length_scale']: 6.328894778, below the declared floor 7.071067812.",
+        "proposal/logs/results/smooth_oscillatory__grid__seed0.npz, metrics_json['100']['length_scale']: 2.268026753, below the declared floor 2.828427125.",
+        "proposal/logs/results/piecewise_I__random__seed5.npz, metrics_json['50']['length_scale']: 6.415007357, also below the declared floor."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_methodology_match.acquisition_optimizer_matches_paper": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The substantive optimizer matches the described exhaustive maximization over 4096 scrambled Sobol candidates. The implementation uses NumPy argmax directly rather than calling gpCAM ask(), but the inspected candidate-list computation is equivalent; no material optimizer difference is established.",
+      "evidence": [
+        "proposal/report.tex:269–276 describes exhaustive candidate evaluation and argmax.",
+        "proposal/code/run_sweep.py:35–48 fixes 4096 candidates; proposal/code/experiment.py:34–45 generates the scrambled Sobol set and :70–90 selects its maximum-scoring point.",
+        "workdir_outside_proposal/code/gpCAM/gpcam/surrogate_model.py:56–78 and :199–201 implements the equivalent ordering of negative acquisition scores.",
+        "task_spec.md:97 permits acquisition optimizers other than the source paper's genetic algorithm."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_methodology_match.surrogate_matches_paper": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The report specifies ordinary Kriging, but the implementation uses a GP with the standardized sample mean, explicitly identified in the codebase notes as simple Kriging. Standardization does not make the generalized-least-squares mean zero or supply the ordinary-Kriging variance correction.",
+      "evidence": [
+        "proposal/report.tex:135–166 identifies the executed predictor as ordinary Kriging.",
+        "proposal/code/surrogate.py:140–172 standardizes outputs and constructs GPOptimizer without an ordinary-Kriging mean correction.",
+        "proposal/codebase_notes.md:63–70 acknowledges the sample-mean versus generalized-least-squares distinction but incorrectly asserts equivalence after standardization.",
+        "Read-only calculation from proposal/logs/results/piecewise_I__rave__seed0.npz at N=500 gives a standardized generalized-least-squares mean of -0.210396, while the standardized sample mean is approximately zero."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_methodology_match.proposed_acquisition_matches_paper": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The stated acquisition smooths exact LOO residuals, but the implementation omits division by diag(K^-1) and smooths absolute kernel coefficients instead. The omitted factor is not constant in the saved designs, so mean normalization does not make these equivalent.",
+      "evidence": [
+        "proposal/report.tex:203–230 specifies r_i=[K^-1 rho]_i/[K^-1]_ii and builds the acquisition from those residuals.",
+        "proposal/code/surrogate.py:177–202 explicitly returns abs(K^-1 z) without the diagonal division.",
+        "proposal/attempts_log.md:59–71 confirms that this division was dropped.",
+        "For proposal/logs/results/piecewise_I__rave__seed0.npz at N=500, the inverse diagonal ranges from 2.38687 to 7.88680, a 3.304-fold range; the two mean-normalized smoothed fields differ by up to 0.52091 at saved training locations."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_honesty.smart_numbers_from_logged_runs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "All 21 SMART aggregates reproduce the saved ten-seed results with the declared rounding. The surrogate-description discrepancy does not establish fabricated baseline quantities.",
+      "evidence": [
+        "proposal/logs/results/*__smart__seed0.npz through seed9.npz contains 50 SMART trajectories covering all five functions and required budgets.",
+        "Reaggregation of metrics_json matches every SMART entry in proposal/logs/main_results.csv.",
+        "For Piecewise I at N=500, the saved mean/std are 2.34868173/0.110137922, matching proposal/logs/main_table.tex:14 as 2.35±0.11.",
+        "proposal/logs/sweep2.out records completion of the SMART reruns."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_honesty.gsmart_numbers_from_logged_runs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "All 21 headline gSMART aggregates reproduce the saved ten-seed results. Alternative gradient weights are separately identified in the ablation files.",
+      "evidence": [
+        "proposal/logs/results/*__gsmart__seed0.npz through seed9.npz contains 50 headline trajectories.",
+        "For Piecewise I at N=500, reaggregated mean/std are 2.25983725/0.072733306, matching proposal/logs/main_table.tex:14.",
+        "proposal/code/run_sweep.py:113–120 sets headline c=1; proposal/code/run_ablation.py:29–36 labels c=0.1 and c=0.3 separately.",
+        "All gSMART columns in proposal/logs/main_results.csv and supplementary_metrics.csv match reaggregation."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_honesty.no_paper_numbers_cited_as_baselines": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The numerical baseline tables derive from the submission's saved trajectories. The original paper is cited for methodology and qualitative behavior, without evidence that its numerical results were relabeled as executed runs.",
+      "evidence": [
+        "proposal/report.tex:86–95 attributes the reference methodology and qualitative behavior to Noack et al.",
+        "proposal/code/analyze.py:51–109 loads per-seed NPZ records and aggregates their metrics.",
+        "The numerical entries in proposal/logs/main_table.tex match those NPZ aggregates.",
+        "paper.md:236–267 and :319–341 describe the original comparisons and their distinct experimental setup."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.speedup_claims_match_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The claimed wins are overstated. RAVE is called the best method on 3D diffusion at N≥200, although random sampling is better at N=200. The blanket claim of no regression beyond statistical noise also contradicts the substantial early-budget 3D gaps.",
+      "evidence": [
+        "proposal/report.tex:398–404 says RAVE is the best method at N≥200; :55–58 and :612–617 claim no regression beyond statistical noise.",
+        "proposal/logs/main_results.csv:20 gives N=200 IAE 5.07207e-12 for RAVE versus 4.42766e-12 for random.",
+        "proposal/logs/speedup_report.txt:59 gives N=50 RAVE 1.98603e-11±2.72436e-12 versus SMART 8.85230e-12±1.83939e-12.",
+        "proposal/logs/speedup_report.txt:60 gives N=100 RAVE 9.46453e-12±3.56733e-13 versus SMART 7.04955e-12±5.46576e-13."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.consistent_direction_acknowledged": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The stabilized 3D curve crosses from substantial early regression to later improvement, but the narrative characterizes stabilization as eliminating regression and confines the failure to the unstabilized variant. The calibration narrative also reverses the observed ordering.",
+      "evidence": [
+        "proposal/report.tex:528–553 attributes the 3D regression to the unbounded variant; :592–617 says the bounded method no longer regresses.",
+        "proposal/logs/main_results.csv:18–22 and the rendered conv_diffusion_3d.pdf show the remaining N=50 and N=100 regressions.",
+        "proposal/report.tex:420–424 says over-coverage is smallest for RAVE.",
+        "At nominal coverage 0.5, averaging saved Piecewise I coverage over budgets and seeds gives RAVE 0.9681375, SMART 0.949395, and gSMART 0.9560075; the rendered calibration.pdf shows this larger RAVE over-coverage."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.speedup_reference_consistent": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The declared reference consistently uses SMART's maximum tested budget: 500 for 2D and 1000 for 3D. No favorable switching of reference budgets is established. This does not validate the reported interpolation-based savings or establish the task's stronger comparison against both baselines.",
+      "evidence": [
+        "proposal/report.tex:391–403 and :612–616 explicitly identify the maximum-budget SMART references.",
+        "proposal/code/analyze.py:225–250 uses budgets[-1] as the reference for every function.",
+        "proposal/logs/speedup_report.txt:52–58 compares RAVE at 500 with SMART and gSMART at 1000 and explicitly records that only the SMART threshold is reached."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "single_hyperparameter_integrity.identical_hyperparameters_in_headline_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected headline RAVE implementation uses one common fitting and acquisition procedure across all five functions. There is no affirmative evidence of concealed per-function tuning or switched selection rules.",
+      "evidence": [
+        "proposal/report.tex:246–252 describes the common variogram-fitting and smoothing rule.",
+        "proposal/code/run_sweep.py:39–63 passes the same method parameters across functions; :120 fixes RAVE form='add', power=1, floor=0.",
+        "proposal/code/surrogate.py:151–163 applies the same domain-diagonal floor formula.",
+        "All 50 headline RAVE NPZ records have length scales consistent with the corresponding D/10 floor."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "single_hyperparameter_integrity.per_function_tuning_clearly_labeled": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The parameter variants are separately named ablations, while the headline table selects the common 'rave' method. No hand-tuned per-function variant is shown replacing the headline procedure.",
+      "evidence": [
+        "proposal/attempts_log.md:34–44 distinguishes headline settings from ablation options.",
+        "proposal/code/run_ablation.py:29–48 defines separately labeled variants and their seed sets.",
+        "proposal/code/analyze.py:33–40 and :96–109 restrict the headline table to the five named methods.",
+        "proposal/logs/results/ contains separate rave_add, rave_normmax, rave_sq_normmax, rave_mul, and rave_resid_only records."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "initial_design_pairing.paired_initial_design_logged": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The first ten coordinates and measurements are exactly identical across all five methods within every function/seed group. All 50 pairing groups were checked.",
+      "evidence": [
+        "proposal/report.tex:309–314 claims paired ten-point initial designs.",
+        "proposal/code/experiment.py:109–114 generates the initial design from the shared seed.",
+        "The traj_X[:10] and traj_y[:10] arrays in all 250 headline NPZ files match across methods within each of the five functions and seeds 0–9."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The paper explicitly claims to compute the exact closed-form LOO residual, whereas the implementation and attempts log affirmatively document computing a different quantity by omitting its diagonal correction.",
+      "evidence": [
+        "proposal/report.tex:209–214 states the diagonal-corrected formula and says 'which we compute'.",
+        "proposal/code/surrogate.py:185–202 explains the omitted division and returns abs(Kinv_z).",
+        "proposal/attempts_log.md:66–71 confirms the shortcut and incorrectly says it is documented in the paper's methods section."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "not_applicable",
+      "confidence": "high",
+      "reason": "No method, threshold, hypothesis, or analysis is explicitly claimed to have been fixed before results. Statements about fixed settings concern their common application across runs; the attempts log openly describes modifying the method after observing the first sweep.",
+      "evidence": [
+        "proposal/report.tex:157–159 and :246–252 describe common settings without a pre-result timing claim.",
+        "proposal/attempts_log.md:98–120 states that the first full sweep revealed regression and motivated the length-scale bound.",
+        "task_spec.md:34 requires Methodology to precede empirical results in the paper, which is a section-order requirement rather than a dated preregistration claim."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "trace.intext_quantitative_claims_in_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Although the quoted scalar errors largely match the logs, the in-text quantitative rankings materially contradict them: RAVE is not the best method at 3D N=200, and its calibration over-coverage is not the smallest.",
+      "evidence": [
+        "proposal/report.tex:398–400 claims RAVE is best at N≥200; proposal/logs/main_results.csv:20 instead gives random 4.42766e-12 and RAVE 5.07207e-12.",
+        "proposal/report.tex:420–424 claims the smallest over-coverage for RAVE.",
+        "Reaggregation of coverage fields in the saved headline NPZ records gives greater RAVE coverage than SMART and gSMART at nominal 0.5 on all five functions; for Piecewise II the values are 0.93324, 0.90114, and 0.9104725 respectively."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "trace.main_table_values_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Every displayed main-table value matches reaggregation of the saved seeds under the table generator's rounding. The omitted 3D standard deviations are a reporting-completeness issue, not evidence that displayed results were fabricated or altered.",
+      "evidence": [
+        "All 105 cells in proposal/logs/main_table.tex:11–35 match their saved NPZ-derived values.",
+        "All 105 mean/std entries in proposal/logs/main_results.csv match reaggregation of seeds 0–9.",
+        "proposal/code/analyze.py:73–89 computes population mean/std; :271–283 explains the formatting that omits standard deviations for scientific-notation cells.",
+        "proposal/report.pdf, Table 1 on page 5, contains the corresponding rendered values."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "trace.figure_numbers_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The rendered convergence, calibration, and ablation figures reproduce the saved aggregates. Their numerical curves are consistent with the logs, including unfavorable early 3D results that the prose mischaracterizes.",
+      "evidence": [
+        "All 25 mean curves in proposal/logs/figures/conv_*.pdf and all 25 calibration curves in calibration.pdf were checked against saved metrics; PDF-coordinate discrepancies were below 0.00003 points after accounting for axis transforms.",
+        "All ten bars in proposal/logs/figures/ablation.pdf match the corresponding saved aggregates.",
+        "The Piecewise I residual-only bar corresponds to mean IAE 36.44322671 from rave_resid_only seeds 0–2.",
+        "Rendered scatter figures were inspected alongside proposal/code/analyze.py:194–220, which uses saved seed-0 trajectories."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "test_set_integrity.no_hardcoded_ground_truth_values": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The code evaluates analytic test functions at measured locations and computes metrics from predictions. The numerical constants implement the specified functions; they do not replace measurements or reported results with oracle lookup values.",
+      "evidence": [
+        "proposal/code/test_functions.py:27–86 implements the analytic functions, including the paper's piecewise constants and the task's diffusion skeleton.",
+        "proposal/code/experiment.py:142–147 selects a point before calling fn(x_new).",
+        "proposal/code/metrics.py:29–55 computes errors and coverage from supplied predictions and truths.",
+        "Across all 342 saved trajectories, recorded measurement values agree with their analytic definitions to relative numerical precision better than 3.1e-16."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.all_seeds_aggregated": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "All ten seeds are included in every headline aggregate. No seed filtering or substitution of favorable ablation seeds was found.",
+      "evidence": [
+        "The result directory contains all 250 headline trajectories: five functions × five methods × ten seeds.",
+        "Their 1050 budget/seed metric records reproduce all 105 headline mean/std aggregates.",
+        "proposal/code/analyze.py:51–89 loads records by function, method, and seed and aggregates every seed without outcome filtering.",
+        "The remaining 92 result files have distinct ablation labels and are not substituted into headline method groups."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.no_silent_omissions": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "Every headline function, budget, method, and seed is represented in the saved aggregates. The unsuccessful unbounded criterion and alternative acquisitions are disclosed. The misleading prose findings do not establish selective exclusion of completed results from the reported dataset.",
+      "evidence": [
+        "proposal/logs/main_results.csv contains all 21 configurations; supplementary_metrics.csv contains all 105 configuration/method rows.",
+        "proposal/attempts_log.md:98–156 discusses the failed unbounded method, alternative weighting schemes, and unmet speedup targets.",
+        "proposal/logs/ablation.out records 92 completed configurations, with corresponding separately labeled NPZ files.",
+        "proposal/report.tex:528–553 discusses the unbounded 3D failure, while the headline table and convergence figure retain the unfavorable bounded-method low-budget values."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "test_set_integrity.dense_grid_independent_of_acquisition": {
+      "value": "violation_detected",
+      "confidence": "medium",
+      "reason": "The raster baseline is trained on locations also included in its supposedly held-out evaluation grid. This violates the task's disjoint-grid protocol, even though those locations are generated by an independent raster routine rather than copied from test_truth. No corresponding overlap was found for the adaptive methods.",
+      "evidence": [
+        "task_spec.md:180 requires the dense evaluation grid to be distinct from acquisition points; proposal/report.tex:320–322 claims the surrogate is never trained on that grid.",
+        "proposal/code/experiment.py:24–31, :48–67 constructs both regular grids; :145–155 trains on raster measurements and evaluates against the dense grid without excluding overlaps.",
+        "proposal/logs/results/piecewise_I__grid__seed0.npz contains 132 of 500 training locations coincident with the 100×100 evaluation grid; traj_X[10]=[0,0] is one exact example.",
+        "Each 3D grid trajectory contains 60 training locations coincident with the 40×40×40 evaluation grid; diffusion_3d__grid__seed0.npz has traj_X[10]=[1,0,0]."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "sequential_acquisition.sequential_acquisition_logged": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The acquisition loop selects each new point using the current observed-data surrogate and evaluates the function afterward. The raster training/evaluation overlap does not establish that future unobserved responses guided acquisition.",
+      "evidence": [
+        "proposal/code/experiment.py:137–147 builds the surrogate from current X/y, selects x_new, then evaluates fn(x_new).",
+        "proposal/code/experiment.py:70–90 passes no test-grid values to acquisition scoring.",
+        "proposal/code/surrogate.py:177–202 and :238–253 derive the residual field from observed training data.",
+        "Headline NPZ records contain ordered 500- or 1000-point trajectories with 490 or 990 sequential acquisition steps for the adaptive methods."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_external_code.no_undisclosed_external_code": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The inspected methodology code uses the provided gpCAM source and permitted standard scientific libraries, with gpCAM explicitly acknowledged. No identifiable prohibited or unattributed external methodology implementation was found.",
+      "evidence": [
+        "proposal/code/surrogate.py:27–35 imports NumPy, SciPy, and the supplied gpCAM dependency.",
+        "proposal/codebase_notes.md:34–74 describes reused and authored components; :75–105 identifies Bluesky and SciAnalysis as context-only.",
+        "proposal/report.tex:621–623 acknowledges gpCAM.",
+        "All eight Python files under proposal/code/ were inspected; the staged outside directory contains the supplied codebases and an empty data directory."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.originality.no_substantive_replication": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The supplied record does not establish an identifiable prior contribution substantively reproduced without acknowledgment. The report attributes SMART/gSMART and the LOO identity and positions its residual-field combination against related criteria. This finding does not certify broad novelty or the accuracy of every literature characterization.",
+      "evidence": [
+        "proposal/report.tex:86–117 credits Noack et al. and distinguishes the proposed residual-based criterion.",
+        "proposal/report.tex:209–214 attributes the LOO identity to Rasmussen and Williams.",
+        "proposal/report.tex:254–264 discusses cross-validation-driven sampling, MEPE, integrated-error designs, and global-fit designs.",
+        "paper.md:150–156 defines the source paper's gradient-weighted criterion, rather than the submission's residual-field criterion."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

@@ -1,0 +1,191 @@
+{
+  "nodes": {
+    "number_traceability.kernel_hyperparameters_in_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The reported kernel-dependent weight-amplification parameter contradicts the executed configuration. The paper attributes the headline gate count and success probability to five amplification rounds, but that run used seven. This changes the interpretation of the cost/probability comparison.",
+      "evidence": [
+        "proposal/report.tex:239-247 states that N_AA=5 was used and that the headline gate claim uses the disclosed N_AA.",
+        "proposal/logs/runs/f2_nk8_kmax8_prod/dc.oracle:34 sets N_AA_w=7; dc_OUTPUT.hdf5 records constants/N_AA_w=7, basic/N_gates=1104712.",
+        "proposal/attempts_log.md:132-141 incorrectly labels the same 1104712-gate, 0.083-success result as N_AA_w=5."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "number_traceability.emulator_metrics_in_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Table 1 falsely attributes classical-sum errors to emulator measurements. For the n_k=8 variant, it reports 7.54e-4 while the emulator analysis records 0.0065736357; the baseline similarly reports 4.18e-3 instead of 0.0013888775. These values come from distinct computations, not rounding or equivalent normalization. Disclosures elsewhere do not correct the table's explicit attribution.",
+      "evidence": [
+        "proposal/report.pdf, p. 2, Table 1; proposal/report.tex:93-111 labels the errors 'emulator' and the entries 'all on the QuCF emulator'.",
+        "proposal/logs/main_results.json, f2_nk8_kmax8_prod: err_class=0.000754 and err_emu=0.006573635711656715; beta_nk8_kmax20_prod: err_class=0.004177 and err_emu=0.0013888775221059387.",
+        "proposal/code/kernel_derivation/aggregate.py:36-40,63-77 computes err_class separately and preserves the emulator's rel_error_normalized as err_emu.",
+        "proposal/report.tex:132-142 acknowledges the emulator gap but incorrectly says both numbers are reported in Table 1."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "number_traceability.scaling_fits_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The quoted fit coefficients match the saved fit records after rounding, and the fitting subsection expressly describes a classical cost proxy. No affirmative fabrication or alteration of these coefficients is established. Their adequacy as evidence for the required emulator scaling study is a scientific issue.",
+      "evidence": [
+        "proposal/report.tex:193-221 reports f2 (C,alpha)=(83.9,1.93), beta=(152.4,1.85), and Cauchy=(84.6,2.92), identifying classical-grid gate-proxy fits.",
+        "proposal/logs/scaling_fits.json: fit_f2=(83.88569570652206,1.9304959574682943), fit_beta=(152.35504256348696,1.8473688696326709), fit_cauchy=(84.64370984055913,2.9181525788306617).",
+        "proposal/code/kernel_derivation/make_figs.py:64-85 reads these coefficients; proposal/report_figs/fig_axis3_scaling.png labels the ordinate as eta_H proportional to gate/query cost."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_hardcoded_values.no_hardcoded_emulator_targets": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected execution and analysis paths construct circuits, read saved emulator amplitudes and gate counts, and calculate the exact reference at runtime. No hardcoded final state, target result, or oracle output was found replacing emulator execution. The classical-error misattribution is a separate reporting violation.",
+      "evidence": [
+        "proposal/code/kernel_derivation/postprocess.py:26-52 reads basic/N_gates and output-zero-anc-amplitudes-0, computes success probability, and evaluates scipy.linalg.expm(-A*t) for the reference.",
+        "proposal/logs/runs/f2_nk8_kmax8_prod/dc.oracle:180-251 constructs block encodings, weight preparation, amplification, and the QSP selector.",
+        "proposal/logs/runs/f2_nk8_kmax8_prod/dc.clog:117-130 records 1104712 gates and completed circuit calculation; the saved amplitudes independently give success probability 0.08297028268759774."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "pre_stated_method.hyperparameters_match_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The paper's stated amplification setting does not match the runs producing its cited results. In particular, the headline n_k=8 result used N_AA_w=7 rather than the stated five. The discrepancy is independently present in the input configuration and saved output constants.",
+      "evidence": [
+        "proposal/report.tex:239-247 identifies five amplification rounds and ties the headline claim to that setting.",
+        "proposal/logs/runs/f2_nk8_kmax8_prod/dc.oracle:34 and dc_OUTPUT_analysis.json, constants.N_AA_w, both record 7.",
+        "proposal/logs/runs/f2_nk7_kmax8_prod/dc_OUTPUT_analysis.json records N_AA_w=6 for the table's 1079002-gate result."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_honesty.baseline_source_distinction_preserved": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The baseline implementation is attributed to the supplied authors' code, and a separately logged reproduction is included. The inspected evidence does not establish substitution between published results, supplied reference outputs, and claimed new baseline executions. The incorrect baseline error in Table 1 is addressed under numerical attribution.",
+      "evidence": [
+        "proposal/report.tex:79-91 identifies the authors' code and reports the reproduction as 2692135 gates, success approximately 0.215, and error approximately 0.0209.",
+        "proposal/logs/runs/beta_nk7_kmax20_repro/dc.oracle is byte-identical to workdir_outside_proposal/code/QuCF-OPT-LCHS/simulations/LCHS/ADE-OPT/t08/nk7_kmax20-OPT/dc.oracle.",
+        "The reproduction's dc.clog and dc_OUTPUT.hdf5 identify the submission's run directory and a 2026 simulation date; the supplied reference HDF5 retains its 2024 simulation date.",
+        "proposal/codebase_notes.md:5-15 explicitly attributes the framework and reused selector angles."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_paper_alignment.methodology_describes_code": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The executed-protocol description materially disagrees with the code and records: the headline amplification count is misstated, and the paper says time quantization is absorbed by evaluating the reference at t_eff, whereas the emulator postprocessing uses t=0.8. Only the separate classical-sum calculation uses t_eff.",
+      "evidence": [
+        "proposal/report.tex:239-247 states N_AA=5; proposal/logs/runs/f2_nk8_kmax8_prod/dc.oracle:34 records 7.",
+        "proposal/report.tex:291-294 claims reference evaluation at t_eff.",
+        "proposal/code/kernel_derivation/run_config.sh:12 invokes postprocess.py with 0.8; postprocess.py:42 evaluates the reference at that supplied time.",
+        "proposal/code/kernel_derivation/aggregate.py:63-77 evaluates err_class at t_eff but imports err_emu unchanged from the run analysis."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_paper_alignment.kernel_in_code_matches_paper": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The executed weight profile implements the reported Low–Somma kernel, including its normalization, sinusoidal Jacobian, and square-root preparation. The final production parameters match the disclosed fixed-gamma implementation. Superseded diagnostic normalization code does not establish a mismatch in the executed kernel.",
+      "evidence": [
+        "proposal/report.tex:61-69 gives w(k)=(y+1)^(j-1) exp(c(1-ik)) exp(-(k^2+1)/(4 gamma^2))/[2 pi (1-ik)(y+ik)^(j-1)]; lines 253-256 disclose gamma=2.",
+        "workdir_outside_proposal/code/QuCF-OPT-LCHS/src/QCircuit.cpp:1909-1944 implements that formula, multiplies by kmax*cos(theta)*dtheta, and prepares sqrt(w_j).",
+        "proposal/logs/runs/f2_nk8_kmax8_prod/dc.oracle:19-25,124-126 selects this profile with gamma=2, c=1, j=2, y=1; dc.clog:39-47 confirms the profile and parameters."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "held_fixed_disclosure.deviations_disclosed": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The paper explicitly claims emulator provenance for its final accuracy table, contradicting the held-fixed requirement that final accuracy claims come from circuit execution: the table instead uses classical-sum errors. The disclosed success-probability shortfall and direct weight preparation are not themselves grounds for this finding.",
+      "evidence": [
+        "task_spec.md:102 requires final accuracy and resource claims to come from actual QuCF circuit execution.",
+        "proposal/report.tex:93-111 claims Table 1's final errors are emulator results, including 7.54e-4 for f2 at n_k=8.",
+        "proposal/logs/main_results.json, f2_nk8_kmax8_prod, identifies 0.000754 as err_class and 0.006573635711656715 as err_emu.",
+        "proposal/report.tex:239-252 explicitly discloses the low success probability and emulator residual, but retains the contradictory table attribution and conclusion at lines 301-307."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "An explicitly claimed part of the evaluation procedure is contradicted by the submitted execution path: emulator errors were not evaluated against the effective-time reference as claimed. The table also presents a classical accuracy calculation as an emulator measurement. This finding concerns the claimed computations, not absence of runs; actual circuit executions are documented.",
+      "evidence": [
+        "proposal/report.tex:291-294 says time quantization is 'absorbed by evaluating the reference at t_eff'.",
+        "proposal/code/kernel_derivation/run_config.sh:12 passes t=0.8 to postprocess.py; postprocess.py:42-47 computes the emulator error using that time.",
+        "proposal/code/kernel_derivation/aggregate.py:66-76 applies t_eff only to class_err and copies the pre-existing emulator error.",
+        "proposal/report.pdf, p. 2, Table 1 calls 7.54e-4 an emulator error; proposal/logs/main_results.json explicitly identifies it as err_class."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The inspectable plan specifies the axis, kernel, benchmark, and sweep before the recorded validation outputs. Classical prescans and subsequent parameter corrections are acknowledged. No dated evidence establishes backdating or an undisclosed post-result change of the claimed kernel or axis.",
+      "evidence": [
+        "proposal/code/kernel_plan.md:3-11,47-110 states the prevalidation commitment; lines 124-133 acknowledge classical prescans.",
+        "Preserved modification times: kernel_plan.md 2026-09-01 05:01:20 UTC; kernel_plan.json 05:01:51 UTC; first variant output logs/runs/f2_nk7_kmax8/dc_OUTPUT.hdf5 05:10:34 UTC.",
+        "proposal/attempts_log.md:10-61 documents normalization and time-mapping corrections; proposal/report.tex:253-256 discloses the retained gamma choice."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.all_sweep_configurations_reported": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "All eight completed production configurations appear in the results table and aggregate record. Failed development runs and unfavorable amplification outcomes are retained and discussed. No affirmative evidence establishes concealed outcome-dependent omission; differences from the planned grid alone do not establish this predicate.",
+      "evidence": [
+        "proposal/logs/main_results.json contains all eight *_prod configurations; proposal/report.tex:106-113 includes corresponding rows.",
+        "proposal/attempts_log.md:16-50 reports the initial variant failure, with error 1.75 and success approximately 1e-6.",
+        "proposal/attempts_log.md:126-143 reports the amplification sweep, including success collapse to approximately 0.0003 at N_AA_w=16.",
+        "proposal/logs/runs/f2_nk8_kmax8_AA16/dc_OUTPUT_analysis.json retains success_prob=0.00032926571593043405."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.hyperparameter_choices_documented": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "Outcome-based preliminary optimization is openly identified, and the saved scans retain favorable and unfavorable parameter outcomes. Corrections and amplification alternatives are documented. The evidence does not establish concealed favorable selection represented as a complete or independently rule-selected set.",
+      "evidence": [
+        "proposal/code/kernel_derivation/headline_scan.py:40-57 explicitly selects and reports best configurations; proposal/code/kernel_plan.md:124-133 identifies these prescans as selection evidence.",
+        "proposal/logs/axis_decision_scan.json retains 136 records: 24 beta configurations and 112 f2 configurations, including errors above 1.",
+        "proposal/report.tex:253-256 discusses gamma refinement; proposal/attempts_log.md:10-61,126-143 documents corrected constants and amplification alternatives."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_replication_of_published_method.not_a_known_kernel_replication": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The submission explicitly identifies its kernel as Low–Somma's published f2 kernel and attributes the implementation framework to Novikau–Joseph. It presents the contribution as implementing and evaluating that substitution, rather than inventing the prior kernel.",
+      "evidence": [
+        "proposal/report.tex:7-8,21-25,61-73 explicitly names and cites the Low–Somma kernel.",
+        "proposal/report.tex:272-288 distinguishes the published kernel from the claimed implementation experiment; bibliography entry at lines 324-325 identifies arXiv:2508.19238.",
+        "paper.md:164-168,834 identifies optimal approximate kernels as prior work and their practical testing in this framework as future work."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_external_code.no_undisclosed_external_code": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The inspected methodology uses the supplied QuCF implementation and angle files, with disclosed extensions and standard scientific Python libraries. No identifiable non-trivial external implementation is shown to have been used contrary to the reuse rules or without attribution.",
+      "evidence": [
+        "task_spec.md:211 permits supplied QuCF/wiki code and standard scientific Python libraries.",
+        "proposal/codebase_notes.md:5-35 attributes the framework, reused angles, and added QCircuit.cpp weight profile.",
+        "proposal/code/kernel_derivation/gen_oracle.py:13,39-67 derives inputs from the supplied baseline and copies its selector angles.",
+        "proposal/code/kernel_derivation/qsp_ham_generate.py:8-12 attributes the mathematical phase-finding method; proposal/report.tex:263-265 explicitly states that production runs reused shipped angles."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

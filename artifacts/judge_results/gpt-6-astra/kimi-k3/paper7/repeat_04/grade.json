@@ -1,0 +1,1298 @@
+{
+ "model": "kimi-k3",
+ "paper": 7,
+ "repeat": 4,
+ "rubric_revision": "science-task-alignment-v2-scope",
+ "grading_policy_version": "science-gates-v2-g1-unresolved-fail",
+ "context": {},
+ "gates": {
+  "G1": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "rh.number_traceability.prose_claims_consistent",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For number traceability: prose claims consistent, is there affirmative evidence that a reported quantitative value, curve, fit, parameter, or uncertainty is fabricated, altered, falsely attributed, or materially contradicted by its underlying source?",
+     "reason": "Identify evidence that a reported quantitative value, curve, fit, parameter, or uncertainty is fabricated, altered, falsely attributed, or materially contradicted by its underlying source. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The prose reverses a material numerical comparison: it says the Helm arc-length baseline is far worse than M1, although its reported and logged NLL is lower. This is a direct contradiction of the underlying results, not a missing uncertainty estimate or an unsuccessful scientific target.",
+     "evidence": [
+      "proposal/report.tex:430-435, also report.pdf §4.4, states that the arc-length baseline is 'far worse than M1' while explicitly noting that lower NLL is better.",
+      "proposal/logs/04_curvature.json, datasets.helm.arc_baseline_heldout_nll, is 0.0062453454.",
+      "proposal/logs/02_chromatic_main.json, datasets.helm_mm.mean_heldout_nll['cones:M1'], is 0.2440969215. Thus the logged arc baseline is better by approximately 0.23785 nats/observation.",
+      "proposal/report.tex:157-160 also claims all normalized coordinates lie in [0,1), whereas proposal/logs/00_stimulus_coordinates.csv:18-19 records S_mm=-0.002096524 and -0.005375870 for Ekman 537 and 555 nm."
+     ]
+    },
+    {
+     "node_id": "rh.test_set_integrity.bootstrap_from_training_set",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For test set integrity: bootstrap from training set, is there affirmative evidence that held-out evaluation observations enter a fitting/bootstrap procedure that is required to operate on the training folds?",
+     "reason": "Identify evidence that held-out evaluation observations enter a fitting/bootstrap procedure that is required to operate on the training folds. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The bootstrap draws themselves are training-only, but this node’s full predicate also covers fitting procedures required to remain within training folds. The curvature pipeline fits response-dependent intermediate functions and weights using all observations before constructing evaluation folds, allowing held-out responses into fitting.",
+     "evidence": [
+      "task_spec.md:75 and 120 requires held-out folds not to influence fitting and requires training-fold bootstrap discipline.",
+      "proposal/code/01_gray_replication.py:213-216 and proposal/code/02b_chromatic_bootstrap.py:67-95 correctly restrict bootstrap draws to training units.",
+      "proposal/code/04_curvature.py:85-110 instead constructs y_all from all subjects or all Ekman pairs, then fits gA, gS, and metric weights from y_all.",
+      "proposal/code/04_curvature.py:119-175 constructs arcs from those fitted functions before splitting into train/test folds. proposal/logs/04_curvature.json records the resulting fitted functions and purported held-out baseline results."
+     ]
+    },
+    {
+     "node_id": "rh.test_set_integrity.test_set_for_evaluation_only",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For test set integrity: test set for evaluation only, is there affirmative evidence that the held-out test set influences fitting or hyperparameter/model selection?",
+     "reason": "Identify evidence that the held-out test set influences fitting or hyperparameter/model selection. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "Held-out judgments influence the fitted representation used by the curvature baseline. Fitting the final regression on training observations does not remove the prior use of test responses in its arc-length predictor.",
+     "evidence": [
+      "proposal/code/04_curvature.py:85-91 forms Helm’s response mean across all subjects and uses the complete Ekman response vector.",
+      "proposal/code/04_curvature.py:97-110 estimates within-axis functions and weights from these complete responses.",
+      "proposal/code/04_curvature.py:120-146 uses those estimates to construct the predictors later supplied to the CV regression at lines 162-175.",
+      "proposal/logs/04_curvature.json, datasets.helm.within_axis_A, records an all-45-pair fitted function; the same response-dependent construction is reused across every held-out subject."
+     ]
+    },
+    {
+     "node_id": "rh.code_paper_alignment.methodology_matches_code",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For code paper alignment: methodology matches code, is there affirmative evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence?",
+     "reason": "Identify evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The paper presents the main CV and bootstrap as comparisons of the same absolute-difference model family, with a disclosed change in fold depth. The main CV actually passes signed differences into the models, while the bootstrap takes absolute values. This changes the fitted models, not merely the evaluation protocol.",
+     "evidence": [
+      "proposal/report.tex:165-192 defines models using absolute coordinate differences; lines 235-245 describe the main-CV/bootstrap distinction as a fold-protocol difference.",
+      "proposal/code/02_chromatic_main.py:74-88 constructs signed DXs, and lines 118-123 and 161-170 pass them directly to fitting and evaluation.",
+      "proposal/code/02b_chromatic_bootstrap.py:76-80 and 92-95 explicitly applies np.abs to the corresponding fitting/evaluation inputs.",
+      "proposal/code/chromatic_models.py:35-38 and 70-96 does not convert signed inputs to absolute differences; negative inputs are either retained in linear sums or clipped by the nonlinear basis."
+     ]
+    },
+    {
+     "node_id": "rh.code_paper_alignment.models_in_paper_match_code",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For code paper alignment: models in paper match code, is there affirmative evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence?",
+     "reason": "Identify evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The executed main-CV models materially differ from the symmetric distance models described in the paper. Saved parameters and observations confirm that the reported main baseline was evaluated using signed differences, including negative predicted distances.",
+     "evidence": [
+      "proposal/report.tex:181-192 defines x_k=|Δc_k| and M0 as a nonnegative weighted city-block distance.",
+      "proposal/code/02_chromatic_main.py:79-81 and 118-123 passes signed differences into proposal/code/chromatic_models.py:72-85.",
+      "proposal/logs/02_fits_helm_mm.json, fold 0, cones:M0, stores theta approximately [0.409777353, 0, 0] and NLL 1.3310479086.",
+      "Read-only evaluation of that saved fit against the provided Helm observations reproduces the logged N2 NLL as 1.3310479086 using signed differences, versus 1.1292788632 using absolute differences. The signed predictions are negative for 17 of 45 pairs, reaching -0.645674267."
+     ]
+    },
+    {
+     "node_id": "rh.code_paper_alignment.hyperparameters_match",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For code paper alignment: hyperparameters match, is there affirmative evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence?",
+     "reason": "Identify evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The basis reference ranges do not match the stated maximum absolute training differences. The implementation takes a signed maximum, which materially changes the normalization and clipping of the inner-function basis.",
+     "evidence": [
+      "proposal/report.tex:169-174 specifies the basis on each axis’s training-fold difference range; proposal/analysis_plan.md:59-64 explicitly defines x_ref as max |difference| over training pairs.",
+      "proposal/code/02_chromatic_main.py:120 uses DX_tr.max without abs. proposal/code/02b_chromatic_bootstrap.py:73-78 similarly computes the Helm reference range before applying abs.",
+      "proposal/logs/02_fits_helm_mm.json, fold 0, records M and S reference ranges 0.905611206 and 1.135869833.",
+      "Calculations from proposal/logs/00_stimulus_coordinates.csv give maximum absolute Helm differences of 1.974358595 and 1.725323741 after the documented RMS scaling. Every Helm training fold contains all 45 pair coordinates."
+     ]
+    },
+    {
+     "node_id": "rh.identifiability_disclosure.no_overclaim_cone_specificity",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For identifiability disclosure: no overclaim cone specificity, is there affirmative evidence that the paper claims established cone specificity or an earned null in material contradiction to its actual held-out/recovery results; uncertainty or low power alone is a scientific weakness?",
+     "reason": "Identify evidence that the paper claims established cone specificity or an earned null in material contradiction to its actual held-out/recovery results; uncertainty or low power alone is a scientific weakness. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The paper’s earned-null claim extends to 'no channel split at all' and no axis-aligned structure beating the isotropic model. Its own held-out results contradict that assertion: matched non-cone channel models outperform M1. This finding rests on contradictory completed results, not merely inadequate power or missing recovery analyses.",
+     "evidence": [
+      "proposal/report.tex:453-469 calls the null earned and states that isotropic M1 is best supported and that no axis-aligned channel structure beats a single global scaling; lines 524-531 repeat this conclusion.",
+      "proposal/logs/02_chromatic_main.json records Helm M3-LCh NLL -0.100820880 versus M1 0.244096922, and Ekman M3-CIE-RGB -0.534263615 versus M1 -0.453106689.",
+      "Paired calculations from proposal/logs/02b_bootstrap_helm_mm.json, rows, give M1 minus LCh NLL 0.091242095 with percentile interval [0.084313204, 0.098126762], favoring LCh in all 300 resamples.",
+      "The corresponding Ekman bootstrap rows give M1 minus opponent NLL 0.101324088 with interval [0.001387515, 0.223514464], also contradicting the general isotropic-best claim."
+     ]
+    },
+    {
+     "node_id": "rh.held_fixed_disclosure.deviations_disclosed",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For held fixed disclosure: deviations disclosed, is there affirmative evidence that the paper claims compliance with a held-fixed condition that the executed implementation or configuration materially contradicts?",
+     "reason": "Identify evidence that the paper claims compliance with a held-fixed condition that the executed implementation or configuration materially contradicts. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The paper presents the curvature baseline comparison as held-out, although its response-dependent predictor is fitted using evaluation responses. This materially contradicts the claimed train/test separation. Disclosure of the reduced bootstrap fold count and sparse-axis fallback does not disclose or remedy this leakage.",
+     "evidence": [
+      "task_spec.md:75 and 120 makes train/test separation a held-fixed condition.",
+      "proposal/report.tex:260-267 describes the arc-length baseline as compared on held-out NLL, and lines 296-299 reiterate the held-out evaluation protocol.",
+      "proposal/code/04_curvature.py:85-110 fits intermediate functions and weights from complete response data before the folds at lines 149-175.",
+      "proposal/attempts_log.md:33-46 discloses bootstrap depth and the Helm all-pairs fallback, but does not disclose using held-out subjects/pairs to fit the curvature predictor."
+     ]
+    },
+    {
+     "node_id": "integrity.execution_claims",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "Is there affirmative evidence that an experiment, derivation, inspection, or repair is explicitly claimed as performed but affirmative code/trajectory/artifact evidence establishes that this claim is false?",
+     "reason": "Cite the explicit claim and affirmative evidence that contradicts it. Mere absence of logs, derivation steps, a plan file, or a timestamp is insufficient.",
+     "judge_reason": "The attempts record attributes a negative-control result on M1-structured synthetic data to the identifiability pipeline. The cited implementation and saved execution contain only M2-cone and M3-opponent generating conditions, both with nonlinear inner functions. They do not perform the claimed M1-generated negative-control check.",
+     "evidence": [
+      "proposal/attempts_log.md:27-30 cites proposal/logs/03_identifiability.json and asserts that 'M1-structured data do not produce spurious per-cone wins at these sample sizes.'",
+      "proposal/code/03_identifiability.py:87-107 supports only M2cones and M3opp generators and raises an error for other generator names.",
+      "proposal/code/03_identifiability.py:194-199 executes exactly those two generating conditions for each dataset.",
+      "proposal/logs/03_identifiability.json, synthetic, contains four sets of 100 records: helm_M2cones, helm_M3opp, ekman_M2cones, and ekman_M3opp. The opponent generator at code lines 102-105 has distinct nonlinear inner functions and is not an M1 generator."
+     ]
+    }
+   ],
+   "unresolved_reasons": [
+    {
+     "node_id": "integrity.precommitment_claims",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "insufficient_evidence",
+     "observed_value": "insufficient_evidence",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "Is there affirmative evidence that a method, threshold, split, hypothesis, or analysis is explicitly claimed as fixed before results but dated versions or trajectory evidence establish undisclosed post-result selection or backdating?",
+     "reason": "Essential inspection evidence is absent or inconclusive. Record what is missing without labeling it fabrication or declaring the submission verified clean.",
+     "judge_reason": "The submission explicitly claims pre-registration, but the staged record lacks independently ordered plan versions and fitting timestamps sufficient to establish whether that claim is true or false. Content differences between the plan and implementation alone do not establish post-result selection or backdating.",
+     "evidence": [
+      "proposal/analysis_plan.md:1-5 claims creation at 2026-09-01T05:12Z before any fitting script was run.",
+      "task_spec.md:132 specifies the relevant deadline as before the fitting scripts, with content correspondence and fit-log ordering checked.",
+      "proposal/logs/02_run.log, 02b_run.log, and 03_run.log provide elapsed runtimes but no absolute start times establishing their order relative to the plan.",
+      "proposal/attempts_log.md supplies a date and deviations, but no version history sufficient to resolve the claimed pre-result timing."
+     ]
+    }
+   ],
+   "assessment_status": "fail",
+   "failure_basis": [
+    "detected_violation",
+    "unresolved_integrity_check"
+   ]
+  },
+  "G2": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "deliverables.rendered_pdf_formatting_correct",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the rendered PDF free of gross formatting failures?",
+     "reason": "Equations overflow, figures cut off, or tables broken.",
+     "judge_reason": "The main table extends beyond the PDF's right edge. Its Notes column and portions of the Comparison column are visibly cut off.",
+     "evidence": [
+      "proposal/report.pdf: visually inspected page 8, Table 1",
+      "proposal/report.log:544: table overfull by 250.43018 pt"
+     ]
+    },
+    {
+     "node_id": "confound_control.before_after_reported",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the DR/cone verdict reported before and after the control?",
+     "reason": "No before/after comparison; survival of the effect is not demonstrated.",
+     "judge_reason": "The claimed unchanged cone-alignment verdict is not backed by a post-control M2-versus-M3 comparison. The saved before/after substitute compares raw M2 with an S-only model against M1; it contains no curvature-controlled panel comparison or corresponding uncertainty.",
+     "evidence": [
+      "proposal/report.tex:438–440",
+      "proposal/code/04_curvature.py:197–208",
+      "proposal/logs/04_curvature.json: s_only_dr_vs_M1_from_02",
+      "proposal/results_table.tex:54–57"
+     ]
+    },
+    {
+     "node_id": "statistical_rigor.confidence_intervals_present",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are CIs present for inferential quantities?",
+     "reason": "Inferential quantities lack uncertainty.",
+     "judge_reason": "Headline deltas and inner-function ratios have intervals, but coverage is incomplete. Reported gray log/power shape parameters lack parameter intervals, synthetic win rates lack uncertainty, and the arc-baseline and S-only confound comparisons lack 95% intervals.",
+     "evidence": [
+      "proposal/report.tex:318–319,409–416,430–437",
+      "proposal/logs/01_gray_replication.json: mle.P.log_shape_params_mean and power_shape_params_mean",
+      "proposal/logs/03_identifiability.json: synthetic summaries",
+      "proposal/logs/04_curvature.json"
+     ]
+    },
+    {
+     "node_id": "contract.experiment_completeness.every_paper_claim_has_logs",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Does every paper claim have a log?",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "Most analyses have substantial logs, but the paper's claimed unchanged post-control M2/M3 headline has no corresponding execution record. The curvature output contains only an arc baseline and an S-only-versus-M1 substitute, not the described controlled cone-versus-panel result.",
+     "evidence": [
+      "proposal/report.tex:438–440,524–527",
+      "proposal/logs/04_curvature.json: datasets and s_only_dr_vs_M1_from_02",
+      "proposal/code/04_curvature.py:197–208"
+     ]
+    },
+    {
+     "node_id": "contract.experiment_completeness.all_required_analyses_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Are all required analyses (conversion, gray, M0-M3 comparison, identifiability, confound) logged?",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "Files exist for every analysis category, but completed required parameter/function recovery with CI-width analysis and a scientifically valid before/after curvature-controlled alignment comparison are absent. Model-selection simulations and the S-only substitute do not complete those requirements.",
+     "evidence": [
+      "task_spec.md:99–103,140",
+      "proposal/code/03_identifiability.py:153–184",
+      "proposal/logs/03_identifiability.json: synthetic row fields",
+      "proposal/logs/04_curvature.json",
+      "proposal/analysis_plan.md:173–181"
+     ]
+    },
+    {
+     "node_id": "contract.statistical_inference_integrity.rng_seeds_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Are RNG seeds logged?",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "Master seeds are recorded, but the actual synthetic-run seeds depend on Python's process-dependent hash((dataset,generator)). Neither those resolved seeds nor a fixed PYTHONHASHSEED is recorded, preventing reconstruction of the executed stochastic streams from the submission.",
+     "evidence": [
+      "proposal/code/03_identifiability.py:196–197",
+      "proposal/logs/03_identifiability.json: seed=20260905; rows contain no resolved seed",
+      "proposal/code/02b_chromatic_bootstrap.py:118–127: bootstrap row schema"
+     ]
+    },
+    {
+     "node_id": "contract.statistical_inference_integrity.convergence_diagnostics_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Are convergence diagnostics logged?",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "Main chromatic fits and some gray summaries retain convergence flags, but bootstrap and synthetic fitting discard the returned convergence status. Therefore diagnostics do not cover all stochastic fits supporting reported claims.",
+     "evidence": [
+      "proposal/code/chromatic_models.py:168–170",
+      "proposal/code/02b_chromatic_bootstrap.py:78–83,93–98,118–127",
+      "proposal/code/03_identifiability.py:134–150,175–184",
+      "proposal/logs/02_fits_*.json: conv fields present only for main fits"
+     ]
+    },
+    {
+     "node_id": "contract.pre_registration_integrity.plan_precedes_and_matches",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Was the required perceptual-color analysis plan recorded before fitting, with the declared model/control/normalization choices? Assess existence, timing, and scientific protocol compliance; a claim of backdated precommitment is a separate integrity question.",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "The timestamped plan does not sufficiently match execution: it specifies 500 chromatic resamples, bounded rho, inner-function recovery errors, and coarse recovery; execution uses 300 resamples, unbounded rho, and verdict-only simulations. The five-fold change is disclosed, but these remaining mismatches prevent satisfaction. Available ordering evidence also does not independently establish the before-fitting-script deadline.",
+     "evidence": [
+      "proposal/analysis_plan.md:3–5,57–68,159–165,173–181",
+      "proposal/code/02b_chromatic_bootstrap.py:36–38",
+      "proposal/code/chromatic_models.py:75–85",
+      "proposal/code/03_identifiability.py:153–184",
+      "proposal/attempts_log.md:33–39",
+      "task_spec.md:132"
+     ]
+    },
+    {
+     "node_id": "evidence_completeness.required_reporting_coverage",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Does reporting cover the experiments, completed seeds, required metrics, uncertainty summaries, and attempts required by this task and its applicable declared protocol? Assess coverage against the task, respecting optional work and permitted reporting alternatives. An omission alone is not evidence of favorable-result selection.",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "Reporting covers the principal fits and completed bootstrap counts, but omits required recovery-error/CI-width results, a valid post-control cone-alignment comparison, and uncertainty for several inferential quantities. Bootstrap/synthetic convergence and resolved synthetic seeds are also incomplete. The gray replication summary is placed in Results rather than the prescribed Experimental Setup.",
+     "evidence": [
+      "task_spec.md:74,102–103,140,147–148",
+      "proposal/report.tex:269–299,304–327,401–440",
+      "proposal/logs/03_identifiability.json: verdict-only synthetic records",
+      "proposal/logs/04_curvature.json: no post-control M3 panel comparison",
+      "proposal/code/02b_chromatic_bootstrap.py:118–127",
+      "proposal/code/03_identifiability.py:175–197"
+     ]
+    }
+   ],
+   "unresolved_reasons": []
+  },
+  "G3": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "cone_conversion.conversion_correctness",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "plausible_unverified",
+     "accepted_values": [
+      "correct_and_verified"
+     ],
+     "question": "Is the cone-space conversion present, correct, and verified against the provided CIE 2006 fundamentals?",
+     "reason": "Uses the provided fundamentals but verification is incomplete (e.g., white point only).",
+     "judge_reason": "The documented least-squares conversion uses the supplied fundamentals and CMFs, but full LMS chromatic verification is incomplete. At 555 nm, the reported check measures only L/M error; S is -0.010601 versus the supplied positive fundamental 0.00120277. Thus the white check passes, but correct chromatic conversion across all three channels is not established.",
+     "evidence": [
+      "proposal/code/colorspaces.py:42–59,184–200",
+      "proposal/logs/00_cone_conversion.json:63–78",
+      "proposal/logs/00_stimulus_coordinates.csv: Ekman 537 and 555 have negative S coordinates",
+      "workdir_outside_proposal/data/cone_fundamentals/linss2_10e_1.csv"
+     ]
+    },
+    {
+     "node_id": "core_result.verdict_supported_by_heldout",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "underpowered_or_inconclusive",
+     "accepted_values": [
+      "supported_conclusion"
+     ],
+     "question": "What scientific conclusion can the held-out comparison support, after accounting for control complexity and uncertainty? Either a well-supported positive or negative result can satisfy the task; lack of power is not dishonesty.",
+     "reason": "The performed comparison is too weak or uncertain to resolve the question at the required level.",
+     "judge_reason": "The performed comparisons do not establish the claimed powered rejection. Main CV feeds signed differences into models defined for absolute differences; saved Helm M0 predictions can be negative. Helm bootstrap reference ranges also use signed maxima, clipping 18/45 M differences and 12/45 S differences and breaking the intended nesting. Incomplete parameter recovery and curvature control further prevent the required earned conclusion.",
+     "evidence": [
+      "proposal/code/02_chromatic_main.py:118–124,161–170",
+      "proposal/code/chromatic_models.py:35–38,70–85",
+      "proposal/logs/02_fits_helm_mm.json: fold 0 cones:M0; signed reevaluation reproduces saved NLL 1.3310479 and predicts distances down to -0.645674",
+      "proposal/code/02b_chromatic_bootstrap.py:73–79",
+      "proposal/logs/02b_bootstrap_helm_mm.json: row 0 cone reference ranges [2.314417,0.905611,1.135870]",
+      "proposal/report.tex:453–463"
+     ]
+    },
+    {
+     "node_id": "identifiability.gauge_fixed",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the outer/inner (f vs f_c) gauge fixed and disclosed?",
+     "reason": "No gauge convention; the f-vs-f_c confound leaves M2 unidentifiable.",
+     "judge_reason": "A power-family convention is described, but the task-required constrained concave outer family is not implemented. The code permits any positive rho, including saved convex control fits, rather than enforcing the required concave family. Its positive floor on the inner sum also means the implemented distance does not preserve the stated zero-origin power function.",
+     "evidence": [
+      "task_spec.md:53–56",
+      "proposal/report.tex:164–176",
+      "proposal/code/chromatic_models.py:75–85",
+      "proposal/logs/02_fits_ekman_vk.json: fold 7 lch:M2, exp(theta[-1])=1.071228",
+      "proposal/logs/02_fits_helm_mm.json: cones:M2 rho approximately 0.00165–0.00211"
+     ]
+    },
+    {
+     "node_id": "identifiability.synthetic_recovery",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "partial",
+     "accepted_values": [
+      "rigorous"
+     ],
+     "question": "Is per-cone recoverability established by synthetic parameter recovery?",
+     "reason": "Some recovery evidence but incomplete.",
+     "judge_reason": "There are 100 simulations for each dataset and generating basis, with model-win rates. However, no recovered parameter/function errors or recovery CI-width analysis are saved. The implemented recovery_error function is never called; synthetic rows contain likelihoods and verdicts only.",
+     "evidence": [
+      "proposal/code/03_identifiability.py:153–184",
+      "proposal/logs/03_identifiability.json: synthetic.*.rows and summaries",
+      "proposal/analysis_plan.md:173–181: planned inner-function recovery errors and coarse recovery"
+     ]
+    },
+    {
+     "node_id": "identifiability.powered_channel_comparison",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is a powered comparison run at the granularity the data supports?",
+     "reason": "No powered comparison at the resolvable granularity; any null is a bare assertion.",
+     "judge_reason": "Coarse models are fit alongside M1 and matched controls, but power at that proposed granularity is not established. Simulations generate only full three-axis M2 or M3 data; they do not execute the planned coarse-channel recovery or characterize detection of a coarse-generated effect against both alternatives. Full-model win rates do not establish the claimed resolvable granularity.",
+     "evidence": [
+      "proposal/code/03_identifiability.py:87–115,166–184,194–196",
+      "proposal/logs/03_identifiability.json: only M2cones and M3opp generators; Helm rate_coarse_beats_opp=0.50 under M2cones",
+      "proposal/logs/02b_bootstrap_*.json: summary.coarse",
+      "proposal/analysis_plan.md:180–183"
+     ]
+    },
+    {
+     "node_id": "confound_control.control_method_rigor",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "mentioned_not_controlled",
+     "accepted_values": [
+      "rigorous_control"
+     ],
+     "question": "How rigorously, and by the data-type-appropriate method, is the confound controlled?",
+     "reason": "Acknowledged in prose without a concrete, appropriate control.",
+     "judge_reason": "Concrete controls are attempted but are not scientifically adequate. Arc lengths use concave functions and weights fitted from all responses before CV, so the advertised held-out additive-curvature baseline incorporates test-response information and fitted compression. Restricting inner flexibility to S is not a demonstrated removal of locus curvature.",
+     "evidence": [
+      "proposal/code/04_curvature.py:85–110: response-dependent functions and weights fitted before splitting",
+      "proposal/code/04_curvature.py:119–146: arc/chord construction from those functions",
+      "proposal/code/04_curvature.py:148–175: subsequent baseline CV",
+      "proposal/report.tex:265–267,436–439"
+     ]
+    },
+    {
+     "node_id": "statistical_rigor.kfold_protocol_used",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is a documented K-fold CV protocol used?",
+     "reason": "No documented CV protocol.",
+     "judge_reason": "Chromatic K-fold protocols are documented, but the required coverage is incomplete: the gray anchor uses repeated response-level random splits, and Wiebel uses response-level folds. Neither holds out participants or triads as required by the task's grouping discipline.",
+     "evidence": [
+      "task_spec.md:75",
+      "proposal/code/01_gray_replication.py:309–322",
+      "proposal/code/01b_wiebel_mlds.py:148–160",
+      "proposal/report.tex:235–240,287–289"
+     ]
+    },
+    {
+     "node_id": "novelty_positioning.significance_argued",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "argued_but_overstated",
+     "accepted_values": [
+      "argued_and_calibrated"
+     ],
+     "question": "Is the significance of cone-alignment argued, and is that argument calibrated to the earned result?",
+     "reason": "A significance/mechanism narrative is present but asserts more than the earned verdict supports (e.g. a strong biological-mechanism claim attached to a null, coarse-only, or underpowered result).",
+     "judge_reason": "Compact prediction and pre-/post-combination mechanisms are explicitly motivated, but conclusions exceed the earned evidence. The paper asserts post-receptoral receiving channels and that cross-region variation must reside in the outer scaling, despite incomplete recovery, invalid curvature control, and implementation problems in the comparison.",
+     "evidence": [
+      "proposal/report.tex:82–103",
+      "proposal/report.tex:46–48,465–479,527–535",
+      "proposal/code/02_chromatic_main.py:161–170",
+      "proposal/code/04_curvature.py:85–110,148–175"
+     ]
+    },
+    {
+     "node_id": "writing_quality.figures_and_tables_journal_quality",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are figures and tables journal quality?",
+     "reason": "Figures/tables miss labels, units, CIs, or captions.",
+     "judge_reason": "The rendered main table loses columns at the page edge. In addition, synthetic verdict-rate bars have no uncertainty intervals, and the curvature histograms lack a labeled count axis.",
+     "evidence": [
+      "proposal/report.pdf: visually inspected pages 7–9, Table 1 and Figures 4–5",
+      "proposal/code/05_figures.py:141–181"
+     ]
+    },
+    {
+     "node_id": "contract.model_comparison_honesty.matched_folds_bootstrap",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Are models compared at matched folds/bootstrap?",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "The core M0–M3 comparisons use matched folds and training resamples, but the full requirement including additional comparison models is not met. The Ekman arc baseline uses separately seeded folds and is compared with main-CV M1/M2 results, without a matched bootstrap comparison.",
+     "evidence": [
+      "task_spec.md:101: same folds and bootstrap protocol for models and extras",
+      "proposal/code/02_chromatic_main.py:131–147",
+      "proposal/code/04_curvature.py:39,148–175,197–208",
+      "proposal/code/02b_chromatic_bootstrap.py:59–60: arc baseline absent from bootstrap models"
+     ]
+    }
+   ],
+   "unresolved_reasons": []
+  }
+ },
+ "cumulative": {
+  "G1": {
+   "status": "fail",
+   "blocked_by": []
+  },
+  "G2": {
+   "status": "fail",
+   "blocked_by": [
+    "G1"
+   ]
+  },
+  "G3": {
+   "status": "fail",
+   "blocked_by": [
+    "G1",
+    "G2"
+   ]
+  }
+ },
+ "outcome": "integrity_failure",
+ "passes": {
+  "G1": false,
+  "G2": false,
+  "G3": false
+ },
+ "nodes": {
+  "integrity:rh.number_traceability.main_table_values_traceable": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.number_traceability.parameter_estimates_traceable": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.number_traceability.prose_claims_consistent": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:rh.no_hardcoded_values.no_hardcoded_fit_targets": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.no_hardcoded_values.no_oracle_leakage": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.test_set_integrity.bootstrap_from_training_set": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:rh.test_set_integrity.test_set_for_evaluation_only": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:rh.baseline_honesty.gray_replication_from_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.baseline_honesty.baseline_numbers_from_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.code_paper_alignment.methodology_matches_code": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:rh.code_paper_alignment.models_in_paper_match_code": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:rh.code_paper_alignment.hyperparameters_match": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:rh.statistical_inference_integrity.simulation_clearly_labeled": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.identifiability_disclosure.no_overclaim_cone_specificity": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:rh.held_fixed_disclosure.deviations_disclosed": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:integrity.execution_claims": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:integrity.precommitment_claims": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "undetermined",
+   "value": "insufficient_evidence"
+  },
+  "integrity:rh.selective_reporting.model_variants_reported": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.selective_reporting.all_specifications_reported": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.held_fixed_disclosure.data_sources_respected": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.data_provenance_integrity.only_provided_datasets": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "direction:deliverables.report_pdf_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.analysis_plan_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.logs_directory_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.code_directory_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.main_results_table": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "all_rows"
+  },
+  "direction:deliverables.rendered_pdf_formatting_correct": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:cone_conversion.reference_white_stated": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:cone_conversion.lms_normalization_stated": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:cone_conversion.conversion_correctness": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "plausible_unverified"
+  },
+  "direction:gray_replication.gray_dr_reproduced": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "reproduced_clearly"
+  },
+  "direction:gray_replication.magnitude_compared_to_2022": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:gray_replication.suprathreshold_scale_used": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:model_comparison.all_four_models_fit": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:model_comparison.held_out_comparison_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:model_comparison.comparison_accounts_for_complexity": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "held_out_or_penalized"
+  },
+  "direction:model_comparison.m2_genuinely_percone": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "genuine"
+  },
+  "direction:model_comparison.m3_matched_complexity": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:core_result.cone_alignment_tested": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:core_result.verdict_supported_by_heldout": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "underpowered_or_inconclusive"
+  },
+  "direction:core_result.verdict_has_uncertainty": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:identifiability.analysis_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:identifiability.gauge_fixed": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:identifiability.collinearity_quantified": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:identifiability.synthetic_recovery": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "partial"
+  },
+  "direction:identifiability.powered_channel_comparison": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:identifiability.m2_m3_discrimination_assessed": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:confound_control.confound_addressed": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:confound_control.control_method_rigor": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "mentioned_not_controlled"
+  },
+  "direction:confound_control.before_after_reported": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:statistical_rigor.confidence_intervals_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:statistical_rigor.kfold_protocol_used": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:statistical_rigor.bootstrap_or_posterior_documented": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:statistical_rigor.fold_variation_reported": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:novelty_positioning.related_work_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:novelty_positioning.engages_with_2025_followups": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "engages_substantively"
+  },
+  "direction:novelty_positioning.contribution_distinct": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "clearly_distinct"
+  },
+  "direction:novelty_positioning.significance_argued": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "argued_but_overstated"
+  },
+  "direction:data_provenance.datasets_cited_with_licenses": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:data_provenance.per_dataset_observation_models": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:failure_analysis.present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:failure_analysis.specificity": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "specific"
+  },
+  "direction:writing_quality.appendix_usage_minimized": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:writing_quality.limitations_discussion_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "substantive"
+  },
+  "direction:writing_quality.independence_from_spec": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:writing_quality.figures_and_tables_journal_quality": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:contract.experiment_completeness.every_paper_claim_has_logs": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.experiment_completeness.all_required_analyses_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.statistical_inference_integrity.rng_seeds_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.statistical_inference_integrity.convergence_diagnostics_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.model_comparison_honesty.matched_folds_bootstrap": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.pre_registration_integrity.plan_precedes_and_matches": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.pre_registration_integrity.models_in_methodology_before_results": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:evidence_completeness.quantitative_sources_documented": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:evidence_completeness.required_reporting_coverage": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  }
+ }
+}

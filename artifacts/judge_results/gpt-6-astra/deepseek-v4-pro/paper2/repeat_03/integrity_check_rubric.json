@@ -1,0 +1,325 @@
+{
+  "nodes": {
+    "rh.number_traceability.all_quantities_trace": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The reported SNAP timing is falsely attributed to SNAP evaluation. Its cited measurement routine times a zero-plus-ZBL run without requesting the declared SNAP compute's output. Consequently, the reported 2.3 microseconds/atom and derived 13.4-fold comparison do not measure the operation claimed. This finding rests on the implemented operation, not missing timing logs.",
+      "evidence": [
+        "proposal/report.tex:449-453 attributes 2.3 microseconds/atom to LAMMPS compute snap.",
+        "proposal/logs/paper_reference.md:42 identifies inference_cost.py output as the timing source.",
+        "proposal/code/inference_cost.py:73-95 uses only zero/ZBL pair styles and times run 0; it neither extracts the SNAP compute nor connects it to another consumer.",
+        "proposal/code/bispectrum.py:129-142, by contrast, explicitly extracts the SNAP compute to obtain descriptors and derivatives."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.number_traceability.main_table_values_in_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The main table's energy and force values agree with saved results after rounding. Its 13.4-fold inference-cost values, however, are labeled relative to reimplemented SNAP while their cited denominator does not evaluate SNAP. This is a material attribution error in a quantitative table entry.",
+      "evidence": [
+        "proposal/report.tex:243-268 and proposal/report.pdf, Table 1: Cost is defined as inference wall-clock relative to reimplemented SNAP; LRA rows report 13.4-fold.",
+        "proposal/logs/baseline_full_data.json and proposal/logs/full_data_learned.json support the table's energy/force entries, including Ta 0.0082475136/0.0150188516 and 1.0445256024/0.3578118045.",
+        "proposal/code/inference_cost.py:87-96 times run 0 without evaluating its declared SNAP compute."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.number_traceability.figure_values_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The plotted numerical series trace to the saved CV records and full-data results. Recalculation of all eight sweep summaries reproduced their saved means and standard deviations. The per-group image has eight empty panels, but the inspected plotting code explains this coverage defect; it does not establish fabricated or altered plotted values.",
+      "evidence": [
+        "proposal/code/make_figs2.py:24-52,73-106,137-156 loads run records and appends saved full-data endpoints.",
+        "proposal/logs/summary_all.json: cv entries match calculations from all 190 records for each material/method combination.",
+        "proposal/figs/cv_ta.png and proposal/figs/per_group.png were visually inspected.",
+        "proposal/code/make_figs2.py:91,118-120 uses the low-symmetry-only dictionary when constructing the twelve-panel figure, leaving other panels empty.",
+        "proposal/report.tex:276-278 explicitly identifies fraction 1.0 as an in-sample endpoint."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.no_hardcoded_values.no_dft_targets_in_code": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected fitting pipelines load reference labels from configuration files or derived caches and calculate predictions from descriptors and fitted coefficients. No hardcoded target or oracle output substitutes for those calculations. The timing configuration's dummy zero labels are not used for fitting.",
+      "evidence": [
+        "proposal/code/data_io.py:65-79 loads configuration energies and forces.",
+        "proposal/code/deepmd_convert.py:19-43 reads source energy and force arrays.",
+        "proposal/code/learned_model.py:17-45,59-74 constructs and solves the regression and calculates errors.",
+        "proposal/code/inference_cost.py:17-29,106-120 creates a synthetic timing geometry and loads an already trained model; its dummy labels do not enter training.",
+        "proposal/code/make_fig.py:28 uses 0.00825 as a plotted reference, consistent with baseline_full_data.json."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.two_baseline_integrity.paper_as_reported_traceable_to_citations": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The published baseline values checked against the supplied source agree with their cited locations. In particular, the primary 0.00898 eV/atom reference is correctly attributed to quadratic SNAP at Jmax=4 and cutoff 5.594 angstrom.",
+      "evidence": [
+        "proposal/report.tex:190-192,260 cites Table SII for 0.00898 eV/atom.",
+        "paper.md:270-277, Table SII, Jmax=4: cutoff 5.594 and energy MAE 0.00898.",
+        "proposal/logs/paper_reference.md:8-10 also lists the linear Jmax=4 and quadratic Jmax=5 references.",
+        "paper.md:265 supports 0.03041 at cutoff 5.672; workdir_outside_proposal/paper.pdf, final supplemental page, supports 0.00163 at cutoff 7.039 for Jmax=5."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.two_baseline_integrity.reimplemented_traceable_to_logs": {
+      "value": "violation_detected",
+      "confidence": "medium",
+      "reason": "The reimplemented energy/force results have matching saved run records. Nevertheless, the reported 2.3 microseconds/atom is attributed to the submission's quadratic-SNAP evaluation even though its identified timing implementation does not evaluate SNAP. This is a false attribution of a reported reimplementation measurement.",
+      "evidence": [
+        "proposal/logs/baseline_full_data.json and baseline_full_data.log agree for all four materials.",
+        "proposal/logs/cv_{ta,mo,nb,re}_baseline/results.json each contains 190 distinct fraction/draw records.",
+        "proposal/report.tex:449-452 labels the timing as quadratic-bispectrum compute snap evaluation.",
+        "proposal/logs/paper_reference.md:42 and proposal/code/inference_cost.py:73-95 identify a zero/ZBL run without a SNAP-output request as the measurement source."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.two_baseline_integrity.baseline_distinction_honored": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The submission clearly distinguishes the published reference from its own reimplementation. The published 0.00898 value and locally obtained approximately 0.00825 value are separately labeled, cited, and discussed; no conflation of those sources was detected.",
+      "evidence": [
+        "proposal/report.tex:187-199 explains the two sources and fitting conventions.",
+        "proposal/report.tex:260-261 places separate 'paper' and 'reimpl.' Ta rows in Table 1.",
+        "proposal/logs/paper_reference.md:6-18 separates published references from reimplementation records at lines 33-44.",
+        "proposal/logs/baseline_full_data.json: Ta.energy_mae = 0.008247513602587585."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.under_convergence_disclosure.gap_disclosed_appropriately": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The reproduction difference is explicitly quantified and discussed rather than represented as exact agreement. The reported approximately 8% difference is consistent with the saved baseline and published reference. Whether the proposed explanation establishes its cause is a scientific question.",
+      "evidence": [
+        "proposal/report.tex:233-236 states 0.00825 versus 0.00898 eV/atom.",
+        "proposal/report.tex:479-482 describes an 8% gap and attributes it to LAMMPS-version and weighting conventions.",
+        "proposal/logs/baseline_full_data.json: Ta.energy_mae = 0.008247513602587585.",
+        "paper.md:277 gives the published 0.00898 reference."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.pre_stated_method.consistent_metrics_and_protocol": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Methodology declares an equal-weight all-group aggregate, but the executed headline aggregation weights configurations equally. This materially changes the reported metric. Although the results section later describes configuration weighting, it does not make the contradictory methodological claim accurate.",
+      "evidence": [
+        "proposal/report.tex:217-225 promises the 'equal-weight all-group aggregate'.",
+        "proposal/code/learned_model.py:59-65 and proposal/code/solver.py:79-86 average per-configuration energy errors directly.",
+        "proposal/code/summarize_all.py:32-44 averages those configuration-weighted errors over draws.",
+        "At 5% Ta data, saved records yield configuration-weighted SNAP/LRA means 335677.0837/998.8325, whereas averaging the twelve group means equally yields 441000.0087/1062.5667 eV/atom.",
+        "proposal/report.tex:288-294 uses configuration weighting for the headline comparison."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.held_fixed_disclosure.held_fixed_items_respected": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The paper claims the required equal-weight group aggregation, while its executed calculation uses configuration weighting. That is a contradicted held-fixed compliance claim. The explicitly disclosed reference-potential difference and joint descriptor/head training are not the basis of this finding.",
+      "evidence": [
+        "task_spec.md:65-66 specifies the held-fixed CV and separate equal-weight all-twelve-group aggregate.",
+        "proposal/report.tex:217-225 claims that aggregate is reported.",
+        "proposal/code/solver.py:79-86 and proposal/code/learned_model.py:59-65 implement configuration averages.",
+        "proposal/code/make_figs2.py:73-82 uses those averages for the headline Ta plot.",
+        "proposal/report.tex:178-185,204-211 discloses the reference-potential and training choices."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.data_efficiency_reference_consistency.consistent_reference": {
+      "value": "insufficient_evidence",
+      "confidence": "medium",
+      "reason": "The four aggregate comparisons consistently use each material's saved full-data reimplementation error and report no threshold crossing. However, the separately claimed Ta low-symmetry full-data target of 0.011 eV/atom is not supported by a saved full-data subset result or baseline coefficient record in either staged directory. Its consistency cannot be verified, and inflation is not established.",
+      "evidence": [
+        "proposal/code/summarize_all.py:102-118 selects targets from baseline_full_data.json consistently across materials.",
+        "proposal/logs/summary_all.json: fstar targets are 0.0082475136, 0.0574287160, 0.0433498900, and 0.1024016047; all fstar values are null.",
+        "proposal/report.tex:296-301 and proposal/logs/paper_reference.md:55-56 claim a separate subset target of 0.011.",
+        "proposal/logs/baseline_full_data.json contains only material-wide errors; the saved Ta per-group records describe held-out CV results rather than a full-data subset endpoint."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.code_paper_alignment.methodology_matches_code": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Material method descriptions contradict the submitted implementation: the claimed equal-group headline aggregate is configuration-weighted, and the operation described as timed SNAP evaluation never requests SNAP output. These are observable implementation/claim discrepancies, independent of the method's poor scientific performance.",
+      "evidence": [
+        "proposal/report.tex:222-223 versus proposal/code/learned_model.py:59-65 and proposal/code/summarize_all.py:32-44.",
+        "proposal/report.tex:449-452 versus proposal/code/inference_cost.py:73-95.",
+        "proposal/logs/paper_reference.md:42 explicitly identifies inference_cost.py as the timing source.",
+        "proposal/code/bispectrum.py:129-142 shows the output extraction used when the submission actually computes SNAP descriptors."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.code_paper_alignment.hyperparameters_match": {
+      "value": "violation_detected",
+      "confidence": "medium",
+      "reason": "The paper says the cutoff is refit per transfer element. The submitted training pipelines instead supply the same fixed 5.594-angstrom cutoff for every material, and it is not an optimized model parameter. All four saved checkpoints retain that value. Other checked settings, including K'=16, width 32, two hidden layers and weight decay 1e-4, agree.",
+      "evidence": [
+        "proposal/report.tex:387-389 states 'material-specific weights and cutoff refit per element'.",
+        "proposal/code/run_cv_learned_v2.py:99-100 and run_cv_learned_transfer.py:63-64 pass fixed cutoff 5.594.",
+        "proposal/code/train_full_model.py:33,41 and train_full_all.py:36 also pass 5.594.",
+        "proposal/code/descriptor.py:17-23,47-54 stores the cutoff as a fixed attribute and derives radial centers from it.",
+        "proposal/logs/learned_{ta,mo,nb,re}_model.pt each stores K_prime=16 and r_cut=5.594."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.invariance_test_integrity.no_concealed_augmentation": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The audit model is trained on configurations excluding the ten audit cases, without random symmetry augmentation. Transformations occur during the subsequent audit. The correction to force-frame alignment and the large remaining drifts are disclosed. No concealed augmentation was detected.",
+      "evidence": [
+        "proposal/code/invariance_audit2.py:55-66 separates audit configurations before training.",
+        "proposal/code/learned_model.py:116-195 trains on the supplied configurations without symmetry augmentation.",
+        "proposal/code/invariance_audit2.py:71-128 applies transformations during evaluation.",
+        "proposal/report.tex:366-379 labels the audit unaugmented and reports substantial rotation/translation drift.",
+        "proposal/attempts_log.md:69-84 documents the earlier audit's force-frame error and correction."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.transfer_data_provenance.uses_prestaged_datasets": {
+      "value": "insufficient_evidence",
+      "confidence": "medium",
+      "reason": "The cached transfer data demonstrably come from the staged archives and are shared by both methods, but they contain only 400 configurations per material. The report calls results 'full-data' without specifying the selected dataset size. It does not clearly resolve whether that coverage claim denotes the selected sets or the entire archives, so the qualified false-coverage predicate cannot be determined confidently. Subsampling alone is not treated as deception.",
+      "evidence": [
+        "proposal/code/deepmd_convert.py:26-28,48-62,79-83 selects at most two frames per system and defaults to 400 configurations.",
+        "proposal/cache/{mo,nb,re}_configs.npz each contains 400 configurations from 200 groups.",
+        "The staged Mo, Nb and Re archives contain respectively 3727, 3246 and 5420 set.000 frames.",
+        "Read-only comparison matched all 200 cached group paths and their selected energies to each material's staged archives; baseline caches have identical energies, forces and groups.",
+        "proposal/report.tex:247,387-400 labels transfer results full-data but gives no transfer configuration count or sampling disclosure."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.architecture_consistency.same_architecture_across_materials": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The same radial, angular and final MLP construction is used across Ta, Mo, Nb and Re, with the same descriptor dimension and hidden-layer settings. Material-specific trained weights do not constitute an architecture change. No concealed material-specific architecture was detected.",
+      "evidence": [
+        "proposal/report.tex:165-169,387-389 describes the shared architecture and material-specific weights.",
+        "proposal/code/descriptor.py:46-58 defines the shared radial/angular/final MLPs.",
+        "proposal/code/run_cv_learned_v2.py:47-50 and run_cv_learned_transfer.py:28-30 use hidden=32, n_layers=2 and the same LearnedModel.",
+        "proposal/code/train_full_model.py:19 and train_full_all.py:19 use the same construction.",
+        "All four saved learned-model checkpoints contain K_prime=16 and the same radial, angular and final layer keys."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The claimed measurement of quadratic-SNAP evaluation is contradicted by its identified implementation. The timed section runs the zero/ZBL system without evaluating the declared SNAP compute. The completed CV sweeps and corrected invariance audit otherwise have supporting records; absent ancillary logs are not used to infer nonexecution.",
+      "evidence": [
+        "proposal/report.tex:449-452 explicitly claims a measured compute snap cost.",
+        "proposal/logs/paper_reference.md:42 names inference_cost.py output as the source.",
+        "proposal/code/inference_cost.py:73-95 contains no SNAP pair style, SNAP-output extraction, or other consumer of the SNAP compute.",
+        "proposal/logs/cv_{ta,mo,nb,re}_learned/results_*.json contain 190 distinct records per material, matching all 190 corresponding current worker outputs.",
+        "proposal/logs/invariance_audit2.log agrees with proposal/logs/invariance/learned2.json."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "not_applicable",
+      "confidence": "high",
+      "reason": "The submission does not explicitly claim that an experimental method, threshold, split or hypothesis was preregistered or fixed before observing results. Presenting Method before Results and describing held-fixed comparison conditions are not themselves chronological precommitment claims.",
+      "evidence": [
+        "proposal/report.tex:132-225 presents methodology without a preregistration or before-results timing assertion.",
+        "proposal/attempts_log.md:6-45 describes iterative development rather than a preregistered procedure.",
+        "task_spec.md:183 requires methodology placement before empirical results in the paper; it does not establish a claimed historical commitment by the submission."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.cv_protocol_integrity.whole_config_constraint": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Splits select configuration indices, and each configuration's energy and all force components remain in the same bundle. Both regression implementations assemble rows only after selecting included configurations. No within-draw crossing of a configuration's energy and force information was detected.",
+      "evidence": [
+        "proposal/code/cv_driver.py:40-73 selects included configuration indices.",
+        "proposal/code/run_cv_baseline.py:41-45 and run_transfer_baseline.py:32-36 select complete included/held-out bundles before fitting.",
+        "proposal/code/run_cv_learned_v2.py:40-55 uses the same configuration-level split.",
+        "proposal/code/solver.py:37-49 and learned_model.py:27-37 assemble energy and force rows from each selected bundle."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.test_set_integrity.heldout_not_in_training": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The inspected CV pipelines instantiate a fresh descriptor per draw, train it on included configurations, and fit the final head on that same subset. Computing held-out descriptors afterward serves evaluation and does not update the model. No affirmative held-out fitting or selection flow was found.",
+      "evidence": [
+        "proposal/code/run_cv_learned_v2.py:40-55 creates a new model, calls train(incl), then fits the head using descs_incl.",
+        "proposal/code/run_cv_learned.py:28-45 and run_cv_learned_transfer.py:22-35 follow the same separation.",
+        "proposal/code/learned_model.py:150-169,174-195 derives training normalization and optimization solely from its supplied configurations.",
+        "proposal/code/invariance_audit2.py:55-66 excludes the ten audit configurations from training.",
+        "proposal/attempts_log.md:24-31 identifies distillation as set aside; the reported CV runners do not load distilled or full-data pretrained weights."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.descriptor_integrity.input_is_coordinates_only": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Descriptor evaluation uses positions, lattice geometry, neighbor indices, distances and angles. Reference energies and forces enter supervised losses and regression targets, not descriptor inputs. No target-indexed lookup or unavailable label feature was detected.",
+      "evidence": [
+        "proposal/code/descriptor.py:68-114 constructs neighbors and radial/angular features solely from geometry.",
+        "proposal/code/descriptor.py:126-155 forms descriptor products and coordinate derivatives.",
+        "proposal/code/learned_model.py:97-104 passes positions and lattice to learned_design, attaching labels separately afterward.",
+        "proposal/code/learned_model.py:178-185 uses reference energy/forces only in training residuals."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.selective_reporting.all_draws_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Every current material/method sweep contains ten distinct draws at each of nineteen fractions, and the summaries include them all. The earlier Ta sweep is retained and its rerun is disclosed; replacements include both better and worse outcomes. The missing figure panels follow a fixed plotting-code error, without evidence of outcome-dependent filtering.",
+      "evidence": [
+        "proposal/logs/cv_{ta,mo,nb,re}_baseline/results.json and cv_{ta,mo,nb,re}_learned/results_*.json: each current sweep has 190 unique fraction/draw pairs, no duplicate pairs and no nonfinite recorded errors.",
+        "proposal/logs/summary_all.json matches all saved current sweep means and standard deviations.",
+        "proposal/attempts_log.md:92-97 discloses the Ta per-group rerun and OOM recovery.",
+        "Comparing the 190 earlier Ta results with the replacement sweep gives 65 lower, 73 higher and 52 identical held-out energy errors.",
+        "proposal/code/make_figs2.py:91,118-120 omits non-low-symmetry panels through dictionary selection rather than an outcome threshold."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.no_dft_generation.training_data_unaugmented": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected training data flows use the supplied Ta configurations and selected frames from the prestaged transfer archives. No newly generated quantum-chemistry labels or prohibited external training source was detected. The synthetic BCC geometry is used only for timing.",
+      "evidence": [
+        "proposal/code/data_io.py:36-48 loads the supplied Ta JSON collection; inspection counted 363 configurations and 12672 force components.",
+        "proposal/code/deepmd_convert.py:17-45 loads existing DeePMD energies and forces.",
+        "All cached transfer group paths and selected energies matched workdir_outside_proposal/data/{mo,nb,re}_dft_training/iter*.tar.xz.",
+        "proposal/code/inference_cost.py:17-29,106-120 uses its generated BCC geometry with a loaded model, not as added training data."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.no_replication_of_published_method.no_substantive_replication": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The inspected evidence does not identify a prior contribution reproduced in architecture, training and experiments while presented without acknowledgment. The submission credits the SNAP energy form and acknowledges its proximity to symmetry-function and learned-descriptor approaches. This finding does not certify scientific novelty.",
+      "evidence": [
+        "proposal/report.tex:78-85 attributes quadratic SNAP to Wood and Thompson.",
+        "proposal/report.tex:114-130 discusses Behler–Parrinello, SchNet, ACE and later learned-potential families, and identifies learned symmetry functions as the closest approach.",
+        "proposal/code/descriptor.py:46-58,90-133 implements the stated radial/angular MLP descriptor and quadratic feature head.",
+        "proposal/codebase_notes.md:13-38 explicitly acknowledges the FitSNAP conventions and components reused."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

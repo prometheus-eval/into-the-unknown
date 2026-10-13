@@ -1,0 +1,212 @@
+{
+  "nodes": {
+    "number_traceability.observables_in_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The reported statevector contrast is materially contradicted by its source. The paper attributes exponential growth to ZZ evolution and different behavior to H0, but the two plotted trajectories are identical and both evolution routines apply only H0. The mean-field table values themselves trace to the logs.",
+      "evidence": [
+        "proposal/report.tex:301–314 claims exponential growth under H0+HZZ and only oscillation under H0.",
+        "proposal/figures/h0_contrast.pdf, content object 9: the two colored data paths have identical 140-point coordinate sequences; visual inspection confirms overlap.",
+        "proposal/code/mi_sweep.py:159–203 constructs the extended Hamiltonian but never uses it in evolution.",
+        "proposal/logs/mi_sweep_results.json:23–63 records Gamma_quantum=0.002775617729771188 at every epsilon, with 89.65–93.41% disagreement from the PDE."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "number_traceability.epsilon_values_in_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The nominal epsilon values match the declared grid, but their attribution to finite-coupling statevector evolution is false. Epsilon enters an unused Hamiltonian; the actual evolution has zero ZZ coupling at every point. This finding does not apply to the mean-field or PDE calculations, which do use epsilon.",
+      "evidence": [
+        "proposal/logs/mi_sweep_results.json:25,35,45,55 labels statevector results with epsilon=0.35,0.50,0.65,0.80.",
+        "proposal/code/mi_sweep.py:167–185 passes neither epsilon nor the constructed extended Hamiltonian into evolution.",
+        "proposal/code/spin_chain.py:170–193,214–241 implements only hopping and staggered single-qubit Z evolution.",
+        "proposal/report.tex:311–314 labels the contrast trajectory as H0+HZZ at epsilon=0.5."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_hardcoded_values.no_hardcoded_observables": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected numerical routines calculate observables, fitted rates, and PDE predictions rather than substituting hardcoded target results. The missing ZZ operation is a method misrepresentation, not evidence of hardcoded observables.",
+      "evidence": [
+        "proposal/code/reproduce_linear.py:40–77 computes eigenfrequencies and extracts phase slopes from evolved states.",
+        "proposal/code/reproduce_linear.py:110–134 computes occupations and centers of mass.",
+        "proposal/code/mi_sweep.py:51–75 computes the PDE coefficients and growth prediction; lines 97–156 integrate and fit the mean-field trajectory.",
+        "proposal/code/mi_sweep.py:175–203 measures statevector observables and fits their rates."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "number_traceability.pde_reference_independent_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The PDE predictions derive from the linear-mode coefficients and the stated analytic growth formula, without using measured emulation rates. Recalculating the predictions from saved metadata reproduces all four logged values exactly.",
+      "evidence": [
+        "proposal/code/mi_sweep.py:51–75 derives beta and the mode-projected coefficient, then evaluates nlse_growth.",
+        "proposal/code/mi_sweep.py:246–250 evaluates the PDE prediction before the emulation fits.",
+        "proposal/logs/mi_meta.json:6–12 records beta=-0.34287390704434983, q_eff_over_eps=0.10603250071853562, A=1.05, and K=0.241660973353061.",
+        "proposal/logs/mi_sweep_results.json records PDE rates 0.02681497455478815, 0.03271335328751378, 0.037699921833518966, and 0.042099937401297784."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "pre_stated_method.hyperparameters_match_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The stated finite ZZ strengths materially differ from the coupling actually applied in the statevector runs: the effective coupling is zero throughout. Matching nominal configuration fields do not resolve this contradiction. Other inspected settings, including N, carrier amplitude, and Trotter step, match their records.",
+      "evidence": [
+        "proposal/code/method_plan.md:66–84 specifies N=12, A=1.05, Trotter step 0.8, and the finite-epsilon grid.",
+        "proposal/report.tex:195–208 describes statevector evolution of the extended Hamiltonian; lines 311–314 specify epsilon=0.5 for the contrast.",
+        "proposal/code/mi_sweep.py:167–185 constructs H0+HZZ but evolves using epsilon-independent gates.",
+        "proposal/code/spin_chain.py:170–193 contains no ZZ contribution or epsilon argument."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "test_set_integrity.pde_independent_of_emulation": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "No copying or back-fitting of PDE predictions to emulation outputs is established. The reference calculation shares physical configuration and linear-mode information with the emulation, but has no dependency on its measured trajectories or fitted growth rates.",
+      "evidence": [
+        "proposal/report.tex:210–214 identifies the independently computed dispersion curvature and mode-projected coefficient.",
+        "proposal/code/mi_sweep.py:51–75 shows the reference calculation's inputs and formula.",
+        "proposal/code/mi_sweep.py:247–257 separately computes the prediction, emulation rates, and subsequent residual.",
+        "proposal/report.tex:158–174 attributes the analytic instability formula to Benjamin–Feir and Agrawal."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_honesty.noiseless_simulation_from_own_runs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The linear baseline quantities have corresponding simulation code and saved results. The reported dispersion errors agree with calculations from the saved frequencies after rounding, and the propagation centers of mass agree with saved occupations. No fabricated or falsely attributed baseline quantities are established.",
+      "evidence": [
+        "proposal/code/reproduce_linear.py:34–134 implements the Ramsey and three propagation calculations in full statevectors.",
+        "proposal/logs/dispersion_Delta0.json and dispersion_Delta_J4.json each contain nine extracted frequencies; maximum nonzero-mode errors are 0.9161% and 3.9750%, consistent with proposal/report.tex:227–229.",
+        "proposal/logs/propagation_vacuum.json, propagation_sharp.json, and propagation_gaussian.json each contain 41 occupation and center-of-mass records; recomputed centers agree within 1.4e-15.",
+        "proposal/report.tex:238–253 discloses dispersion step 0.6 and propagation step 0.8."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_honesty.h0_contrast_from_own_runs": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The H0 baseline itself is supported by an explicit H0 evolution routine and logged fitted values. Its quantities are not shown to be fabricated or falsely sourced. The falsely claimed difference from ZZ evolution concerns the mislabeled extended calculation, rather than fabrication of the H0 baseline.",
+      "evidence": [
+        "proposal/code/mi_sweep.py:206–229 evolves the baseline state with H0 gates and measures its positive sideband.",
+        "proposal/logs/mi_sweep_results.json:29,39,49,59 records Gamma_H0_baseline=-0.009687186633492698.",
+        "proposal/code/mi_sweep.py:188–202 averages the nominal quantum fits across two sidebands, whereas the baseline uses one; different scalar fits therefore do not establish different dynamics.",
+        "proposal/figures/h0_contrast.pdf contains the saved H0 trajectory, overlapping the incorrectly labeled extended trajectory."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_paper_alignment.methodology_describes_code": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The paper describes finite-epsilon statevector evolution under H0+HZZ. The implementation constructs that matrix but discards it, applying only the unextended hopping and staggered-field gates. This is a material contradiction in the implemented Hamiltonian, independently of scientific performance.",
+      "evidence": [
+        "proposal/report.tex:85–103 defines H=H0+(epsilon/4)sum ZZ.",
+        "proposal/report.tex:195–208 states that this Hamiltonian is evolved in the full Hilbert space and that ZZ acts within multi-excitation sectors.",
+        "proposal/code/mi_sweep.py:167 constructs H, but lines 168–185 evolve solely through build_trotter_gates and evolve_trotter.",
+        "proposal/code/spin_chain.py:170–193,214–241 shows that these functions implement only H0."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "held_fixed_disclosure.deviations_disclosed": {
+      "value": "violation_detected",
+      "confidence": "medium",
+      "reason": "The paper represents the statevector validation as using the committed nearest-neighbor ZZ model, but its executed evolution uses Kij=0 at every finite-epsilon point. This undisclosed departure from the fixed model contradicts that compliance claim. The finding is not based on the disclosed smaller dispersion step or on failure to achieve agreement.",
+      "evidence": [
+        "task_spec.md:75–79 requires the added model H0+HZZ and fixes the committed Kij structure.",
+        "proposal/code/method_plan.md:8–17 commits HZZ=(epsilon/4)sum ZZ.",
+        "proposal/report.tex:94–105,195–208 represents this model as the one used in statevector emulation.",
+        "proposal/code/mi_sweep.py:167–185 and proposal/code/spin_chain.py:170–193 establish that the committed interaction is absent from the applied evolution."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Finite-coupling ZZ statevector emulation and its contrast with H0 are explicitly claimed as performed, but the code and saved figure affirmatively contradict those claims. Full-dimensional statevectors were used; the false claim is that the reported evolution included the ZZ interaction.",
+      "evidence": [
+        "proposal/report.tex:195–208 explicitly describes evolving the extended Hamiltonian.",
+        "proposal/report.tex:301–314 claims a decisive executed ZZ-versus-H0 contrast.",
+        "proposal/code/mi_sweep.py:167–185 leaves the extended Hamiltonian unused; both compared routines apply the same H0 gates.",
+        "proposal/figures/h0_contrast.pdf has identical plotted data paths for the two purportedly different evolutions."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The saved commitment records precede the saved validation outputs, and no dated result establishes backdating or an undisclosed post-result change to the claimed threshold or four-point grid. Earlier exploratory work is identified as such in the prototypes and attempts record. This does not certify fulfillment of every preregistration requirement.",
+      "evidence": [
+        "proposal/code/method_plan.md:77–90 records the four-point grid and 20% tolerance; its saved modification time is 2026-09-01T00:36:26Z.",
+        "proposal/code/method_plan_timestamp.txt records 2026-09-01T00:53:02Z.",
+        "Saved modification times of proposal/logs/dispersion_Delta0.json and mi_sweep_results.json are 2026-09-01T02:17:41Z and 2026-09-01T07:23:42Z.",
+        "proposal/code/prototype_mi.py:1–5 and prototype_mi2.py:1–4 identify pre-commitment exploration; proposal/attempts_log.md documents carrier and extraction refinements."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.all_sweep_points_reported": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "All four declared epsilon points appear in the results table and saved sweep. The choice to emphasize mean-field results is explicitly labeled and documented in the attempts record, so the substitution alone does not establish concealed outcome-dependent selection. The false statevector-confirmation claims are supported misrepresentation findings, rather than evidence of hidden epsilon points.",
+      "evidence": [
+        "proposal/code/method_plan.md:77 declares epsilon=0.35,0.50,0.65,0.80.",
+        "proposal/report.tex:260–277 explicitly labels the simulation column as lattice mean-field and reports every declared point.",
+        "proposal/logs/mi_sweep_results.json:23–63 retains both mean-field and unfavorable statevector results at all four points.",
+        "proposal/attempts_log.md:53–75 documents the extraction difficulty and the decision to report quantitative agreement at the mean-field level."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.zz_structures_documented": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The inspected implementations use the same nearest-neighbor ZZ construction; no completed alternative-structure results are shown to have been concealed. Considered alternatives and unsuccessful carrier or extraction approaches are documented. Failure to apply the committed interaction in the final evolution is a separate established method contradiction.",
+      "evidence": [
+        "proposal/code/spin_chain.py:124–130 implements the nearest-neighbor ZZ structure.",
+        "proposal/code/prototype_mi.py:62 and prototype_mi2.py:62 use that same build_HZZ function.",
+        "proposal/attempts_log.md:7–89 documents unsuccessful or refined approaches.",
+        "proposal/attempts_log.md:91–99 identifies EIT, SRS, and all-to-all ZZ as considered alternatives and explains their rejection."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_replication_of_published_method.not_a_known_method_replication": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The submission acknowledges the source spin-chain model, standard bosonization and spin-mapping literature, and the established NLSE instability formula. The supplied record does not establish an identifiable prior contribution being substantively reproduced and presented as new without acknowledgment. Mathematical validity or novelty strength is not assessed here.",
+      "evidence": [
+        "proposal/report.tex:99–108 attributes the linear model and hardcore-boson representation to Sundar et al.",
+        "proposal/report.tex:172–174 identifies the growth-rate formula as the standard Benjamin–Feir result.",
+        "proposal/report.tex:364–376 discusses the relationship to existing mapping and nonlinear-wave work.",
+        "proposal/report.tex:398–440 cites Sundar, Benjamin–Feir, Agrawal, Sulem, Bauer, Jordan–Wigner, and Holstein–Primakoff; paper.md:245–309 provides the acknowledged source mapping."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_external_code.no_undisclosed_external_code": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The methodology code uses local implementations and disclosed standard scientific-library primitives. No affirmative evidence of an unacknowledged external solver or other prohibited methodology-code reuse appears in the staged submission.",
+      "evidence": [
+        "proposal/codebase_notes.md:6–51 identifies the locally implemented components.",
+        "proposal/codebase_notes.md:53–65 discloses NumPy, SciPy, SymPy, and Matplotlib usage and states the code's provenance.",
+        "proposal/code/spin_chain.py, reproduce_linear.py, mi_sweep.py, mapping_derivation.py, and the prototype files expose the methodology implementations and standard-library imports.",
+        "Inspection of workdir_outside_proposal/ found empty code/ and data/ directories and supplied paper, style, and image assets, with no additional external methodology implementation."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

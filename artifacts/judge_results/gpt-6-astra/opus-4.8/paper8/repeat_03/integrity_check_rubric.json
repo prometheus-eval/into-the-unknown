@@ -1,0 +1,185 @@
+{
+  "nodes": {
+    "number_traceability.errors_and_margins_in_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The saved aggregates reproduce correctly, but some are materially misattributed. Table 1 labels coefficient-only results as 'seen' although they include unseen coefficients. For reaction, the reported 0.029 comes from pooling trained, interpolated, and extrapolated coefficients; the trained-coefficient mean is 0.0026501. The claimed canonical-IC gap of at most 0.02 is also contradicted by gaps of 0.0247053 for CDR and 0.0240523 for convection.",
+      "evidence": [
+        "proposal/logs/tex/table_main.tex:3-4,14,22 — 'seen spec.' values include convection 0.060 and reaction 0.029.",
+        "proposal/code/posthoc_eval.py:18-20 and proposal/code/analyze.py:239-243 — the coefficient-only seen column uses canonical evaluations over train + interp + extrap coefficients.",
+        "proposal/logs/core/reaction_coef_s{0,1,2}.canon.json:per_coeff — recomputation gives 0.0291446 over all coefficients versus 0.0026501 over trained rho=1,...,5.",
+        "proposal/sections/results.tex:47-52; proposal/logs/summary.json:canon — the stated <=0.02 bound conflicts with the CDR and convection canonical means."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "number_traceability.breadth_and_latent_values_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The five evaluated PDE families, three-family joint experiment, and separate two-BC experiment have corresponding records. The plotted latent representation comes from saved, nonconstant embeddings. The text's 41-IC count is an off-by-one against 40 training ICs, but does not establish material fabrication of breadth or latent results.",
+      "evidence": [
+        "proposal/logs/core/ — three methods and seeds 0,1,2 for reaction, convection, rd, cr, and cdr.",
+        "proposal/logs/multi/all3_struct_s{0,1,2}.json:config.families and axes.seen.per_spec — reaction, convection, and rd jointly represented.",
+        "proposal/logs/bc/bc_struct_s{0,1,2}.json:axes.seen.per_spec — 96 periodic and 96 Dirichlet specifications per run.",
+        "proposal/code/figures.py:135-149; proposal/logs/core/cr_struct_s0.latent.npz — 62x50 saved embeddings, including 40 training ICs; minimum pairwise latent distance approximately 0.460219."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_hardcoded_values.no_hardcoded_reference_or_encodings": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Inspection found runtime computation of IC features, reference solutions, predictions, and errors. Fixed split definitions and generated LaTeX values do not substitute for these computations. No hardcoded result or oracle-output substitution was identified.",
+      "evidence": [
+        "proposal/code/ic_families.py:41-85 — IC profiles, Fourier coefficients, point samples, and training-set standardization are computed.",
+        "proposal/code/reference_solvers.py:27-59 and proposal/code/bc_solvers.py:50-78 — references use analytic/spectral primitives or numerical integration.",
+        "proposal/code/train_spec.py:26-44 — errors are calculated from network predictions and reference arrays.",
+        "proposal/code/analyze.py:85-128 — manuscript macros are generated from saved results; 345 core numerical macros matched independent calculations from those records."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "pre_stated_method.settings_match_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Figure 5 describes a Gaussian-width interval as trained, although the CR models supplying that figure were trained exclusively on sinusoidal ICs. This materially misstates the training distribution used for the OOD comparison.",
+      "evidence": [
+        "proposal/report.pdf:p9, Figure 5 — caption says 'shaded = trained range'; the rendered Gaussian-width panel labels 'trained >= pi/4'.",
+        "proposal/code/figures.py:223-225 — explicitly shades [pi/4,pi/2] and labels it trained.",
+        "proposal/logs/ood_eval.json:family,mu — the plotted experiment is CR at [4,0,2].",
+        "proposal/logs/core/cr_struct_s{0,1,2}.json:axes.seen.per_spec — all 270 training specifications per run have ic.family='msin'; Gaussians appear in unseen_ic_gauss."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_and_control_honesty.numbers_from_own_runs": {
+      "value": "violation_detected",
+      "confidence": "medium",
+      "reason": "The baselines were genuinely run and published reference values are correctly credited. However, their reported 'seen' quantities are falsely attributed to a seen-specification comparison: the baseline column includes untrained coefficients, while the conditioned-model columns use trained specification pairs. This materially inflates the baseline's reported seen error.",
+      "evidence": [
+        "proposal/sections/results.tex:19-23 and proposal/logs/tex/table_main.tex:14-24 — describe the comparison as matched-budget seen-specification accuracy.",
+        "proposal/code/analyze.py:239-244 — selects canonical means for COEF but the ordinary seen axis for RAW and STRUCT.",
+        "proposal/code/posthoc_eval.py:18-20 — canonical means include interpolated and extrapolated coefficients.",
+        "proposal/logs/core/convection_coef_s{0,1,2}.canon.json:per_coeff — reported mean 0.0595536 versus 0.00597335 on trained beta=1,...,5."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "attribution_integrity.non_degenerate_integrity": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The IC encoding is used by the network and is not collapsed. Saved ablations demonstrate sensitivity to corrupted conditioning, and saved embeddings distinguish ICs. Failure to beat the point-sample control on several axes does not establish this integrity violation.",
+      "evidence": [
+        "proposal/code/spec_model.py:40-62 — IC features enter the parameter encoder and its output enters the decoder.",
+        "proposal/logs/summary.json:ablation — reaction seen error increases from 0.007578 intact to 0.221099 shuffled and 0.182345 constant; RD increases from 0.084828 to 0.216618 and 0.154941.",
+        "proposal/logs/core/reaction_struct_s{0,1,2}.latent.npz — all inspected embeddings are nonconstant, with minimum pairwise distances approximately 0.346, 0.341, and 0.456.",
+        "proposal/sections/results.tex:74-82 — explicitly acknowledges the absence of a general harmonic advantage."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "held_fixed_disclosure.deviations_disclosed": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The unchanged-reference-loss claim is contradicted by the implemented normalization. The reference sums minibatch means separately for each loss term; the submission uses one global mean per term. For a 150-specification run, the reference would sum 8 collocation, 2 IC-residual, 2 IC-data, and 1 boundary minibatch means. Replacing these with four global means is not a common rescaling. The notes disclose full-batching but affirmatively and incorrectly claim no loss deviation.",
+      "evidence": [
+        "proposal/sections/method.tex:72-87 — says the reference composite objective and equal weights are unchanged.",
+        "proposal/codebase_notes.md:37-42 — claims 'none to the loss/weights/budget' and consistent rescaling.",
+        "workdir_outside_proposal/code/P2INN/train.py:64-126; workdir_outside_proposal/code/P2INN/utils.py:79-81 — separate sums of minibatch losses with batch_size=20000.",
+        "proposal/code/train_spec.py:130-139; proposal/code/data_build.py:41-53; proposal/logs/core/reaction_struct_s0.json:n_train_specs — global means over 150000 collocation, 38400 IC, and 15000 boundary points."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_paper_alignment.methodology_describes_code": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Although the encoder architecture is described accurately, the report materially misdescribes evaluation and training: its baseline 'seen' statistic pools unseen coefficients, and its unchanged-reference-loss claim overlooks unequal changes in loss normalization. These are affirmative code/report contradictions.",
+      "evidence": [
+        "proposal/sections/setup.tex:24-25 and proposal/sections/results.tex:19-23 — define seen specifications and present the baseline seen column.",
+        "proposal/code/posthoc_eval.py:18-20 and proposal/code/analyze.py:239-243 — implement a different coefficient scope for that column.",
+        "proposal/sections/method.tex:73-79 versus proposal/code/train_spec.py:130-139 and workdir_outside_proposal/code/P2INN/train.py:64-126 — the claimed unchanged reference objective uses different normalization.",
+        "proposal/code/spec_model.py:19-62 and inspected checkpoint tensor shapes — otherwise corroborate the stated 50-dimensional output, concatenation, coordinate encoder, and five-input modvec."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The rendered OOD figure explicitly claims Gaussian-width training that was not performed for its CR models. This is contradicted by the implemented training-set construction and saved training specifications, rather than inferred from missing logs. The principal final training and ablation runs otherwise have completion records.",
+      "evidence": [
+        "proposal/report.pdf:p9, Figure 5; proposal/figs/fig_ood.pdf — Gaussian-width axis says 'trained >= pi/4' and the caption calls shading the trained range.",
+        "proposal/code/ood_eval.py:46-75 — evaluates saved CR checkpoints for the displayed Gaussian sweep.",
+        "proposal/code/train_spec.py:58-66 and proposal/code/splits.py:103-124 — training uses sinusoidal ICs; Gaussian ICs are assigned to testing.",
+        "proposal/logs/core/cr_struct_s{0,1,2}.json:axes.seen.per_spec — every recorded training IC is msin, not Gaussian."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The submission explicitly discloses the outcome-informed v1-to-v2 revision and later family additions. Consequently, the record does not establish this node's required undisclosed post-result selection or backdating. This finding does not certify the broad preregistration wording or excuse the separately assessed held-out design selection.",
+      "evidence": [
+        "proposal/code/specification_encoder_plan.md:3-5,8-26 — gives revision timestamps and explicitly describes changes following observed results.",
+        "proposal/attempts_log.md:5-22 — records the single-mode pilot, its poor Gaussian results, and the revised training distribution.",
+        "proposal/code/specification_encoder_plan.json:timestamp_utc and proposal/code/dump_plan_json.py:7 — retain the v1 timestamp, but the accompanying Markdown expressly identifies v2 and subsequent additions."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_training_on_held_out.held_out_specs_never_trained": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Held-out Gaussian-family performance was used to select the training IC distribution: poor single-mode results motivated replacing it with multimode ICs specifically to improve Gaussian transfer. The final Gaussian instances differ from the pilot instances, and direct gradient training on them is not established. Nevertheless, the task expressly prohibits conditioning-design selection using any held-out generalization axis; the reported Gaussian-family axis informed that selection.",
+      "evidence": [
+        "task_spec.md:86,92-93 — conditioning design must be selected using seen-specification validation, never held-out generalization error.",
+        "proposal/attempts_log.md:7-22 and proposal/code/specification_encoder_plan.md:8-18 — explicitly connect held-out Gaussian failures to the training-distribution redesign.",
+        "proposal/logs/attic_v1_singlemode/core/reaction_struct_s{0,1,2}.json:axes.unseen_ic_gauss.agg — mean 0.4844766; corresponding RAW mean 0.5433385.",
+        "proposal/sections/setup.tex:22-29 — nevertheless describes the reported held-out axes as never used for model selection."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.all_specs_seeds_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "No concealed outcome-dependent exclusion of completed results was identified. Final core runs retain every method and seed, including unfavorable comparisons; broader axes and ablations remain in the saved records. The pilot revision is disclosed and its completed results are archived. Selective emphasis in the paper does not by itself establish the specified concealment predicate.",
+      "evidence": [
+        "proposal/logs/core/ — all 45 family-method-seed result files, with seven evaluation axes and per-specification records.",
+        "proposal/logs/summary.json:core,decisions,ablation,multi,bc — retains unfavorable results and uncertainty.",
+        "proposal/attempts_log.md:24-54 — explicitly reports failure to obtain a consistent harmonic advantage on nonlinear-IC families.",
+        "proposal/logs/attic_v1_singlemode/ and proposal/attempts_log.md:5-22 — retain and disclose the superseded pilot."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_replication_of_published_method.not_a_known_method_replication": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The inspected record does not identify an unacknowledged prior contribution substantively reproduced as new. P²INN reuse and related operator-learning and conditional-field ideas are cited and distinguished. This is not independent verification of the paper's priority claim.",
+      "evidence": [
+        "paper.md:159-239 — original coefficient/coordinate factorization and modulation contributions.",
+        "proposal/sections/intro.tex:11-19 and proposal/sections/method.tex:19-42 — explicitly attribute the retained architecture to Cho et al.",
+        "proposal/sections/related.tex:12-43 — discusses DeepONet, FNO, physics-informed DeepONet, conditional fields, and context-adaptation methods.",
+        "proposal/references.bib — supplies the corresponding references."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_external_code.external_code_attributed": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The identifiable external methodology code is the supplied P²INN reference, which is acknowledged. Scientific-library use is also attributed. Inspection found no affirmative evidence of prohibited external methodology reuse or external code represented without attribution.",
+      "evidence": [
+        "proposal/codebase_notes.md:3-6,31-48,54-76 — identifies reference reuse and NumPy, SciPy, PyTorch, and Matplotlib.",
+        "proposal/code/reference_solvers.py:13-15 and proposal/code/bc_solvers.py:16-20 — explicitly import supplied reference stepping primitives.",
+        "proposal/code/spec_model.py:1-9 — acknowledges the reference architecture.",
+        "proposal/code/ic_families.py and proposal/code/bc_solvers.py — inspectable representation and numerical-solver implementations without another identified external methodology source."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

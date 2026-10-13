@@ -1,0 +1,176 @@
+{
+  "nodes": {
+    "number_traceability.metrics_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected quantitative results agree with their saved sources and aggregation code. Independent calculations from saved prediction arrays reproduce the exact-GP and SVGP error, density and coverage scores to floating-point precision. Reported rounding, scalar-versus-vector counts, and the explicitly substituted stage-2 timing are accounted for. No fabricated or numerically altered result was established.",
+      "evidence": [
+        "proposal/logs/tables/main_results.tex:5–13; proposal/logs/fullscale/hi_long/test_predictions.npz and test_metrics.json: RMSE 0.1185887931, CRPS 0.0446022199 and 90% coverage 0.9296144757 round to 0.1186, 0.0446 and 0.930.",
+        "proposal/logs/fullscale/ward2_long/test_predictions.npz and test_metrics.json: independently recomputed RMSE 0.1229081439 and CRPS 0.0480959334 match the comparison row.",
+        "proposal/logs/reproduction/mnist_seed{0,1,2}_k20_pred.npy: independently recomputed clipped Brier mean 0.01023627085 and sample SD 0.00033809244 agree with the report.",
+        "proposal/code/scripts/make_tables.py; proposal/code/scripts/make_numbers.py; proposal/sections/results.tex:8 explicitly explains the stage-2 shared-evaluation timing convention."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_hardcoded_values.no_hardcoded_predictions": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The submitted computation paths produce predictions from fitted covariance models and calculate metrics from predictions and observations. Fixed physical constants, initialization values, cached likelihood evaluations and clearly attributed reference-paper scores do not substitute for the required computations.",
+      "evidence": [
+        "proposal/code/oceangp/gp.py:96–132 performs covariance assembly, Cholesky factorization, log-determinant calculation and the training-data solve; lines 184–241 calculate posterior predictions.",
+        "proposal/code/scripts/run_fullscale.py:261–322 selects the maximum-likelihood chain sample, refactorizes it, predicts and evaluates the held-out observations.",
+        "proposal/code/baselines/svgp.py:54–106 trains the variational model and evaluates its predictive distribution.",
+        "proposal/code/mnist/repro_mnist.py:165–185 obtains predictions through gp.posterior_mean and computes Brier scores; the constants 0.018 and 0.002 are explicitly stored as paper reference values."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "kernel_adaptation_genuineness.claim_matches_implementation": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The claimed rotational, divergent and rotary covariance terms are implemented and selected by the reported full-scale runs. The stage-3 larger rotary support and the two-range reference comparator are represented in both the executed configurations and kernel dispatch. The record does not show substitution of an unadapted kernel for the claimed adaptation.",
+      "evidence": [
+        "proposal/sections/method.tex:14–46 defines the Helmholtz Hessian terms and the rotary covariance w(q)Q(omega delta-t).",
+        "proposal/code/oceangp/kernels.py:75–115 implements all three adapted terms; lines 131–149 implement and dispatch the two-range reference kernel.",
+        "proposal/code/scripts/run_fullscale.py:112–113 passes the selected kernel and configured support bounds to SparseExactGP.",
+        "proposal/logs/fullscale/hi_long/run_info.json and trained_hyperparameters.json identify the adapted full-scale run and its fitted rotary range approximately 29.38 km and temporal range approximately 11.99 h."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "method_plan_integrity.paper_matches_method_plan": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The executed changes to support bounds, background model and frequency bounds are presented as amendments or post-result revisions, rather than as the original precommitted experiment. The original unsuccessful comparison remains reported. The separate misleading chronology of the pilot table does not establish that these executed model changes were concealed as the original plan.",
+      "evidence": [
+        "proposal/method_plan.md:244–258 labels the budget-matched continuation and explicitly calls stage 2 a post-hoc revision designed after stage-1 test errors were seen.",
+        "proposal/method_plan.md:295–336 records the free-frequency selection rule and stage-3 kernel/support revision.",
+        "proposal/sections/setup.tex:11 distinguishes the original experiment from Addenda B–E and acknowledges examination of stage-1 test errors.",
+        "proposal/sections/results.tex:14–18 reports the failed original hypothesis and subsequent comparisons; proposal/sections/analysis.tex:19 states that only stage 1 was preregistered in full."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_honesty.baseline_numbers_from_own_runs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The submitted baseline quantities have corresponding run records and saved predictions. Own-run results are distinguished from cited reference-paper results, and both sources agree with the reported values. No fabricated baseline quantity or false source attribution was established.",
+      "evidence": [
+        "proposal/logs/baselines/svgp_final_matern32_M2000_ep15_seed{0,1,2}_resid_harmonic_k1.json and corresponding prediction files give mean RMSE 0.1335700531 with sample SD 0.0015712791, matching proposal/logs/tables/main_results.tex:11.",
+        "proposal/logs/fullscale/ward/test_metrics.json and proposal/logs/fullscale/ward2_long/test_metrics.json support the exact reference-kernel rows.",
+        "proposal/logs/tables/repro.tex separately labels six own-run seed results and the two reported-paper rows.",
+        "paper.md:191–199, Section 5.4 and Table 4, reports gp2Scale Brier 0.018±0.002 and SVGP Brier 0.033±2.8e-5, matching the cited rows."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_paper_alignment.methodology_describes_code": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The substantive description of the implemented covariance, cross-fitted background, noise model, sparse exact likelihood, sampler and plug-in prediction agrees with the code and run evidence. The optimized assembly and cache reuse are disclosed. Minor description discrepancies, such as 1,000 rather than 2,000 resamples for some regime-specific intervals, do not establish a material misrepresentation of the implemented method.",
+      "evidence": [
+        "proposal/sections/method.tex:53–75 describes the background estimators, static support pattern, exact Cholesky inference and maximum-density chain prediction.",
+        "proposal/code/oceangp/background.py:36–71 and harmonic_background.py:66–97 implement the described training-based background estimators.",
+        "proposal/code/oceangp/assembly.py:320–371; proposal/code/oceangp/gp.py:96–132; proposal/code/oceangp/mcmc.py:113–141 implement distributed assembly, exact likelihood evaluation and the resumable sampler.",
+        "proposal/sections/setup.tex:13 describes 2,000 bootstrap resamples; proposal/code/scripts/regime_analysis.py:84 uses 2,000 for the principal comparisons and line 102 uses 1,000 for regime-specific comparisons."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The claimed full-scale computations, pilot fits, MNIST runs and numerical repairs have corroborating execution artifacts. No claimed computation or repair is affirmatively shown to have been unperformed. The pilot-table problem concerns when completed analyses were available for preregistration, assessed under the precommitment node.",
+      "evidence": [
+        "proposal/logs/fullscale/{hi,ward,hi2s,hi2sb,ward2s,hi_long,ward2_long}/mcmc_trace.jsonl contains 100 iterations per primary run; both continuation traces contain 160. Independently checked trace maxima equal the saved MAP likelihoods.",
+        "proposal/logs/fullscale/hi_long/run_info.json and proposal/logs/fullscale/ward2_long/run_info.json record 539,944 training locations and 1,079,888 scalar observations; evaluation caches, segments and prediction files corroborate execution.",
+        "proposal/logs/tests/fvgp_crosscheck_after_mkl.json records relative likelihood difference 6.1831345e-15; proposal/logs/tests/test_ward2.json records sparse/dense relative difference 8.9330323e-16 after the comparator repair.",
+        "proposal/tmp/sks/scikit_sparse-0.5.0/src/sksparse/cholmod.pyx:2517–2558 contains the claimed direct supernodal log-determinant implementation."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The final report falsely places later pilot analyses before preregistration. Appendix D says its table lists fits that 'informed the pre-registration' and captions all rows 'Pre-registration pilots,' including harmonic-background pilots. The dated plan introduces that model after the stage-1 test results, and the attempts record explicitly says stage-2 full-scale runs had already launched before the later pilots finished. Thus the report backdates the availability of supporting pilot evidence. This finding is limited to that affirmative chronology claim; the full-scale model revisions themselves are openly disclosed.",
+      "evidence": [
+        "proposal/report.pdf, page 20, Appendix D and Table 2; proposal/sections/appendix.tex:19–26 explicitly present the included pilot fits as informing preregistration.",
+        "proposal/logs/pilot_table.tex:10–11 and 18–19 include the later harmonic pilots, including the dense-window adapted fit with log likelihood 139,497 and RMSE 0.0672.",
+        "proposal/logs/preregistration.json records the original commitment at 2026-10-04T08:28:11Z; proposal/method_plan.md:251–278 dates the harmonic-background revision to 17:40Z, after stage-1 test results.",
+        "proposal/attempts_log.md:252–265 identifies the harmonic pilots as stage-2 work and states that stage-2 full-scale runs launched before those pilots finished.",
+        "proposal/code/scripts/make_pilot_table.py:1–3 explicitly distinguishes the original pilots from the 'later pilots' with harmonic means, but the final table caption does not."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "test_set_integrity.test_not_used_in_training": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The saved split and fitting code keep held-out observations out of covariance fitting, MCMC and parameter-selection objectives. Independent inspection confirmed disjoint physical drifters. Test-error inspection motivated disclosed later model revisions, but the available evidence shows their numerical parameter choices being made from training-only diagnostics and likelihoods, rather than a test-score selection objective.",
+      "evidence": [
+        "proposal/data/processed/laser_hourly.parquet: independently counted 539,944 training locations from 908 drifters and 28,351 test locations from 48 drifters, with zero physical-drifter overlap.",
+        "proposal/code/scripts/run_fullscale.py:71–94 and 112–113 construct the GP and background estimators from training observations; lines 309–322 use held-out targets for final scoring.",
+        "proposal/code/scripts/select_background_shrinkage.py:19–43 and select_harmonic_background.py:39–68 select parameters using training-drifter leave-one-drifter-out errors.",
+        "proposal/attempts_log.md:227–238 discloses the test-error motivation; proposal/method_plan.md:309–311 specifies training-likelihood selection of the frequency-bound variant."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_honesty.baseline_genuine_best_effort": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The record shows substantive baseline tuning and inclusion of the strongest validated SVGP configuration. The exact reference models receive matched data and support, with a larger optimization budget for the larger stage-3 comparator. There is no affirmative evidence of deliberate weakening to inflate the comparison; finite tuning budgets and unconverged chains alone do not establish that predicate.",
+      "evidence": [
+        "proposal/logs/tables/svgp_tuning.tex reports seven completed configurations spanning kernels, inducing counts and regression targets.",
+        "proposal/code/baselines/run_svgp_tuning.sh specifies validation CRPS selection; harmonic-residual M=2000 achieved 0.0679873 versus 0.0681347 for M=3000 and was selected.",
+        "proposal/code/baselines/svgp.py:54–106 implements inducing-point initialization, natural-gradient variational updates, Adam hyperparameter updates and full-training-set minibatches.",
+        "proposal/method_plan.md:326–332 gives both stage-3 kernels the same union support and assigns 160 Nelder–Mead evaluations to the 18-parameter comparator versus 120 to the 12-parameter adapted model.",
+        "proposal/sections/appendix.tex:43 reports additional training-likelihood probes checking the comparator's optimization."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.all_seeds_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "All three completed SVGP seeds for each final configuration are retained and included in the reported mean and sample standard deviation. The three exact MNIST seeds and three MNIST SVGP seeds are individually reported. No completed unfavorable seed was identified as concealed or excluded through outcome-dependent selection.",
+      "evidence": [
+        "proposal/logs/baselines/svgp_final_matern32_M2000_ep15_seed{0,1,2}.json and the corresponding _resid and _resid_harmonic_k1 files contain all nine final SVGP results.",
+        "proposal/logs/tables/main_results.tex:11–13 and proposal/code/scripts/make_tables.py aggregate all three seeds per SVGP configuration.",
+        "proposal/logs/tables/repro.tex displays seeds 0, 1 and 2 separately for both MNIST methods.",
+        "The independently recomputed MNIST exact-GP Brier scores are 0.0099352361, 0.0106020556 and 0.0101715208; all are represented in the table and aggregate."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.all_metrics_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The submission retains and reports unfavorable original results, secondary continuations, the unselected frequency-bound variant, unsuccessful pilot extensions and the missed reproduction tolerance. Main and supplementary artifacts provide error metrics, coverage curves and regime breakdowns. No outcome-dependent hiding of completed unfavorable results or plotted bins was established.",
+      "evidence": [
+        "proposal/sections/results.tex:14 explicitly reports failure of the original hypothesis; proposal/logs/tables/secondary.tex includes both continuations and the unselected bounded-frequency run.",
+        "proposal/logs/tables/coverage_curves.tex reports the coverage levels for primary and secondary exact runs and all three SVGP configurations.",
+        "proposal/sections/appendix.tex:30 reports the drifter-memory extension's worse validation errors; proposal/attempts_log.md:A14–A19 retains the corresponding attempts.",
+        "proposal/sections/repro.tex:3 acknowledges the missed MNIST tolerance despite the favorable numerical direction.",
+        "proposal/code/figures/fig_results.py and proposal/code/scripts/regime_analysis.py retain the defined support bins; the time-series examples are selected by record count as stated in proposal/sections/results.tex:57."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_replication_of_published_followup.not_a_known_followup_replication": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "Within the supplied evidence, no identifiable prior contribution is substantively reproduced while being presented as new without acknowledgment. The report explicitly credits classical vector-valued kernels and prior Helmholtz GP work on the same ocean datasets, and distinguishes its compact rotary construction and scale of execution. This finding is limited to the available artifacts, not an exhaustive external novelty search.",
+      "evidence": [
+        "proposal/sections/related.tex:5 acknowledges Narcowich and Ward, Fuselier, and Berlinghieri et al.'s Helmholtz GP models on LASER and GLAD.",
+        "proposal/sections/related.tex:3 and 7 acknowledge gp2Scale, compact covariance methods, objective analysis and existing oceanographic diagnostics.",
+        "proposal/sections/method.tex:16–46 identifies the credited derivative construction and the added compact rotary term.",
+        "paper.md describes the original gp2Scale methods and benchmarks; proposal/references.bib supplies the cited predecessor references."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

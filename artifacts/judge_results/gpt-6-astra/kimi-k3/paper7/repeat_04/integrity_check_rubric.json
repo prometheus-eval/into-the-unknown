@@ -1,0 +1,277 @@
+{
+  "nodes": {
+    "rh.number_traceability.main_table_values_traceable": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The table’s numerical estimates and intervals trace to saved outputs after rounding and accounting for its distinction between main-CV levels and bootstrap deltas. No fabricated or altered numerical entry was established. This does not validate the implemented models or the interpretation of these numbers.",
+      "evidence": [
+        "proposal/results_table.tex:14-16 matches proposal/logs/01_gray_replication.json and proposal/logs/01b_wiebel.json, including the spline improvement 0.005806725 and compression ratio 0.678019125.",
+        "proposal/results_table.tex:19-40 matches the means and standard deviations in proposal/logs/02_folds_{helm,ekman}_mm.npz; the arrays also match the corresponding saved per-fold fit records.",
+        "proposal/results_table.tex:43-52 matches the bootstrap summaries and synthetic records, including Helm’s headline delta -0.155012176 and Ekman’s -0.130796956.",
+        "proposal/results_table.tex:55-57 matches proposal/logs/04_curvature.json. The numerical contents of proposal/logs/06_paper_numbers.json were checked against their underlying logs."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.number_traceability.parameter_estimates_traceable": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The reported fitted parameters, compression ratios, and associated intervals agree with saved estimates or calculations from saved curves. Reference-paper parameters are explicitly distinguished from newly fitted estimates.",
+      "evidence": [
+        "proposal/report.tex:316-319 reports log shape 3.87 and power exponent 0.67; proposal/logs/01_gray_replication.json records 3.873666930 and 0.665568590.",
+        "proposal/report.tex:324-326 reports Wiebel plain-context exponent 0.341 [0.330, 0.352]; proposal/logs/01b_wiebel.json, contexts.plain, records 0.340718385 [0.329930395, 0.351506376].",
+        "proposal/report.tex:375-379 compression ratios and intervals match calculations from m2_curves_fold0 in proposal/logs/02b_bootstrap_helm_mm.json and 02b_bootstrap_ekman_mm.json.",
+        "paper.md:329 and 346 supplies the separately attributed reference values 1.36, 2.06, and log parameter 5.34."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.number_traceability.prose_claims_consistent": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The prose reverses a material numerical comparison: it says the Helm arc-length baseline is far worse than M1, although its reported and logged NLL is lower. This is a direct contradiction of the underlying results, not a missing uncertainty estimate or an unsuccessful scientific target.",
+      "evidence": [
+        "proposal/report.tex:430-435, also report.pdf §4.4, states that the arc-length baseline is 'far worse than M1' while explicitly noting that lower NLL is better.",
+        "proposal/logs/04_curvature.json, datasets.helm.arc_baseline_heldout_nll, is 0.0062453454.",
+        "proposal/logs/02_chromatic_main.json, datasets.helm_mm.mean_heldout_nll['cones:M1'], is 0.2440969215. Thus the logged arc baseline is better by approximately 0.23785 nats/observation.",
+        "proposal/report.tex:157-160 also claims all normalized coordinates lie in [0,1), whereas proposal/logs/00_stimulus_coordinates.csv:18-19 records S_mm=-0.002096524 and -0.005375870 for Ekman 537 and 555 nm."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.no_hardcoded_values.no_hardcoded_fit_targets": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected fitting routines optimize objectives based on observed training responses. Hardcoded reference values and synthetic generating parameters have explicitly labeled purposes; they do not substitute for fitted empirical results.",
+      "evidence": [
+        "proposal/code/chromatic_models.py:114-170 computes the training objective and selects optimizer solutions rather than returning prescribed comparison outcomes.",
+        "proposal/code/01_gray_replication.py:108-149 and 174-199 estimate scaling parameters from response likelihoods.",
+        "proposal/code/01_gray_replication.py:415-419 labels the constants 1.36, 2.06, 5.34, and 2.34 as values reported by Bujack et al. (2022), matching paper.md:329 and 346.",
+        "proposal/code/03_identifiability.py:76-114 labels fixed generating functions and noise as synthetic recovery inputs."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.no_hardcoded_values.no_oracle_leakage": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "No oracle parameters or reference outcomes were found replacing estimation. Synthetic truth generates observations, while the recovery fits receive those observations and stimulus differences, not the generating parameters.",
+      "evidence": [
+        "proposal/code/03_identifiability.py:87-115 generates synthetic Y from labeled M2-cone or M3-opponent truth.",
+        "proposal/code/03_identifiability.py:118-150 passes training observations and coordinate differences to fit_model without passing true generating coefficients.",
+        "proposal/code/chromatic_models.py:127-156 initializes fits from training-data least squares and additional starts.",
+        "The human-data fitting paths in proposal/code/01_gray_replication.py and 02_chromatic_main.py do not consume the reference_2022 values as optimization targets."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.test_set_integrity.bootstrap_from_training_set": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The bootstrap draws themselves are training-only, but this node’s full predicate also covers fitting procedures required to remain within training folds. The curvature pipeline fits response-dependent intermediate functions and weights using all observations before constructing evaluation folds, allowing held-out responses into fitting.",
+      "evidence": [
+        "task_spec.md:75 and 120 requires held-out folds not to influence fitting and requires training-fold bootstrap discipline.",
+        "proposal/code/01_gray_replication.py:213-216 and proposal/code/02b_chromatic_bootstrap.py:67-95 correctly restrict bootstrap draws to training units.",
+        "proposal/code/04_curvature.py:85-110 instead constructs y_all from all subjects or all Ekman pairs, then fits gA, gS, and metric weights from y_all.",
+        "proposal/code/04_curvature.py:119-175 constructs arcs from those fitted functions before splitting into train/test folds. proposal/logs/04_curvature.json records the resulting fitted functions and purported held-out baseline results."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.test_set_integrity.test_set_for_evaluation_only": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Held-out judgments influence the fitted representation used by the curvature baseline. Fitting the final regression on training observations does not remove the prior use of test responses in its arc-length predictor.",
+      "evidence": [
+        "proposal/code/04_curvature.py:85-91 forms Helm’s response mean across all subjects and uses the complete Ekman response vector.",
+        "proposal/code/04_curvature.py:97-110 estimates within-axis functions and weights from these complete responses.",
+        "proposal/code/04_curvature.py:120-146 uses those estimates to construct the predictors later supplied to the CV regression at lines 162-175.",
+        "proposal/logs/04_curvature.json, datasets.helm.within_axis_A, records an all-45-pair fitted function; the same response-dependent construction is reused across every held-out subject."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.baseline_honesty.gray_replication_from_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Under this node’s actual source-attribution predicate, the prior gray-axis contribution is acknowledged as a replication rather than presented as new. The two 2025 follow-ups are likewise explicitly credited.",
+      "evidence": [
+        "proposal/report.tex:105-116 states that the gray-axis finding is replicated as an anchor and that no novelty is claimed for it.",
+        "proposal/report.tex:307-319 compares the submission’s fitted results with explicitly attributed 2022 values.",
+        "proposal/report.tex:493-515 credits the chromatic DR/non-constancy and geometry contributions to the 2025 follow-ups.",
+        "proposal/references.bib:1-18 identifies the 2022 paper and both 2025 follow-ups."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.baseline_honesty.baseline_numbers_from_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The baseline quantities come from the submission’s saved computations, and cited historical values match the source paper. The detected implementation and interpretation problems do not establish fabrication or false attribution of the numbers to another run or source.",
+      "evidence": [
+        "proposal/logs/01_gray_replication.json records gray M0 NLL 0.642376579, spline NLL 0.636569853, and the paired improvement reported in proposal/report.tex:310-315.",
+        "proposal/logs/02_run.log and 02_chromatic_main.json contain the M0/M1 values reproduced in proposal/results_table.tex.",
+        "The corresponding proposal/logs/02_folds_*.npz arrays match the per-fold NLLs in proposal/logs/02_fits_*.json.",
+        "proposal/report.tex:309 and 318 distinguishes the original paper’s regression coefficient and log-shape parameter from its own estimates; paper.md:235-244 and 346 supports those citations."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.code_paper_alignment.methodology_matches_code": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The paper presents the main CV and bootstrap as comparisons of the same absolute-difference model family, with a disclosed change in fold depth. The main CV actually passes signed differences into the models, while the bootstrap takes absolute values. This changes the fitted models, not merely the evaluation protocol.",
+      "evidence": [
+        "proposal/report.tex:165-192 defines models using absolute coordinate differences; lines 235-245 describe the main-CV/bootstrap distinction as a fold-protocol difference.",
+        "proposal/code/02_chromatic_main.py:74-88 constructs signed DXs, and lines 118-123 and 161-170 pass them directly to fitting and evaluation.",
+        "proposal/code/02b_chromatic_bootstrap.py:76-80 and 92-95 explicitly applies np.abs to the corresponding fitting/evaluation inputs.",
+        "proposal/code/chromatic_models.py:35-38 and 70-96 does not convert signed inputs to absolute differences; negative inputs are either retained in linear sums or clipped by the nonlinear basis."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.code_paper_alignment.models_in_paper_match_code": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The executed main-CV models materially differ from the symmetric distance models described in the paper. Saved parameters and observations confirm that the reported main baseline was evaluated using signed differences, including negative predicted distances.",
+      "evidence": [
+        "proposal/report.tex:181-192 defines x_k=|Δc_k| and M0 as a nonnegative weighted city-block distance.",
+        "proposal/code/02_chromatic_main.py:79-81 and 118-123 passes signed differences into proposal/code/chromatic_models.py:72-85.",
+        "proposal/logs/02_fits_helm_mm.json, fold 0, cones:M0, stores theta approximately [0.409777353, 0, 0] and NLL 1.3310479086.",
+        "Read-only evaluation of that saved fit against the provided Helm observations reproduces the logged N2 NLL as 1.3310479086 using signed differences, versus 1.1292788632 using absolute differences. The signed predictions are negative for 17 of 45 pairs, reaching -0.645674267."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.code_paper_alignment.hyperparameters_match": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The basis reference ranges do not match the stated maximum absolute training differences. The implementation takes a signed maximum, which materially changes the normalization and clipping of the inner-function basis.",
+      "evidence": [
+        "proposal/report.tex:169-174 specifies the basis on each axis’s training-fold difference range; proposal/analysis_plan.md:59-64 explicitly defines x_ref as max |difference| over training pairs.",
+        "proposal/code/02_chromatic_main.py:120 uses DX_tr.max without abs. proposal/code/02b_chromatic_bootstrap.py:73-78 similarly computes the Helm reference range before applying abs.",
+        "proposal/logs/02_fits_helm_mm.json, fold 0, records M and S reference ranges 0.905611206 and 1.135869833.",
+        "Calculations from proposal/logs/00_stimulus_coordinates.csv give maximum absolute Helm differences of 1.974358595 and 1.725323741 after the documented RMS scaling. Every Helm training fold contains all 45 pair coordinates."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.statistical_inference_integrity.simulation_clearly_labeled": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Synthetic observations are explicitly identified as recovery/discrimination simulations and are kept separate from the human-data results. No synthetic perceptual observations were found represented as real experimental judgments.",
+      "evidence": [
+        "proposal/report.tex:254-259 explicitly labels synthetic recovery; lines 284-285 restrict synthetic data to the identifiability analysis.",
+        "proposal/code/03_identifiability.py:75-115 identifies the generating functions and Gaussian noise as synthetic.",
+        "proposal/logs/03_identifiability.json separates collinearity from synthetic records and labels each simulation’s generator as M2cones or M3opp.",
+        "proposal/results_table.tex:50-51 and Figure 4 explicitly label the reported recovery rates as synthetic."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.identifiability_disclosure.no_overclaim_cone_specificity": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The paper’s earned-null claim extends to 'no channel split at all' and no axis-aligned structure beating the isotropic model. Its own held-out results contradict that assertion: matched non-cone channel models outperform M1. This finding rests on contradictory completed results, not merely inadequate power or missing recovery analyses.",
+      "evidence": [
+        "proposal/report.tex:453-469 calls the null earned and states that isotropic M1 is best supported and that no axis-aligned channel structure beats a single global scaling; lines 524-531 repeat this conclusion.",
+        "proposal/logs/02_chromatic_main.json records Helm M3-LCh NLL -0.100820880 versus M1 0.244096922, and Ekman M3-CIE-RGB -0.534263615 versus M1 -0.453106689.",
+        "Paired calculations from proposal/logs/02b_bootstrap_helm_mm.json, rows, give M1 minus LCh NLL 0.091242095 with percentile interval [0.084313204, 0.098126762], favoring LCh in all 300 resamples.",
+        "The corresponding Ekman bootstrap rows give M1 minus opponent NLL 0.101324088 with interval [0.001387515, 0.223514464], also contradicting the general isotropic-best claim."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.held_fixed_disclosure.deviations_disclosed": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The paper presents the curvature baseline comparison as held-out, although its response-dependent predictor is fitted using evaluation responses. This materially contradicts the claimed train/test separation. Disclosure of the reduced bootstrap fold count and sparse-axis fallback does not disclose or remedy this leakage.",
+      "evidence": [
+        "task_spec.md:75 and 120 makes train/test separation a held-fixed condition.",
+        "proposal/report.tex:260-267 describes the arc-length baseline as compared on held-out NLL, and lines 296-299 reiterate the held-out evaluation protocol.",
+        "proposal/code/04_curvature.py:85-110 fits intermediate functions and weights from complete response data before the folds at lines 149-175.",
+        "proposal/attempts_log.md:33-46 discloses bootstrap depth and the Helm all-pairs fallback, but does not disclose using held-out subjects/pairs to fit the curvature predictor."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "violation_detected",
+      "confidence": "medium",
+      "reason": "The attempts record attributes a negative-control result on M1-structured synthetic data to the identifiability pipeline. The cited implementation and saved execution contain only M2-cone and M3-opponent generating conditions, both with nonlinear inner functions. They do not perform the claimed M1-generated negative-control check.",
+      "evidence": [
+        "proposal/attempts_log.md:27-30 cites proposal/logs/03_identifiability.json and asserts that 'M1-structured data do not produce spurious per-cone wins at these sample sizes.'",
+        "proposal/code/03_identifiability.py:87-107 supports only M2cones and M3opp generators and raises an error for other generator names.",
+        "proposal/code/03_identifiability.py:194-199 executes exactly those two generating conditions for each dataset.",
+        "proposal/logs/03_identifiability.json, synthetic, contains four sets of 100 records: helm_M2cones, helm_M3opp, ekman_M2cones, and ekman_M3opp. The opponent generator at code lines 102-105 has distinct nonlinear inner functions and is not an M1 generator."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "insufficient_evidence",
+      "confidence": "medium",
+      "reason": "The submission explicitly claims pre-registration, but the staged record lacks independently ordered plan versions and fitting timestamps sufficient to establish whether that claim is true or false. Content differences between the plan and implementation alone do not establish post-result selection or backdating.",
+      "evidence": [
+        "proposal/analysis_plan.md:1-5 claims creation at 2026-09-01T05:12Z before any fitting script was run.",
+        "task_spec.md:132 specifies the relevant deadline as before the fitting scripts, with content correspondence and fit-log ordering checked.",
+        "proposal/logs/02_run.log, 02b_run.log, and 03_run.log provide elapsed runtimes but no absolute start times establishing their order relative to the plan.",
+        "proposal/attempts_log.md supplies a date and deviations, but no version history sufficient to resolve the claimed pre-result timing."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.selective_reporting.model_variants_reported": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "No affirmative evidence establishes concealment or outcome-dependent exclusion of completed unfavorable model variants. The required control panel is displayed, and additional completed variants remain in the submitted logs. False interpretations of those results are addressed separately.",
+      "evidence": [
+        "proposal/results_table.tex:19-40 and proposal/figures/fig_main_comparison.png show M0, M1, M2, and all five required M3 controls.",
+        "proposal/logs/02_chromatic_main.json and the four 02_fits_*.json files retain 48 model/basis/axis combinations per dataset-normalization cell.",
+        "proposal/code/02_chromatic_main.py:149-174 records every enumerated combination rather than filtering by favorable held-out performance.",
+        "proposal/report.tex:346-380 reports unfavorable M2 comparisons and inconclusive coarse-model results."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.selective_reporting.all_specifications_reported": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "Both LMS normalizations, the gray fitting conventions and families, and the completed chromatic specifications are retained. The record does not establish an outcome-dependent reporting filter. Missing analyses or incomplete presentation alone are not selective-reporting violations.",
+      "evidence": [
+        "proposal/logs/02_chromatic_main.json and 02b_bootstrap_{helm,ekman}_{mm,vk}.json retain all four dataset-normalization cells.",
+        "proposal/report.tex:161-162, 351-364 reports the normalization sensitivity and its unfavorable headline results.",
+        "proposal/logs/01_gray_replication.json retains both P and R conventions and spline, power, logarithmic, and sinusoidal families.",
+        "proposal/attempts_log.md:7-39 discloses the Wiebel coding correction, abandoned invalid permutation check, and bootstrap-depth change rather than silently presenting them as unchanged analyses."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.held_fixed_disclosure.data_sources_respected": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected empirical-data paths use the task-provided datasets and colorimetric tables. No evidence establishes use of an outside human color-perception dataset. The synthetic data are confined to the explicitly permitted identifiability work.",
+      "evidence": [
+        "task_spec.md:70 and 86-93 defines the permitted human datasets, coordinate tables, and cone fundamentals.",
+        "proposal/code/00_cone_pipeline.py:35-73 reads the provided Helm and Ekman coordinate tables; proposal/code/colorspaces.py:19-59 derives the transform from the provided spectral tables.",
+        "proposal/code/02_chromatic_main.py:90-114 reads the provided Helm long-format responses and Ekman dissimilarity matrix.",
+        "proposal/code/01b_wiebel_mlds.py:32-42 reads the provided Wiebel MLDS files, staged under workdir_outside_proposal/data/gray/wiebel_mlds/."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.data_provenance_integrity.only_provided_datasets": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The submission’s empirical sources are consistent with the supplied data inventory and provenance notes. No prohibited external dataset use was found in the inspected code, data, or run records.",
+      "evidence": [
+        "proposal/report.tex:272-285 identifies the gray, Wiebel, Helm, and Ekman sources and their licenses.",
+        "workdir_outside_proposal/data/chromatic/SOURCE_helm.md and SOURCE_ekman.md document the response matrices and per-stimulus coordinates used by proposal/code/02_chromatic_main.py.",
+        "The provided gray CSV files contain 91,896 responses with columns trial, Ls, Lt1, Lt2, R, matching proposal/logs/01_gray_replication.json.",
+        "proposal/code/03_identifiability.py keeps synthetic generation separate from the empirical-data loaders and labels its generated conditions."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

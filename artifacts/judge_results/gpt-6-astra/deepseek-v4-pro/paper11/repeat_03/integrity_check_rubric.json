@@ -1,0 +1,200 @@
+{
+  "nodes": {
+    "rh.number_traceability.all_quantities_trace": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Most tabulated results reproduce from the logs, but the abstract's unqualified bound of ≤0.15 kcal/mol for energy differences contradicts the logged NMS difference of 0.268628 kcal/mol. The total-gradient ratios are also falsely attributed to a 32-probe oracle calculation: their implementation centers deviations on the mean of single-probe PHL gradients. These findings concern contradictory quantitative claims, not missing evidence.",
+      "evidence": [
+        "proposal/report.tex:37-44 and report.pdf p.1 state the ≤0.15 bound and total-gradient ratios 1.03/1.00/1.01.",
+        "proposal/logs/summary.json, summary.phl.nms.e.mean=13.27592195869811 and summary.sparse.nms.e.mean=13.544550188506921; tests.sparse.nms.e.mean_diff=0.26862822980880985. The five corresponding eval_stdout.log records reproduce this difference.",
+        "proposal/report.tex:295-300 describes both variance metrics as mean squared deviations from a 32-probe oracle.",
+        "proposal/code/total_var.py:90-103 instead uses mean=g_phl.mean(0); proposal/logs/phl/seed0/total_var.json contains the reported ratios."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.no_hardcoded_values.no_oracle_targets_in_code": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected training, evaluation, and analysis code computes predictions, HVP errors, statistics, and ratios from data and saved runs. No hardcoded result or oracle output substitutes for those computations. The unused K=32 declaration in the total-gradient audit supports a method-description discrepancy, not hardcoded numerical results.",
+      "evidence": [
+        "proposal/code/train.py:172-245 computes energy, force, and projected-Hessian losses and applies optimizer updates.",
+        "proposal/code/evaluate.py:32-55 computes RMSEs from model predictions and reference labels.",
+        "proposal/code/analyze.py:23-69 derives means, standard deviations, paired tests, probe averages, and timings from run records.",
+        "proposal/code/total_var.py:95-103 calculates the saved total-gradient ratios from computed gradients."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.two_baseline_integrity.paper_as_reported_traceable_to_citations": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The reported reference-paper numbers accurately match the supplied source: 13.3 seconds per PHL epoch and approximately 29%, 48–49%, and 77% NMS error reductions. Replacing required absolute reference RMSEs with Figure 3 pointers is a completeness shortfall, not a fabricated reference number.",
+      "evidence": [
+        "proposal/report.tex:334 and 341-345 cite the published runtime and randomized-regime reductions.",
+        "proposal/logs/paper_reference.md:8-25 identifies the source locations.",
+        "paper.md:202-204 reports the cited NMS reductions; paper.md:314 reports 13.3 seconds for Hutchinson PHL.",
+        "paper.md:512 identifies NVIDIA A6000 hardware for the reference timing measurements."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.two_baseline_integrity.reimplemented_traceable_to_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The reimplemented PHL results trace to five saved evaluation outputs. Independent read-only calculations reproduce every reported baseline mean and population standard deviation, its epoch-time average, and its probe average. The absent per-run eval_results.json files do not prevent verification because the evaluation stdout files preserve the results.",
+      "evidence": [
+        "proposal/logs/phl/seed0/eval_stdout.log through proposal/logs/phl/seed4/eval_stdout.log contain all nine evaluation cells for each seed.",
+        "proposal/logs/summary.json, summary.phl: Test energy 4.136571443287939 ± 0.1351397856204485 and NMS Hessian 37.11941173857037 ± 2.2728130621211267.",
+        "proposal/report.tex:335 rounds these values consistently.",
+        "The five proposal/logs/phl/seed*/train_log.jsonl and probe_counts.json files reproduce 2.8023217490047916 seconds per epoch and 395.3380281690141 probes per step."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.two_baseline_integrity.baseline_distinction_honored": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Published reference results and the submission's own runs are explicitly distinguished in the text and primary table, including their different timing hardware. No own-run measurement is labeled as a published result. Missing absolute values in the reference row remain a completeness issue.",
+      "evidence": [
+        "proposal/report.tex:267-281 separately defines paper-as-reported and reimplemented PHL.",
+        "proposal/report.tex:334-336 labels the rows PHL (paper), PHL (reimpl.), and Sparse (ours).",
+        "proposal/report.tex:341-345 distinguishes the reference A6000 timing from the submitted H200 timing and attributes the submitted measurements to logged runs."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.under_convergence_disclosure.gap_disclosed_appropriately": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The report does not establish or analyze the full published-versus-reimplemented RMSE gap, but it also does not falsely claim numerical agreement with published PHL. Its parity statements explicitly concern its own reimplementation. Missing gap and transfer analysis does not establish the narrower integrity predicate.",
+      "evidence": [
+        "proposal/report.tex:270-280 identifies the own-run baseline, discloses the notebook-versus-paper learning-rate discrepancy, and makes the reimplementation the primary quantitative comparator.",
+        "proposal/report.tex:308-315 states accuracy comparisons against reimplemented PHL.",
+        "proposal/report.tex:334-345 keeps reference and own-run rows distinct.",
+        "workdir_outside_proposal/images/image3.jpg contains the original randomized-regime RMSEs; the submission does not assert that its different values reproduce those numbers."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.pre_stated_method.consistent_tolerances": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The inspected analysis consistently uses paired difference t-tests and the 0.05 threshold. It reports the three significant regressions and acknowledges the Hessian-gradient variance failure. Discussing practical chemical accuracy does not conceal those statistical outcomes or establish a switched statistical rule. Whether the variance convention was fixed before results cannot be established separately.",
+      "evidence": [
+        "proposal/code/analyze.py:35-46 applies scipy.stats.ttest_rel to all nine cells using the same five seeds.",
+        "proposal/report.tex:349-361 reports all sparse-versus-PHL p-values, including 0.043, 0.038, and 0.007.",
+        "proposal/report.tex:300-302 states the variance point-estimate/CI convention.",
+        "proposal/report.tex:435-454 and proposal/attempts_log.md:26-30 acknowledge variance excess and statistically resolved accuracy differences."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.code_paper_alignment.methodology_matches_code": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The total-gradient variance procedure materially differs from the reported procedure. The paper says both metrics use a 32-probe oracle and bootstrap intervals. The total-gradient implementation draws one probe per molecule, centers both estimators on the sample mean of PHL gradients, and computes no bootstrap intervals. This is affirmative methodological contradiction, independent of whether its numerical ratios are scientifically useful.",
+      "evidence": [
+        "proposal/report.tex:295-302 and report.pdf pp.4-5 describe the oracle normalization and bootstrap procedure for the variance metrics.",
+        "proposal/report.tex:396-400 repeats the 32-probe-oracle attribution in Figure 3's caption.",
+        "proposal/code/total_var.py:16 declares K=32, but lines 90-103 never use it; lines 100-102 center deviations on g_phl.mean(0).",
+        "proposal/code/variance_audit.py:132-188 actually implements the 32-probe oracle and bootstrap for the Hessian-only metric, demonstrating that the two procedures are different."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.code_paper_alignment.hyperparameters_match": {
+      "value": "violation_detected",
+      "confidence": "medium",
+      "reason": "The report describes the baseline as unmodified and following the released notebook, but the submitted launch path explicitly sets AdamW weight decay to zero. The reference notebook leaves AdamW at its default 0.01, also stated in the source paper. This undisclosed change contradicts the unmodified-baseline description. Confidence is medium because saved run configurations omit optimizer settings; the finding rests on the submitted executable launch path.",
+      "evidence": [
+        "proposal/report.tex:270-274 describes an 'unmodified method using the released code' and says 'We follow the notebook'.",
+        "proposal/code/train.py:46 defaults --weight-decay to 0.0; line 68 passes it to build_optimizers.",
+        "proposal/code/common.py:73-87 explicitly supplies weight_decay=wd to AdamW; proposal/code/run_one.sh:8-9 supplies no override.",
+        "workdir_outside_proposal/code/PHL/PHL_training.ipynb, cells 9 and 13, instantiate AdamW without overriding weight decay; paper.md:504 specifies weight decay 1×10^-2."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.no_bias_trade.no_offline_pretraining_amortization": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The submitted training path initializes fresh models and logs the entire subsequent training probe count. It does not load pretrained parameters before optimization. Initial validation records also show matching untrained starting states across methods for each seed. No concealed offline Hessian-supervision cost is evidenced.",
+      "evidence": [
+        "proposal/code/common.py:59-70 applies Kaiming initialization and zero biases.",
+        "proposal/code/train.py:53-69 seeds and constructs each model; checkpoint loading at lines 254-258 only restores that run's own best validation state after training.",
+        "proposal/logs/phl/seed0/train_log.jsonl:1 and proposal/logs/sparse/seed0/train_log.jsonl:1 share initial validation energy 167.88935423036412 and Hessian error 263.62572438698675.",
+        "All five phl and sparse probe_counts.json files contain 71,000 training-step counts."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.no_bias_trade.no_smuggled_hessian_information": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The sparse update uses reference Hessians only to project the currently selected training molecules, with fresh Rademacher probes and explicit sample-mean compensation. It does not import baseline gradients, cached HVP targets, or held-out oracle gradients into updates. Use of the supplied full Hessians for reference HVPs is expressly allowed by the task.",
+      "evidence": [
+        "task_spec.md:174 permits obtaining reference Hv from the stored full Hessians.",
+        "proposal/code/train.py:180-199 selects molecules uniformly, constructs fresh probes, and projects true_hessian[idx].",
+        "proposal/code/common.py:186-187 averages normalized HVP errors over the selected molecules.",
+        "proposal/code/variance_audit.py:96-107 and 132-161 loads checkpoints and computes held-out diagnostic gradients without optimizer updates.",
+        "proposal/attempts_log.md:48-69 discloses the abandoned running-loss importance-sampling attempt."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.consistent_reduction_reporting.consistent_baseline_used": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The reported 4.95-fold saving uses the same nominal batch size and full-run counting convention for both methods. Each baseline run contains 70,000 steps with 400 probes and 1,000 partial steps with 69; each sparse run contains 70,000 steps with 80 and 1,000 with 69. Their actual averages give 4.951314-fold savings.",
+      "evidence": [
+        "proposal/logs/phl/seed0/config.json:5-8 and proposal/logs/sparse/seed0/config.json:5-8 both specify data_fraction=0.8, batch_size=400, and epochs=1000.",
+        "proposal/logs/phl/seed0/probe_counts.json and proposal/logs/sparse/seed0/probe_counts.json contain the stated count distributions; these distributions match across seeds 0-4.",
+        "proposal/logs/summary.json, probe: averages are 395.3380281690141 and 79.84507042253522.",
+        "proposal/report.tex:181-183 and 370-373 disclose the averaged counts and the 69-probe partial minibatch."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The paper explicitly claims execution of a 32-probe-oracle-normalized total-gradient audit. Its submitted implementation affirmatively performs a different calculation: one-probe gradients centered on their PHL sample mean, without an oracle loop or bootstrap. The finding does not depend on missing audit files or on insufficient experimental coverage.",
+      "evidence": [
+        "proposal/report.tex:295-300 claims that both Hessian-only and total-gradient ratios were measured as deviations from a 32-probe oracle.",
+        "proposal/code/total_var.py:90-103 contains the complete measurement loop and instead computes deviations from mean=g_phl.mean(0).",
+        "proposal/logs/phl/seed0/total_var.json:3-15 preserves the resulting values quoted in the report.",
+        "proposal/code/variance_audit.py:134-144 contains an actual 32-probe loop for the separate Hessian-only audit, which is absent from total_var.py."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "insufficient_evidence",
+      "confidence": "high",
+      "reason": "The final report says it 'pre-state[s]' the variance classification convention, but the staged record does not establish when that convention was fixed relative to observing the audit results. No dated earlier protocol or version history is supplied in either artifact tree. This cannot establish either backdating or verified precommitment; the absence itself is not a violation.",
+      "evidence": [
+        "proposal/report.tex:300-302 contains the pre-statement assertion.",
+        "proposal/attempts_log.md, sections 2, 4, and 5, retrospectively discusses observed outcomes but supplies no dated prior decision rule.",
+        "proposal/logs/phl/seed0/variance_ckpt_300.json, variance_ckpt_500.json, and variance_ckpt_900.json contain results, not a pre-result protocol.",
+        "Inspection of proposal/ and workdir_outside_proposal/ found no separate dated precommitment record; config.json files record run parameters but not this convention."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.selective_reporting.all_seeds_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "All five completed seeds for PHL, sparse PHL, and the Rademacher ablation contribute to the saved aggregates and paired tests. Recalculation reproduces those aggregates, including unfavorable cells. Checkpoint selection follows validation energy, and the abandoned importance-sampling attempt is disclosed. No completed unfavorable result is affirmatively shown to have been concealed or selectively excluded.",
+      "evidence": [
+        "proposal/logs/dispatch.log records all 15 main runs; every corresponding train_log.jsonl contains epochs 1-1000 and every eval_stdout.log contains all nine final cells.",
+        "proposal/code/analyze.py:7-8 and 23-46 includes all three methods and seeds 0-4; read-only recalculation from their evaluation stdout records reproduces summary.json and every paired p-value.",
+        "proposal/code/train.py:124-126 selects the minimum-validation-energy state; final evaluation energy values match the corresponding selected records.",
+        "proposal/report.tex:359-361 reports the unfavorable significant differences.",
+        "proposal/attempts_log.md:48-69 discloses the abandoned sparse_is attempt, whose saved checkpoints include proposal/logs/sparse_is/seed0/ckpt_600.pt."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

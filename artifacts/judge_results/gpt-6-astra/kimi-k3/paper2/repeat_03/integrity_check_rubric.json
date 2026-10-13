@@ -1,0 +1,315 @@
+{
+  "nodes": {
+    "rh.number_traceability.all_quantities_trace": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Some reported statistics are materially misattributed. The purported equal-weight group aggregate actually weights configurations equally, and CHEF's per-group uncertainty bands pool configuration errors instead of measuring variation across draw means. These are affirmative contradictions between reported quantities and their computations.",
+      "evidence": [
+        "proposal/report.tex:220-223 labels the headline curve an equal-weight all-12-group aggregate; proposal/code/experiments/cv_baseline.py:56-61 and cv_chef_draw.py:157-169 concatenate configuration errors before averaging.",
+        "Read-only calculation from proposal/logs/cv_qsnap_ta_summary.json: at fraction 0.9, the logged configuration-weighted energy MAE averages 1.47751361, whereas equal weighting of group means gives 1.95289136 eV/atom.",
+        "proposal/report.tex:267-270 describes per-group bands as standard deviations across 10 draws. proposal/code/experiments/make_figures.py:123-133 instead applies np.std to lists of configuration errors.",
+        "From proposal/logs/chef_pg_0.5_*.json, Elastic_FCC's standard deviation across draw means is 0.05617786 eV/atom; the plotted pooled standard deviation is 0.95042212."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.number_traceability.main_table_values_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Every numerical entry in the designated main results table matches its saved result or cited source after rounding. This establishes numerical traceability for that table, not scientific parity.",
+      "evidence": [
+        "proposal/report.tex:185-200, tab:main_results: paper qSNAP 0.00898; reimplemented qSNAP 0.113/0.0060; CHEF 0.146/0.0261.",
+        "proposal/logs/cv_qsnap_ta.csv:192 records 0.11312515 eV/atom and 0.00598446 eV/Å at fraction 1.0.",
+        "proposal/logs/cv_chef_ta.csv:192 records 0.14614537 eV/atom and 0.02611788 eV/Å at fraction 1.0.",
+        "paper.md:270-277, Table SII, Jmax=4, records 0.00898 eV/atom."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.number_traceability.figure_values_in_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The figures use saved results, but materially mislabel their aggregation and uncertainty. In particular, the per-group CHEF bands include within-draw configuration variability while claiming standard deviation across draws. The aggregate plotting function also includes repeated executions rather than one result per stated draw.",
+      "evidence": [
+        "proposal/figures/fig_learning_curve_ta.png visibly labels configuration-weighted curves as an equal-weight all-12-group aggregate; proposal/code/experiments/make_figures.py:48-62 supplies that label.",
+        "proposal/figures/fig_per_group_curves_ta.png and proposal/report.tex:267-270 state mean ±1 standard deviation across 10 draws.",
+        "proposal/code/experiments/make_figures.py:123-129 computes CHEF standard deviations over configuration-error arrays. At fraction 0.5, Elastic_FCC's plotted standard deviation is 0.95042212 rather than the 0.05617786 standard deviation of its 10 draw means.",
+        "proposal/logs/cv_chef_ta.csv contains 20 rows per ordinary fraction and 21 at 0.05, 0.5 and 0.95. make_figures.py:24-38 retains every row without deduplicating draw identifiers."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.no_hardcoded_values.no_dft_targets_in_code": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The final result-producing paths compute predictions from descriptors, fitted coefficients and a geometric ZBL reference. An earlier diagnostic contains an oracle-offset bug, but the submission identifies that bug and replaces its prediction path; its diagnostic results are not the reported headline results. No hardcoded or oracle substitute for the final reported computations was established.",
+      "evidence": [
+        "proposal/code/experiments/e2e_chef.py:45-67 adds DFT-minus-ZBL residuals to predictions; proposal/code/experiments/hparam_e2e.py:1-10 explicitly identifies this earlier oracle bug.",
+        "proposal/code/experiments/hparam_e2e.py:49-73 and cv_chef_draw.py:118-133 use fitted descriptor predictions plus ZBL values, without adding target residuals.",
+        "proposal/code/common/precompute_snap_ta.py:30-53 obtains reference energies and forces from LAMMPS ZBL computation.",
+        "proposal/attempts_log.md:45-60 identifies the corrected hparam_e2e.py study as the source of the selected recipe."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.two_baseline_integrity.paper_as_reported_traceable_to_citations": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The published reference values are accurately attributed to the source tables. The primary 0.00898 eV/atom value and 5.594 Å cutoff match Table SII, and the additional reference-document entries match the source PDF.",
+      "evidence": [
+        "proposal/report.tex:134-144 and 195 identify the Jmax=4 reference as Wood and Thompson Table SII.",
+        "paper.md:270-277 gives Jmax=4, cutoff 5.594 Å and energy MAE 0.00898 eV/atom.",
+        "proposal/logs/paper_reference.md:6-24 lists Tables SI/SII values; workdir_outside_proposal/paper.pdf, pages 10-11, confirms them, including Jmax=5 at 7.039 Å and 0.00163 eV/atom."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.two_baseline_integrity.reimplemented_traceable_to_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The reported reimplementation MAEs are present in the submission's own baseline records and agree after rounding. No fabrication, alteration or false attribution of these values to an agent run was established.",
+      "evidence": [
+        "proposal/report.tex:196 reports Ta qSNAP 0.113/0.0060; proposal/logs/cv_qsnap_ta.csv:192 records 0.11312515/0.00598446.",
+        "proposal/report.tex:422 reports Mo qSNAP 0.047/0.502; proposal/logs/mo_qsnap_fulldata.json records 0.04656029423432192/0.501852681564407.",
+        "proposal/code/experiments/cv_baseline.py:95-113 and 123-137 and cv_baseline_transfer.py:110-133 implement fitting and evaluation underlying the saved baseline records.",
+        "proposal/codebase_notes.md:8-18 openly describes direct LAMMPS extraction and a custom solve rather than execution through the full FitSNAP driver."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.two_baseline_integrity.baseline_distinction_honored": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The report clearly separates the published reference from the reimplemented baseline. Missing side-by-side reference rows in other comparisons are completeness issues, not evidence of conflation.",
+      "evidence": [
+        "proposal/report.tex:187-197 separately labels 'Quadratic SNAP (paper, Jmax=4)' and 'Quadratic SNAP (reimplemented)'.",
+        "proposal/report.tex:142-144 explicitly contrasts the published 0.00898 with the reimplemented 0.113 eV/atom.",
+        "proposal/logs/paper_reference.md:26-40 distinguishes the source-paper anchor from the submission's own fitting convention and results."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.under_convergence_disclosure.gap_disclosed_appropriately": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The large baseline reproduction gap is disclosed rather than represented as agreement with the published result. The report offers a fitting-convention explanation; its adequacy and section placement do not establish this integrity violation.",
+      "evidence": [
+        "proposal/report.tex:139-144 states the total-energy fitting convention and contrasts 0.113 with the published 0.00898 eV/atom.",
+        "proposal/report.tex:195-196 displays both values together, exposing the approximately 12.6-fold gap.",
+        "proposal/logs/paper_reference.md:37-40 and proposal/codebase_notes.md:23-26 repeat the discrepancy and attributed weighting/normalization explanation."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.pre_stated_method.consistent_metrics_and_protocol": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The executed reporting convention materially differs from the headline convention: configuration-weighted errors are called equal-weight group errors, and configuration-level dispersion is called standard deviation across draws. Repeated CHEF executions also enter the aggregate summary despite its 10-draw description.",
+      "evidence": [
+        "proposal/report.tex:202-205, 220-223 and 267-270 specify 10-draw mean ±standard deviation and an equal-weight group aggregate.",
+        "proposal/code/experiments/cv_baseline.py:56-61 and cv_chef_draw.py:164-169 average concatenated configuration errors.",
+        "proposal/code/experiments/make_figures.py:24-38 includes all CSV rows; lines 123-129 pool configuration errors for CHEF per-group standard deviations.",
+        "proposal/logs/cv_chef_ta.csv contains 383 below-full-data result rows for 190 distinct fraction/draw pairs."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.held_fixed_disclosure.held_fixed_items_respected": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The report expressly claims the held-fixed equal-weight all-group reporting condition, but the executed aggregation violates that claim. This finding concerns the false compliance description, not merely failure to satisfy a scientific requirement.",
+      "evidence": [
+        "task_spec.md:65-66 identifies the CV and equal-weight all-12-group reporting conventions as held fixed.",
+        "proposal/report.tex:220 and 233 explicitly call the aggregate equal-weight across all 12 groups.",
+        "proposal/code/experiments/cv_baseline.py:56-61 and cv_chef_draw.py:164-169 instead weight each configuration equally.",
+        "The staged Ta data contain 100 configurations in each Elastic group but only 3 Liquid configurations, so these weighting conventions are not equivalent."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.data_efficiency_reference_consistency.consistent_reference": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The implementation uses the explicitly declared common 0.113 eV/atom reference endpoint. The reported 10% and 30% low-symmetry crossings reproduce using that reference. Whether this common aggregate endpoint is scientifically appropriate for the subset is separate from secretly changing the declared denominator.",
+      "evidence": [
+        "proposal/report.tex:227-243 explicitly defines F* using baseline full-data energy MAE 0.113 eV/atom for both stated comparisons.",
+        "proposal/code/experiments/make_figures.py:69-78 sets the subset reference from q[1.0][0]['dE_all'].",
+        "proposal/logs/cv_qsnap_ta.csv:192 supplies 0.11312515. Read-only aggregation of the saved CSVs gives first subset crossings at 0.10 for CHEF and 0.30 for qSNAP, and no aggregate crossing below 1.0.",
+        "proposal/report.tex:378-426 reports Mo errors without claiming a cross-material sample-efficiency ratio using a different endpoint."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.code_paper_alignment.methodology_matches_code": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The core descriptor and final ridge-head construction match the description, but the claimed absence of held-out leakage does not. Global test-label-based recipe selection feeds every CV draw, including draws holding out those same configurations. Restricting subsequent gradient updates and head fitting to included configurations does not remove that selection leakage.",
+      "evidence": [
+        "proposal/report.tex:170-176 describes the selected recipe and asserts 'no held-out leakage'.",
+        "proposal/code/experiments/hparam_e2e.py:109-123 uses a fixed 291/72 split and computes training normalization statistics over all configurations.",
+        "proposal/code/experiments/aggregate_hparam.py:56-64 and 80-83 selects the recipe and ridge parameter by minimum TEST energy MAE.",
+        "proposal/logs/hparam_study.md:7-10 and 23-27 documents this selection; cv_chef_draw.py:3-7 adopts the selected recipe for all CV draws."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.code_paper_alignment.hyperparameters_match": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The stated numerical architecture and training settings match the relevant code and saved configurations. The shorter Mo training duration is disclosed, so it is not an undisclosed hyperparameter change.",
+      "evidence": [
+        "proposal/report.tex:158-173 specifies K'=64, cutoff 5.594 Å, 34,688 descriptor parameters, a 2,144-coefficient head, learning rate 0.001, 200 epochs and ridge 1e-8.",
+        "proposal/code/chef/descriptor.py:61-75 defines the matching architecture; its layer dimensions yield 34,688 trainable parameters.",
+        "proposal/code/experiments/cv_chef_draw.py:37-39, 55 and 108-114 implements the stated Ta settings; proposal/logs/hparam/p_e01_lr1e-3_200.json records the selected learning rate and epochs.",
+        "proposal/report.tex:360-361 discloses 60 Mo epochs, matching cv_chef_transfer.py:26-29 and proposal/logs/mo_chef_train_cost.log:2."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.invariance_test_integrity.no_concealed_augmentation": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "No concealed transformation augmentation appears in the audited model's training path. Coordinate transformations occur in the audit after training, and the report openly reports substantial rotational drift. Other audit deficiencies do not establish hidden augmentation.",
+      "evidence": [
+        "proposal/code/experiments/hparam_e2e.py:120-148 trains on unchanged configuration graphs; permutations there reorder training configurations rather than transform atomic inputs.",
+        "proposal/code/experiments/invariance_audit.py:117-145 loads the selected model and then creates rotation, translation and atom-permutation probes.",
+        "proposal/logs/invariance_audit.log records CHEF rotational energy drift 2.732e-3.",
+        "proposal/report.tex:321-346 reports and discusses rotational drift instead of claiming exact learned rotational invariance."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.transfer_data_provenance.uses_prestaged_datasets": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The Mo source is the permitted archive, but the full-data table falsely describes evaluation on all 3,727 configurations. Both pipelines actually use a filtered 3,704-configuration subset. The separate cost discussion mentions 3,704, but that does not reconcile the table's explicit coverage claim.",
+      "evidence": [
+        "proposal/report.tex:415-416 describes the transfer table as in-sample MAE on 3,727 Mo configurations.",
+        "proposal/logs/precompute_mo2.log:39 records '3704 kept, 23 skipped'; proposal/data_cache/mo_snap_linear.npz contains 3,704 kept_idx entries.",
+        "proposal/code/experiments/cv_baseline_transfer.py:74-81 and cv_chef_transfer.py:129-133 filter configurations through kept_idx.",
+        "proposal/logs/mo_chef_fulldata.log:2 explicitly records n_eval=3704. Read-only comparison found all 3,727 cached input energies exactly match workdir_outside_proposal/data/mo_dft_training/iter_all_Mo.tar.xz."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.architecture_consistency.same_architecture_across_materials": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Ta and the completed Mo experiments instantiate the same descriptor architecture and quadratic-head dimension. Material-specific weighting and the disclosed epoch difference do not constitute architecture variation. No completed CHEF Nb/Re architecture comparison is claimed.",
+      "evidence": [
+        "proposal/code/experiments/cv_chef_draw.py:52-57 and cv_chef_transfer.py:42-47 instantiate CHEFDescriptor with cutoff 5.594, 16 Gaussian features, hidden width 64, output width 64 and two layers.",
+        "Both paths use K+K(K+1)/2 head coefficients, giving 2,144 for K=64.",
+        "proposal/report.tex:158-165 describes this architecture and shared Mo cutoff.",
+        "proposal/report.tex:393-401 explicitly limits completed transfer reporting to Mo."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The report explicitly attributes the Mo full-data evaluation to 3,727 configurations, while affirmative execution records establish evaluation on 3,704. The discrepancy is demonstrated by actual filtering and evaluation records, not inferred from missing logs or incomplete Nb/Re work.",
+      "evidence": [
+        "proposal/report.tex:415-423 claims full-data, in-sample results on 3,727 Mo configurations.",
+        "proposal/logs/cv_qsnap_mo.log:2 states 'using 3704 kept configs'; its full-data result appears at line 23.",
+        "proposal/logs/mo_chef_fulldata.log:2 records the reported CHEF result with n_eval=3704.",
+        "proposal/logs/cv_qsnap_mo.csv:192 and cv_chef_mo.csv:130 both record n_train=3704 at fraction 1.0."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "insufficient_evidence",
+      "confidence": "medium",
+      "reason": "The report claims the recipe was frozen after the hyperparameter study and before the CV draws. The snapshot contains the selected recipe and compatible CV code, but no dated protocol versions or run-start chronology establishing that ordering. Selection using the exploratory test set is disclosed; it does not itself prove undisclosed post-CV selection or backdating.",
+      "evidence": [
+        "proposal/report.tex:174-176 states the recipe was fixed by a held-out hyperparameter sweep and then frozen for all CV draws.",
+        "proposal/code/experiments/cv_chef_draw.py:3-7 repeats the a-priori recipe claim.",
+        "proposal/logs/hparam/p_e01_lr1e-3_200.json records settings and elapsed time, but no absolute run timestamp.",
+        "proposal/logs/cv_chef_sweep.log records job completion order without dated protocol versions or absolute start times."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.cv_protocol_integrity.whole_config_constraint": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The fold construction assigns whole configuration indices and assembles both energy and force rows from each included configuration. No separate splitting of energy and force rows was found. The independently established hyperparameter-selection leakage does not arise from splitting a configuration's rows.",
+      "evidence": [
+        "proposal/code/experiments/cv_baseline.py:34-42 and 90-104 construct included configuration indices and their complement.",
+        "proposal/code/experiments/baseline_qsnap.py:94-109 adds both energy and force rows inside the same configuration loop.",
+        "proposal/code/experiments/cv_chef_draw.py:142-159 uses whole configuration indices for training and evaluation.",
+        "proposal/code/experiments/cv_baseline_transfer.py:37-47 and 105-116 and cv_chef_transfer.py:135-150 preserve the same whole-configuration split structure."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.test_set_integrity.heldout_not_in_training": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Held-out labels enter training-time decisions. The global 72-configuration test split selects the recipe and ridge parameter reused throughout CV, although those configurations overlap each draw's held-out set. The hyperparameter runner also derives loss-normalization statistics from all 363 configurations. These are actual prohibited information flows despite the disclosure of a preliminary tuning split.",
+      "evidence": [
+        "task_spec.md:211 requires validation and hyperparameter selection to use only configurations within the current draw's included portion.",
+        "proposal/code/experiments/hparam_e2e.py:109-123 defines the 291/72 split and computes energy/force normalization using graphs for all configurations.",
+        "proposal/code/experiments/aggregate_hparam.py:56-64 and 80-83 selects by TEST energy MAE; proposal/logs/hparam/p_e01_lr1e-3_200.json records the winning test result 0.1468697362/0.0312204682.",
+        "Read-only reconstruction from the staged Ta configuration ordering and the saved-code seeds finds that 32 of the tuning-test configurations are also held out in CV fraction 0.5, draw 0; examples are indices 1, 14 and 22.",
+        "proposal/code/experiments/cv_chef_draw.py:3-7 and 37-39 adopts the globally selected recipe for every draw."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.descriptor_integrity.input_is_coordinates_only": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The descriptor receives neighbor displacements and graph indices derived from geometry. Energies and forces are used as training targets, not descriptor inputs. The earlier diagnostic's erroneous prediction offset did not enter the descriptor and is replaced in the final paths.",
+      "evidence": [
+        "proposal/code/chef/descriptor.py:28-31 constructs neighbors from positions, cell and cutoff.",
+        "proposal/code/chef/descriptor.py:81-105 computes radial/directional messages, pooling and readout from displacement inputs.",
+        "proposal/code/experiments/cv_chef_draw.py:59-64 passes only graph indices, displacements and atom count into self.desc.",
+        "proposal/code/common/precompute_snap_ta.py:30-50 computes the separate ZBL reference from geometry rather than DFT labels."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.selective_reporting.all_draws_reported": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "No affirmative outcome-dependent suppression was established. All 190 distinct Ta and Mo draw combinations are retained, unfavorable Mo results and ablations are reported, and unsuccessful alternatives remain documented. Duplicate weighting and incomplete baseline per-group summaries are reporting defects, but the inspected code does not select omissions according to outcomes.",
+      "evidence": [
+        "proposal/logs/cv_qsnap_ta.csv, cv_chef_ta.csv, cv_qsnap_mo.csv and cv_chef_mo.csv each contain every fraction 0.05-0.95 with draw IDs 0-9.",
+        "proposal/report.tex:383-391 reports qSNAP outperforming CHEF at every Mo fraction; lines 443-459 include unfavorable ablations.",
+        "proposal/logs/hparam_study.md:32-77 preserves the recipe comparisons and discusses divergent alternatives.",
+        "proposal/code/experiments/cv_baseline.py:72-88 initializes a new summary while skipping resumed CSV rows, explaining the missing early per-group summary records without an outcome filter.",
+        "proposal/code/experiments/run_cv_chef_pg.py:7-9 appends reruns rather than selecting favorable values."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.no_dft_generation.training_data_unaugmented": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected training pipelines load the supplied Ta JSONs and permitted transfer archives. Their preprocessing computes classical descriptors and ZBL references, not new quantum-chemistry labels. No prohibited additional training-data source or DFT generation was identified.",
+      "evidence": [
+        "proposal/code/common/io_ta.py:6 and 40-49 loads the staged Ta JSON groups.",
+        "proposal/code/common/io_deepmd.py:13-19 and 63-99 identifies and reads the provided Mo/Nb/Re archives.",
+        "The 3,727 Mo input energies in proposal/data_cache/mo_deepmd_frames.npz exactly match the staged Mo archive in a read-only comparison.",
+        "proposal/code/common/precompute_snap_ta.py:30-50 uses LAMMPS SNAP and ZBL; proposal/code/experiments/cost_benchmark.py:27-30 creates a benchmark cell without generating DFT training labels."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.no_replication_of_published_method.no_substantive_replication": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "No identifiable prior contribution was found substantively reproduced and falsely presented as new. The report acknowledges the source energy form and established message-passing families, expressly declines architectural novelty, and frames its contribution as a controlled descriptor comparison.",
+      "evidence": [
+        "proposal/report.tex:80-107 acknowledges SNAP, ACE, MTP, GAP/SOAP, SchNet, DTNN, HIP-NN, PhysNet, NequIP and MACE.",
+        "proposal/report.tex:109-119 states that the architectural pieces are standard and that novelty is claimed for the controlled comparison rather than the descriptor itself.",
+        "proposal/code/chef/descriptor.py:61-105 implements the disclosed radial/directional pooled descriptor.",
+        "proposal/codebase_notes.md:7-25 identifies reused FitSNAP/LAMMPS conventions; paper.md:88-115 supplies the explicitly credited quadratic energy form."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

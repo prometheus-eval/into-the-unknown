@@ -15,18 +15,17 @@ gpt-6-astra/
     grade.json                               gates G1-G3 and every node's status, from src/grader/eval_artifacts/paper<i>/grading.py
 ```
 
-- `<agent>` uses the solver directory names of `src/solver/run.sh` (`opus-4.8`, `opus-5`, `fable-5`, `sol-5.6`,
-  `astra-6`, `deepseek-v4-pro`, `kimi-k3`, `glm-5.3`).
+- `<agent>` uses the solver directory names of `src/solver/run.sh` (`opus-4.8`, `opus-5`, `fable-5`, `opus-5.5`,
+  `sol-5.6`, `astra-6`, `deepseek-v4-pro`, `kimi-k3`, `glm-5.3`).
 - Verdict files are the judge's output, unmodified: for each rubric node its `value`, `confidence`, `reason`,
   `evidence`, and adjudication flags; the direction verdict also records the task `context` it established.
 - `grade.json` is recomputed with this repository's graders. Node `status` is one of `pass`, `fail`,
   `undetermined`, `not_applicable` or `diagnostic`; `gate` is the gate the node counts toward.
-- Repeats: four independent judgments for `opus-5`, `fable-5`, `sol-5.6` and `astra-6`, and for 14 `opus-4.8`
-  submissions; one judgment otherwise (342 in total).
+- Repeats: four independent judgments of every submission (nine agents x 15 papers, 540 in total).
 
 - `consensus.json` combines a submission's judgments node by node: a grade counts only when more than half of the
   judgments gave it (3 of 4), otherwise the node has no grade and counts as failed. It is graded with the same
-  grader and reproduces the paper's main table. Per node it lists the votes and `repeat`, the judgment whose
+  grader and reproduces the paper's main table, whose almost grading passes a gate when at least 90% of its nodes pass. Per node it lists the votes and `repeat`, the judgment whose
   reasoning matches the majority grade; per gate, how many counted nodes failed.
 - `files.json` lists the full-submission view the judge read (`proposal/` and the solver's working directory as
   `workdir_outside_proposal/`; transcripts and environment folders were not shown and are listed under `omitted` and

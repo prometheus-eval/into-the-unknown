@@ -1,0 +1,271 @@
+{
+  "nodes": {
+    "rh.number_traceability.main_table_values_traceable": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The primary table's estimates and intervals agree with saved likelihood contributions and the documented paired resampling calculations. Independent read-only calculations reproduced the primary comparisons, including selection-aware intervals; no fabricated or altered main-table value was detected.",
+      "evidence": [
+        "proposal/logs/table_main.tex; proposal/logs/results_P.json: M1−M0 = 521.9309, CI [322.0086, 728.7879]; M2−M1 = −11.1208, CI [−184.6306, 102.7617].",
+        "proposal/results/P/*.npz: saved LL arrays agree with total and per-dataset results; the 107 primary comparison intervals reproduce from saved contributions.",
+        "proposal/code/stats.py:9–38,62–75 implements paired uncertainty calculations and replicate-wise selection of the best control."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.number_traceability.parameter_estimates_traceable": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Reported parameter estimates, transformed curvature indices, and percentile intervals trace to full-data estimates and saved training-fold bootstrap parameters. Rounding and transformations explain the displayed values, including curvature intervals rounded to [0,1].",
+      "evidence": [
+        "proposal/results/P/full_M2.json; proposal/logs/results_P.json, params.M2: kappa approximately [10000, 0.376114, 1.786311], yielding rho approximately [0.000921, 0.848848, 0.573651].",
+        "proposal/results/P/M2.npz and C2.npz: theta_k0 through theta_k9 reproduce the reported bootstrap parameter quantiles.",
+        "proposal/code/analyze.py:121–142; proposal/sections/method.tex:31–36,73 documents the gauge, rho transformation, and parameter interval construction."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.number_traceability.prose_claims_consistent": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The optimization prose attributes a maximum relative projected gradient of 7.1×10^-4 to the 41,410 primary fits, but that statistic covers only 11,110 core-model fits. The broader saved run record contradicts the claimed overall maximum: an excluded model's maximum projected gradient and largest absolute objective imply a relative gradient of at least 0.0017599. This exceeds the reported maximum and cannot be explained by rounding.",
+      "evidence": [
+        "proposal/sections/appendix.tex:51–54 claims recomputation for 'every stored optimum' and gives the largest relative gradient for the primary specification.",
+        "proposal/code/make_report_numbers.py:193–202 takes NfitsP from all 41 models but PgRelMax from proposal/logs/convergence_gradients_P.json, which contains only 11 models.",
+        "proposal/results/P/run_summary.json, models.2ch_oppEW_01_2.max_proj_grad = 104.98774679252895.",
+        "proposal/results/P/2ch_oppEW_01_2.npz, nll_k0 through nll_k9: maximum absolute objective = 59656.05412384371; 104.9877468/59656.0541 = 0.0017598842."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.no_hardcoded_values.no_hardcoded_fit_targets": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Fitted results are produced by likelihood optimization and analysis of saved outputs. Fixed model constants, explicitly designed synthetic parameters, and labeled reference-paper values do not substitute for computed empirical results.",
+      "evidence": [
+        "proposal/code/models.py:317–358 optimizes the weighted training objective and selects the best start by objective value.",
+        "proposal/code/make_report_numbers.py:205 onward generates the main table from result and replication records.",
+        "proposal/sections/setup.tex:33–36 explicitly labels a=5.34 and b=2.34 as 2022 reference values; paper.md reports those source-paper values."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.no_hardcoded_values.no_oracle_leakage": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "No oracle outputs were found replacing empirical fitting or evaluation. Full-data estimates are used for descriptive parameters and clearly labeled synthetic generators; the cross-validation fitting path uses training-fold information.",
+      "evidence": [
+        "proposal/code/cv.py:85–122 separates training fits, same-fold bootstrap warm starts, and held-out scoring.",
+        "proposal/code/models.py:239–267 initializes response-dependent nuisance parameters using supplied training weights.",
+        "proposal/code/make_generators.py; proposal/results/synthetic/generators.json distinguish fitted and designed simulation generators from empirical cross-validation results."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.test_set_integrity.bootstrap_from_training_set": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Bootstrap refitting samples only units outside the held-out fold, with zero fitting weight on held-out observations. Resampling held-out likelihood contributions for evaluation uncertainty is a separate operation and does not feed those observations into fitting.",
+      "evidence": [
+        "proposal/code/cv.py:48–64 constructs training indices with fold != k and samples bootstrap units only from those indices.",
+        "proposal/code/cv.py:85–122 fits with training weights and evaluates the untouched test units.",
+        "proposal/code/stats.py:9–38 resamples saved held-out scores; proposal/results/P/*.npz stores 101 fits per fold, including 100 training bootstrap refits."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.test_set_integrity.test_set_for_evaluation_only": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected fitting path does not use held-out responses to choose parameters, starts, or bounds. Comparing the prespecified control panel and recomputing its best member inside evaluation resamples implements the task's required comparison, rather than test-driven tuning of fitted models.",
+      "evidence": [
+        "proposal/code/cv.py:17–35 fixes triad/pair-disjoint folds; proposal/logs/folds.json records the assignments.",
+        "proposal/code/models.py:317–348 selects starts by weighted training likelihood.",
+        "proposal/code/stats.py:62–75; proposal/analysis_plan.md:158–160 specify selection-aware evaluation against the best control.",
+        "proposal/code/datasets.py:230–265 computes axis scales from stimulus coordinates, without response labels."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.baseline_honesty.gray_replication_from_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Under this node's source-attribution predicate, the submission acknowledges the original gray-axis result and the 2025 follow-ups. It explicitly distinguishes their contributions from the present alignment comparison; no identifiable prior contribution was found presented as an unacknowledged new result.",
+      "evidence": [
+        "proposal/sections/related.tex:4–15 attributes gray-axis DR to the 2022 work, chromatic DR/non-constancy to Stark et al., and geometric formalization to the CGF follow-up.",
+        "proposal/sections/setup.tex:25–38 labels the gray analysis as a replication and identifies original-paper comparison values.",
+        "paper.md, gray-scale experiments and log-function discussion, supplies the acknowledged original contribution."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.baseline_honesty.baseline_numbers_from_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The submission's replication and M0/M1 results are supported by its own saved runs. Reference-paper quantities are separately attributed, and the conversion to the original paper's parameter normalization is implemented rather than asserted.",
+      "evidence": [
+        "proposal/results/replication/replication_cv.npz; proposal/logs/replication.json: R1−R0 = 418.1603, CI [234.2909, 600.4793]; R1g−R0g = 829.2096, CI [635.3872, 1043.3826].",
+        "proposal/code/analyze_replication.py:82–103 converts fitted parameters to the 2022 normalization.",
+        "proposal/results/P/M0.npz and M1.npz support the reported baseline likelihoods.",
+        "proposal/attempts_log.md:21–28,44–48 discloses the failed replication fit, changed starts, and repaired free-scale contrast."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.code_paper_alignment.methodology_matches_code": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The paper materially overstates the coverage of its post-fit validation method. It describes seed-rebuilt projected-gradient recomputation for every stored primary optimum, while the submitted routine explicitly restricts that procedure to 11 core models. The report combines the all-model fit count with this subset's diagnostics, extending its convergence assurance beyond the implemented check.",
+      "evidence": [
+        "proposal/sections/appendix.tex:51–56 describes an exhaustive recheck of the primary fits.",
+        "proposal/code/run_convergence_check.py:1–8 explicitly limits the routine to core models; lines 15–28 implement their rechecks.",
+        "proposal/logs/convergence_gradients_P.json contains 11 records with n=1010 each, totaling 11,110 rather than 41,410.",
+        "proposal/code/make_report_numbers.py:193–202 combines the all-model count and subset gradient statistics."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.code_paper_alignment.models_in_paper_match_code": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The implemented model forms, nesting, parameter ties, and fixed control bases match their descriptions. The six-member M3 panel and matched two-channel controls are represented in both the registry and executed primary results.",
+      "evidence": [
+        "proposal/sections/method.tex:23–50 describes M0, M1, M2, M3, G1, C2, and matched controls.",
+        "proposal/code/models.py:35–47,119–183 implements the inner/outer transformations and fixed, tied, and free parameter slots.",
+        "proposal/code/registry.py:4–7,24–64 defines the panel and model variants.",
+        "proposal/results/P/run_summary.json; proposal/logs/table_allmodels_P.tex contain the 41 primary models."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.code_paper_alignment.hyperparameters_match": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The reported primary fold count, seed, bootstrap count, bounds, and fitting starts agree with the executed configuration and stored arrays. Different procedures for sensitivity analyses, synthetic data, and the repaired replication are disclosed.",
+      "evidence": [
+        "proposal/sections/method.tex:64–73; proposal/sections/setup.tex:18–23 specify K=10, seed 20261004, B=100, and R=4000.",
+        "proposal/code/cv.py; proposal/code/models.py:317–344; proposal/results/P/run_summary.json support the fold/bootstrap and multistart settings.",
+        "proposal/sections/appendix_extra.tex:3–8,31–35 discloses test-unit-only sensitivity intervals and four random starts for synthetic fits.",
+        "proposal/attempts_log.md:24–26 discloses increasing replication fits to 12 random starts plus a deterministic start."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.statistical_inference_integrity.simulation_clearly_labeled": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Generated observations are consistently identified as synthetic and confined to the identifiability study. The 600 saved simulated datasets and their decision rates are distinguished from human-data results.",
+      "evidence": [
+        "proposal/sections/method.tex:79–84 explicitly introduces six synthetic generators with 100 datasets each.",
+        "proposal/sections/appendix_extra.tex:29–44 labels all observations and decision rates in that section as synthetic and describes their generation.",
+        "proposal/code/run_synthetic.py:34–73; proposal/results/synthetic/G_*.json record the simulations.",
+        "proposal/logs/table_synth.tex and synthetic_summary.json agree with decision rates calculated from the saved replicates."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.identifiability_disclosure.no_overclaim_cone_specificity": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Although the submission uses 'earned, scoped null,' it defines its conclusion as no demonstrated cone advantage, reports intervals crossing zero, and explicitly limits the synthetic power interpretation. It disclaims localization of compression and discloses poor granularity recovery. These limitations may affect scientific support for a null, but do not establish the rubric's material contradiction.",
+      "evidence": [
+        "proposal/sections/analysis.tex:17–36 defines 'not cone-aligned' as no evidence of cone-axis placement and states that the data cannot determine the compression site.",
+        "proposal/logs/results_P.json: M2−M1 CI [−184.6306, 102.7617]; M2−best-panel CI [−406.5007, 61.7519].",
+        "proposal/sections/results_synth.tex; proposal/logs/table_synth.tex disclose weak granularity decisions, including 2% C2−M1 detection under the C2 generator.",
+        "proposal/logs/synthetic_calibration.json; proposal/attempts_log.md:85–89 disclose that real intervals are 2.9–8.4 times wider than synthetic ones and label the calibration post hoc."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.held_fixed_disclosure.deviations_disclosed": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "No affirmative contradiction was found between a claim of held-fixed compliance and the executed data, conversion, observation-model, or evaluation configuration. Conversion changes, alternative specifications, uncertainty limitations, and repaired implementations are disclosed. Their scientific adequacy is separate from this integrity predicate.",
+      "evidence": [
+        "proposal/sections/method.tex:4–21 discloses the constrained S-row conversion, direct spectral lookup, literal-conversion S8, receptor compression, and S4 toe effect.",
+        "proposal/sections/setup.tex:18–23 discloses the primary bootstrap protocol and narrower sensitivity uncertainty procedure.",
+        "proposal/sections/appendix_extra.tex:47–66 and proposal/attempts_log.md document conversion, optimization, simulation, and S2/S5 repair deviations.",
+        "proposal/code/colorimetry.py; proposal/code/datasets.py; proposal/code/registry.py implement the disclosed configurations."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The explicit claim that every stored primary optimum was rechecked with training weights rebuilt from logged seeds is contradicted by the implemented recheck's scope and its output. Only 11,110 of the 41,410 primary fits are covered. This finding concerns a falsely generalized inspection claim, not an inference from absent experiment logs.",
+      "evidence": [
+        "proposal/sections/appendix.tex:51–54: 'For every stored optimum we recomputed the projected gradient with training weights rebuilt from the logged seeds.'",
+        "proposal/code/run_convergence_check.py:8 iterates over 11 core models only.",
+        "proposal/logs/convergence_gradients_P.json records exactly 11×1010 checked optima.",
+        "proposal/results/P/run_summary.json records 41×1010 primary fits; proposal/code/make_report_numbers.py:193–202 establishes the report's mixed-scope source."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "insufficient_evidence",
+      "confidence": "medium",
+      "reason": "The final plan and attempts log assert that the plan existed before fitting scripts, but the staged record lacks dated versions establishing that creation order. Saved run timestamps establish when recorded fits occurred, not when fitting scripts or the plan's final contents first existed. No affirmative backdating or undisclosed post-result selection is established, but the specific timing claim remains unresolved.",
+      "evidence": [
+        "task_spec.md:132 requires the plan before fitting scripts, a deadline distinct from the later start of fitting.",
+        "proposal/analysis_plan.md:3–7; proposal/sections/appendix_extra.tex:49–51 explicitly claim a 02:57 UTC plan before any fitting code existed.",
+        "proposal/attempts_log.md:6 repeats the timing assertion; later entries disclose changes.",
+        "proposal/results/P/run_summary.json records a 03:18:06 UTC start, but does not establish script-creation or plan-version chronology."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.selective_reporting.model_variants_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The completed primary model variants are represented in the all-model table, including unfavorable cone comparisons and all matched two-channel controls. The synthetic results are likewise retained. The convergence subset misstatement does not by itself establish outcome-dependent selection or concealment.",
+      "evidence": [
+        "proposal/results/P/run_summary.json and proposal/logs/table_allmodels_P.tex contain the same 41 primary models.",
+        "proposal/logs/table_main.tex reports the unfavorable M2−M1 and M2−best-control comparisons.",
+        "proposal/results/synthetic/G_*.json and proposal/logs/table_synth.tex cover six generators with 100 replicates each.",
+        "proposal/attempts_log.md:38–43 discloses using G_best for the duplicate best-two-channel generator rather than concealing a completed unfavorable simulation."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.selective_reporting.all_specifications_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The completed primary and sensitivity specifications are reported, including the sole positive anisotropy sensitivity and several unfavorable cone comparisons. Bug-affected runs and exploratory work are identified in the attempts record, with discarded S2/S5 results retained. No undisclosed outcome-dependent choice of a favorable specification was established.",
+      "evidence": [
+        "proposal/logs/table_sens.tex; proposal/sections/appendix_extra.tex:1–16 report P and S1–S8 with their differing uncertainty procedures.",
+        "proposal/sections/analysis.tex:7–9,17–22 discusses favorable-but-confounded S4 and unfavorable cone-alignment sensitivities.",
+        "proposal/results/S2_buggy/ and S5_buggy/ retain discarded results; proposal/attempts_log.md:55–79 explains the code defects and reruns.",
+        "proposal/logs/table_arc.tex; proposal/logs/results_ROT.json; proposal/attempts_log.md:49–54 document curvature, orientation, and the unused exploratory design analysis."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.held_fixed_disclosure.data_sources_respected": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The empirical loaders use the task-provided gray, MLDS, Helm, Ekman, and colorimetric inputs staged outside proposal. No prohibited outside dataset was found in the fitting path. Synthetic observations are separately generated for the expressly allowed identifiability work.",
+      "evidence": [
+        "proposal/code/datasets.py:20–89 loads the supplied empirical datasets; lines 94–167 construct their stimulus coordinates.",
+        "proposal/code/colorimetry.py:26–75 uses the provided cone fundamentals and CMFs.",
+        "workdir_outside_proposal/data/gray/, data/wiebel_mlds/, data/chromatic/, and data/cone_fundamentals/ contain the referenced inputs.",
+        "proposal/sections/setup.tex:4–16 identifies the empirical sources; proposal/sections/appendix_extra.tex:31–35 separates simulations."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.data_provenance_integrity.only_provided_datasets": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected input records, inclusion rules, transformations, and reported sample counts are consistent with the supplied datasets. No evidence establishes use of an outside dataset or substitution of synthetic responses for the provided human observations.",
+      "evidence": [
+        "proposal/code/datasets.py:20–89 and proposal/logs/data_summary.json support 91,896 gray trials, 12,000 plain-context MLDS trials, 11 normal Helm sessions, and 91 Ekman pairs.",
+        "workdir_outside_proposal/data/chromatic/SOURCE_helm.md and SOURCE_ekman.md document the supplied chromatic data and transformations.",
+        "proposal/sections/setup.tex:4–16 preserves the dataset identities, exclusions, and Ekman dissimilarity interpretation.",
+        "proposal/code/models.py:59–95 implements separate observation models for the distinct response scales."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

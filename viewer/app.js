@@ -1,5 +1,5 @@
 'use strict';
-/* Shoulders of Giants leaderboard: a static site that reads artifacts/ and src/grader/eval_artifacts/ of this repository.
+/* Into the Unknown leaderboard: a static site that reads artifacts/ and src/grader/eval_artifacts/ of this repository.
    Serve the repository root (python viewer/serve.py, or GitHub Pages from the root) and open viewer/. All paths are relative. */
 (() => {
   const ROOT = '..';
@@ -163,24 +163,24 @@
       all: '% of valid papers (G₁ ∩ G₂ ∩ G₃)' };
     const { mode, gate } = state.an;
     const sel = gate === 'all' ? GATES : [gate];
-    const share = (x) => (x.counted ? 100 * x.failed / x.counted : 0);
+    const passed = (x) => (x.counted ? 100 * (x.counted - x.failed) / x.counted : 0);   // share of the rubric's nodes passed
     const cell = (m, p) => {
       const s = subOf(m.dir, p.id);
       if (!s) return '<td></td>';
       const pass = sel.every((g) => s[mode][g]);
-      const I = share(s.rubrics.integrity);
-      const D = share(s.rubrics.direction);
+      const I = passed(s.rubrics.integrity);
+      const D = passed(s.rubrics.direction);
       const lines = [
-        `Integrity check rubric: ${s.rubrics.integrity.failed} of ${s.rubrics.integrity.counted} nodes failed`,
-        `Direction-specific rubric: ${s.rubrics.direction.failed} of ${s.rubrics.direction.counted} nodes failed`,
+        `Integrity check rubric: ${s.rubrics.integrity.counted - s.rubrics.integrity.failed} of ${s.rubrics.integrity.counted} nodes passed`,
+        `Direction-specific rubric: ${s.rubrics.direction.counted - s.rubrics.direction.failed} of ${s.rubrics.direction.counted} nodes passed`,
         ...GATES.map((g) => `${SUB[g]} ${GATE_NAME[g].toLowerCase()}: strict ${s.strict[g] ? 'pass' : 'fail'}, almost ${s.almost[g] ? 'pass' : 'fail'}`),
         `Run time: ${fmtHours(s.hours)}`,
       ];
       const tip = `${m.label} · Paper ${p.id}: ${p.title}\n${pass ? 'Passes' : 'Fails'} ${mode === 'strict' ? 'strict (100%)' : `almost (≥${thr}%)`}`
         + ` ${gate === 'all' ? 'G₁∩G₂∩G₃ (valid)' : SUB[gate]}\n${lines.join('\n')}\n${s.judgments > 1 ? `Per-node majority of ${s.judgments} judgments` : '1 judgment'} · click to browse the nodes`;
-      const line = (k, v) => `<span class="pl"><i class="${k}">${k === 'int' ? 'I' : 'D'}</i><b>${Math.round(v)}%</b></span><span class="mb"><span style="width:${v}%"></span></span>`;
+      const line = (k, v) => `<span class="pl"><i class="${k}">${k === 'int' ? 'I' : 'D'}</i><b>${Math.round(v)}%</b></span><span class="mb ${k}"><span style="width:${v}%"></span></span>`;
       return `<td><a class="pc ${pass ? 'pass' : 'fail'}" href="#/s/${encodeURIComponent(m.dir)}/${p.id}" title="${esc(tip)}"
-        aria-label="${esc(`Paper ${p.id}: ${pass ? 'passed' : 'failed'}; ${Math.round(I)}% of integrity and ${Math.round(D)}% of direction nodes failed`)}">${line('int', I)}${line('dir', D)}</a></td>`;
+        aria-label="${esc(`Paper ${p.id}: ${pass ? 'passed' : 'failed'}; ${Math.round(I)}% of integrity and ${Math.round(D)}% of direction nodes passed`)}">${line('int', I)}${line('dir', D)}</a></td>`;
     };
     document.getElementById('board').innerHTML = `
       <section class="card an-card">
@@ -211,7 +211,7 @@
             ${[['all', 'G₁ ∩ G₂ ∩ G₃ Valid'], ['G1', 'G₁ Honest'], ['G2', 'G₂ Complete'], ['G3', "G₃ Scientist's bar"]].map(([k, l]) => `<button type="button" data-gate="${k}" aria-pressed="${gate === k}">${l}</button>`).join('')}
           </div>
           <div class="legend"><span><i class="sq pass"></i>passed</span><span><i class="sq fail"></i>failed</span>
-            <span>bars: % of nodes failed in the <b class="int">I</b>ntegrity check and <b class="dir">D</b>irection-specific rubrics</span></div>
+            <span>bars: % of nodes passed in the <b class="int">I</b>ntegrity check and <b class="dir">D</b>irection-specific rubrics</span></div>
         </div>
         <div class="wrap-x"><table class="matrix">
           <thead>

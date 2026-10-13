@@ -1,0 +1,327 @@
+{
+  "nodes": {
+    "code_methodology_match.hyperparameters_match_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The reported constants and fitting procedure agree with the implementation and headline run records: diffuse-mean constant 10000, relative nugget 1e-8, three calibration-optimization starts, refitting at 10% sample growth, and M=min(max(64n,1024),32768). Function-dependent fitted values are consistent with the declared shared procedure.",
+      "evidence": [
+        "proposal/sections/method.tex:35-79,111-119 specifies the calibration model, reference-set rule and numerical constants.",
+        "proposal/code/acquisitions.py:139-219,226-254 implements the reported targets, bounds, fitting schedule and reference-set size.",
+        "proposal/logs/runs/{pw1,pw2,osc,nd,diff3d}/calm/seed0.json through seed9.json: surrogate, optimizer and steps[].info records agree with the stated configuration; logged M_ref values follow the rule using the pre-acquisition sample count."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_methodology_match.acquisition_optimizer_matches_paper": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The submission reports gpCAM differential evolution with population 20d, 20 generations and tolerance 1e-6, and the supporting runs use those settings. The task permits acquisition optimizers other than the source paper's genetic algorithm, so that difference is not a contradiction.",
+      "evidence": [
+        "proposal/sections/method.tex:117 and proposal/sections/setup.tex:36 identify the common optimizer and settings.",
+        "proposal/code/run_experiment.py:191-192,246-254 calls GPOptimizer.ask(method='global', pop_size=args.pop, max_iter=args.iters, tol=1e-6).",
+        "proposal/logs/runs/*/*/seed*.json: optimizer records consistently contain pop_size=20, max_iter=20 and tol=1e-6.",
+        "workdir_outside_proposal/code/gpCAM/gpcam/surrogate_model.py:321-334 implements the differential-evolution call; task_spec.md:97 permits alternative acquisition optimizers."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_methodology_match.surrogate_matches_paper": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The executed surrogate matches the submission's disclosed approximation to ordinary Kriging: exponential covariance plus a diffuse constant component, least-squares range fitting and REML variance estimation. The finite constant and nugget are explicitly disclosed, and saved comparison results support the reported numerical agreement with the ordinary-Kriging equations.",
+      "evidence": [
+        "proposal/sections/method.tex:8-14,111-115 describes the surrogate, fitting and approximation.",
+        "proposal/code/kriging.py:33-101 implements the kernel, nugget, variogram fit and REML estimate; run records identify the same surrogate.",
+        "proposal/logs/test_kriging.txt:1-21 reports maximum normalized predictor discrepancies of 2.61e-6, 8.62e-7 and 1.83e-6, and variance discrepancies below 4e-8.",
+        "paper.md:100-156 supplies the original exponential-variogram and ordinary-Kriging methodology."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_methodology_match.proposed_acquisition_matches_paper": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The headline CALM implementation uses the reported log-chi-square LOO calibration, weight exp(m/2+v/8), and weighted integrated reduction in predictive standard deviation. The code's unnormalized reference-point sum differs from the integral approximation only by candidate-independent positive factors. Oracle and alternative-loss branches are separately identified rather than substituted for headline CALM.",
+      "evidence": [
+        "proposal/sections/method.tex:35-79 defines calibration and the CALM acquisition.",
+        "proposal/code/acquisitions.py:139-142,213-219,271-278,302-309 implements those computations.",
+        "proposal/code/run_experiment.py:225 assigns the truth callable only to calm_oracle and oracle_greedy.",
+        "proposal/logs/runs/pw2/calm/seed0.json: steps[0].info records fitted calibration parameters, three start likelihoods and M_ref=1024, consistent with the ordinary CALM branch."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_honesty.smart_numbers_from_logged_runs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "SMART quantities trace to the submission's own ten-seed runs. Reaggregation reproduces the reported means and sample standard deviations after rounding. The baseline's unfavorable behavior against random or grid sampling is disclosed and does not establish fabricated baseline results.",
+      "evidence": [
+        "proposal/logs/runs/{pw1,pw2,osc,nd,diff3d}/smart/seed0.json through seed9.json contain complete trajectories and budget metrics.",
+        "proposal/logs/tables/main_results.tex reports SMART IAE 7.194±0.223 for Piecewise II at N=500 and 3.100±0.128 for diffusion at N=1000, matching the saved-run aggregates.",
+        "proposal/sections/results.tex:6-21 explicitly describes the reproduction successes and deviations."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_honesty.gsmart_numbers_from_logged_runs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The headline gSMART results come from logged c=1e-4 runs, while c=20 and the other sweep values have their own recorded results. The report explicitly identifies the hindsight selection of c=1e-4. This selection raises a separate held-out-protocol issue, but the baseline numbers are neither invented nor falsely attributed.",
+      "evidence": [
+        "proposal/sections/setup.tex:30-33 and proposal/sections/results.tex:29-32 disclose the seven-value sweep and hindsight-selected headline value.",
+        "proposal/logs/runs/*/gsmart_c0.0001/seed0.json through seed9.json provide the headline baseline records.",
+        "proposal/logs/tables/main_results.tex gives Piecewise II gSMART IAE 6.589±0.138 at N=500, matching the saved aggregate.",
+        "proposal/logs/tables/gsmart_sweep.tex and proposal/logs/runs/*/gsmart*/ contain the alternative weights, including the poorly performing c=20 runs."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_honesty.no_paper_numbers_cited_as_baselines": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Source-paper read-offs are explicitly separated from the submission's measured baselines. They are labeled approximate reference values and used to discuss reproduction discrepancies; the main baseline table is generated from the submission's run logs.",
+      "evidence": [
+        "proposal/logs/original_fig4_readoff.md:3-22 identifies source images, approximately ±10% reading uncertainty, and separate 'original' and 'ours' columns.",
+        "For source Eq. 13 SMART at N=500, that file distinguishes the original read-off of about 28 from the submission's approximately 7.19.",
+        "proposal/sections/appendix.tex:87 explicitly distinguishes logged experimental results from original-figure read-offs.",
+        "proposal/code/analyze.py:42-50 loads the submission's run JSON files for aggregation."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.speedup_claims_match_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Recomputing the declared threshold crossings reproduces the reported speedups. The report distinguishes approximately twofold gains against SMART from smaller gains against tuned gSMART on the discontinuous maps, and acknowledges no meaningful smooth-map speedup. Failure to meet the requested improvement target against both baselines is not concealed.",
+      "evidence": [
+        "proposal/sections/setup.tex:39-45 defines the crossing, interpolation and classification rules.",
+        "proposal/logs/speedup.json and proposal/logs/tables/speedup.tex:5-23 report SMART ratios 2.19, 2.02, 1.02, 2.08 and 21.49 across the five functions.",
+        "The corresponding tuned-gSMART ratios are 1.89, 1.81, 1.03, 1.93 and 12.77; these match recalculation from saved curves.",
+        "proposal/sections/results.tex:72-84 and proposal/attempts_log.md:135-140 acknowledge the modest gains and missed target."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.consistent_direction_acknowledged": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The report's per-function characterizations agree with the logged directional patterns. The smooth-map tie language does not conceal a consistent regression: CALM is below SMART at three official budgets and only slightly above it at N=200. The unfavorable diffusion MAPE and stationary CRPS results are also explicitly reported.",
+      "evidence": [
+        "proposal/sections/results.tex:47-68 discusses discontinuous, smooth and diffusion curves separately.",
+        "proposal/logs/tables/main_results.tex: smooth-map N=200 IAE is approximately 0.5215 for CALM versus 0.5193 for SMART, while CALM is lower at N=50,100,500.",
+        "proposal/sections/results.tex:66 states that CALM has the worst diffusion MAPE among the six main methods from N=200 onward.",
+        "proposal/sections/results.tex:100-106 acknowledges poor stationary CRPS and distinguishes the separate post-hoc calibrated distribution."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.speedup_reference_consistent": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The ratios consistently use each reference method's mean error at the largest tested budget: 500 for two-dimensional functions and 1000 for diffusion. Recalculated crossings and ratios match the saved analysis; no favorable intermediate reference-budget substitution was detected.",
+      "evidence": [
+        "proposal/sections/setup.tex:40-41 and proposal/sections/results.tex:87-88 declare the maximum-budget reference.",
+        "proposal/logs/speedup.json: CALM versus SMART uses n*=228.160984 for Piecewise I and n*=46.532479 for diffusion.",
+        "The corresponding calculations are 500/228.160984=2.191435 and 1000/46.532479=21.490366, matching proposal/logs/tables/speedup.tex."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "single_hyperparameter_integrity.identical_hyperparameters_in_headline_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The headline runs use one calibration-fitting procedure and one set of numerical rules across all five functions. Different fitted parameter values are expected under the task's procedural requirement. The global reference-set choice was selected during development and openly disclosed; there is no evidence of concealed per-function tuning or procedure switching.",
+      "evidence": [
+        "task_spec.md:95 requires identical selection procedures, not identical learned values.",
+        "proposal/code/acquisitions.py:144-211 applies the same marginal-likelihood fitting, bounds expressed through domain diameter, three starts and growth-based refitting.",
+        "proposal/logs/runs/{pw1,pw2,osc,nd,diff3d}/calm/seed*.json and proposal/logs/hyperparameter_fits.json record the shared procedure and varying fitted values.",
+        "proposal/sections/analysis.tex:229-235 explicitly discloses the benchmark-informed reference-set choice."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "single_hyperparameter_integrity.per_function_tuning_clearly_labeled": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "No hand-tuned per-function variant is passed off as the headline CALM procedure. The sensitivity variants, supplementary diffusion transformations and hindsight-tuned gSMART baseline are labeled separately, and their results are not substituted for the headline CALM row.",
+      "evidence": [
+        "proposal/code/analyze.py:31-39 maps distinct run methods to distinct headline and ablation labels.",
+        "proposal/logs/tables/ablation.tex separately reports M=16n, squared-error, uncalibrated, pointwise and oracle variants.",
+        "proposal/sections/analysis.tex:229-235 explains the common constants and development choices.",
+        "proposal/sections/appendix.tex:49-58 separately identifies supplementary diffusion variants."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "initial_design_pairing.paired_initial_design_logged": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Direct comparison of the saved initial-coordinate arrays confirms identical ten-point starting designs across methods for each function and seed. This finding does not rely solely on the submission's hashes or completion checker.",
+      "evidence": [
+        "proposal/sections/setup.tex:15 claims identical initial designs.",
+        "proposal/code/run_experiment.py:185-190,204,221 constructs and records the shared initial design.",
+        "proposal/logs/runs/*/*/seed*.json: X0 arrays match across methods for each function/seed throughout the 1020 saved final runs; grid budget designs retain those initial points."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The saved artifacts support the claimed final sweeps, numerical surrogate comparison and documented development experiments. All 1020 final run records are complete, with corresponding budget results and acquisition trajectories where applicable. No affirmative evidence establishes a falsely claimed execution, inspection or repair.",
+      "evidence": [
+        "proposal/logs/runs/*/*/seed*.json contains 102 function/method groups with seeds 0-9, 4380 budget records and 600500 acquisition-step records.",
+        "proposal/logs/test_kriging.txt records the numerical comparison claimed in proposal/sections/method.tex:113.",
+        "proposal/attempts_log.md and proposal/logs/development/development_runs.tar.gz document development experiments; the archive contains 363 unique run records matching their staged outside-proposal counterparts.",
+        "proposal/logs/sweep_jobs/ contains configurations and launcher/relaunch records for the final experiments."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The explicit freeze claim concerns the period before the full ten-seed CALM sweep, not before development results. The selected configuration appears in earlier development records and is consistently used in the final sweep. Benchmark-informed selection is disclosed, and no dated artifact establishes undisclosed post-result selection or backdating contrary to that particular claim.",
+      "evidence": [
+        "proposal/attempts_log.md:128-133 says 'frozen before the full 10-seed sweep of CALM'.",
+        "workdir_outside_proposal/data/proto7_m64/pw2/calm/seed0.json records the M=64 rule in a run starting 2026-10-05 01:24:38 and ending 01:26:57.",
+        "proposal/logs/runs/pw2/calm/seed0.json starts at 01:37:43 and uses the same reference-set rule.",
+        "proposal/attempts_log.md:82-88 and proposal/sections/analysis.tex:234-235 disclose selection using development benchmark performance."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "trace.intext_quantitative_claims_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected numerical claims trace to saved run aggregates, derived diagnostic records or explicitly labeled source-paper read-offs. Recomputed headline errors and speedup quantities agree after rounding. No material fabricated, altered or falsely attributed in-text value was identified.",
+      "evidence": [
+        "proposal/logs/numbers.tex supplies the numerical macros used in the report; proposal/code/analyze.py generates them from saved records.",
+        "proposal/sections/results.tex:72-81 agrees with proposal/logs/speedup.json, including the approximately 1.81-1.93 tuned-gSMART ratios on discontinuous maps.",
+        "proposal/sections/results.tex:104 and proposal/logs/tables/metrics_max.tex disclose Piecewise II stationary CRPS of approximately 19.24 for CALM versus 10.74 for SMART.",
+        "proposal/logs/compute_cost.json, mechanism.json, heterogeneity.json, calibrated_metrics.json and original_fig4_readoff.md provide the corresponding diagnostic, timing and reference sources."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "trace.main_table_values_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "All 126 main-table result cells—21 function/budget configurations by six methods—match independently recomputed means and sample standard deviations from the ten saved seeds, within the displayed rounding. The table does not substitute oracle, supplementary-function or alternative-calibration results.",
+      "evidence": [
+        "proposal/sections/results.tex:25-37 identifies the main comparison and included table.",
+        "proposal/logs/tables/main_results.tex:5-29 contains the 21 configurations and six methods.",
+        "proposal/logs/runs/*/{grid,random,smart,gsmart_c0.0001,lgc,calm}/seed*.json: budget_metrics supply the corresponding values.",
+        "For Piecewise II at N=500, the table's SMART 7.194±0.223 and CALM 4.118±0.080 agree with the raw-run aggregates."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "trace.figure_numbers_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The rendered report figures and their data-generation paths were inspected. The convergence, coverage, ablation and diagnostic figures agree with the saved summaries and records; recalculation of curve means, sample standard deviations and coverage aggregates found no material contradiction or favorable curve alteration.",
+      "evidence": [
+        "proposal/figures/convergence.pdf, coverage.pdf, ablation.pdf, mechanism.pdf, calfield.pdf, osc_boundary.pdf, designs3d.pdf, gsmart.pdf and cost.pdf were visually inspected.",
+        "proposal/code/figures.py constructs the figures from summary/run data and the saved or reproducible diagnostic calculations.",
+        "proposal/logs/summary.json: curve, curve_all and budget coverage data agree with reaggregation of saved run records across 4830 curve checkpoint groups.",
+        "proposal/sections/results.tex:40-43 and proposal/sections/analysis.tex:23-26,220-223 describe the plotted aggregation and uncertainty conventions."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "test_set_integrity.no_hardcoded_ground_truth_values": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The benchmark functions are evaluated analytically, measurements are recorded from function calls, and metrics are computed from predictions and evaluated truth. No hardcoded result or oracle output was found substituting for a required computation while being presented as an ordinary computed result. The separately disclosed oracle information flow is assessed under the sequential-acquisition node.",
+      "evidence": [
+        "proposal/code/testfunctions.py implements the benchmark equations and physical constants rather than response lookup tables.",
+        "proposal/code/run_experiment.py:184,207-209,221-225,232,256-263 evaluates functions, computes metrics and records measurements.",
+        "proposal/code/analyze.py:42-50 reads actual run records for aggregation.",
+        "proposal/sections/analysis.tex:10-16 explicitly labels the two oracle diagnostics as using the true function and not being admissible methods."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.all_seeds_aggregated": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Every final function/method group contains seeds 0-9, and all ten contribute to the saved final aggregates. Independent recomputation found no favorable seed filtering, replacement of sample standard deviations or mismatch between per-seed values and reported summaries.",
+      "evidence": [
+        "proposal/logs/runs/*/*/seed*.json contains 102 complete groups of ten seeds.",
+        "proposal/code/analyze.py:42-50 loads all saved seed records; proposal/sections/setup.tex:45 declares means and sample standard deviations over ten paired seeds.",
+        "proposal/logs/summary.json per-seed arrays, means and standard deviations match the 4380 saved budget records and corresponding dense-curve records.",
+        "proposal/logs/tables/main_results.tex and speedup.tex retain variability and per-seed speedup outcomes, including unsuccessful threshold crossings."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.no_silent_omissions": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "No completed unfavorable result was identified as silently excluded while its reported set was represented as complete. The report includes adverse baseline behavior, the smooth-map non-win, unfavorable MAPE and CRPS, and sensitivity results. Abandoned development variants are identified in the attempts record and their logs are retained.",
+      "evidence": [
+        "proposal/sections/results.tex:13-21,56-66,78-84,100-106 reports the principal unfavorable outcomes.",
+        "proposal/logs/tables/gsmart_sweep.tex, ablation.tex, metrics_all.tex and mape3d.tex retain the corresponding sweep and metric results.",
+        "proposal/attempts_log.md:69-107 records abandoned variants and unfavorable development comparisons.",
+        "proposal/logs/development/README.md:8-24 maps development experiments to retained archives; staged protoB and protoall records are duplicate regroupings of archived runs rather than additional hidden outcomes."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "test_set_integrity.dense_grid_independent_of_acquisition": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Dense-test error influenced selection of the final acquisition rule. The attempts record explicitly selects the M=64n reference-set rule using benchmark-error improvements, and those development runs use the same evaluation grid as the final results. Thus the reported held-out grid participated in acquisition-model selection even though the online surrogate was fitted to separate measurement locations. Disclosure of this selection does not remove the prohibited test-label feedback.",
+      "evidence": [
+        "proposal/sections/setup.tex:20-21 calls the test grid independent and states that it is never used for fitting or acquisition.",
+        "proposal/attempts_log.md:82-88 compares errors under smaller reference sets and M=64n, reports consistent 2-4% gains, and adopts the latter rule; proposal/sections/analysis.tex:234-235 acknowledges benchmark-informed selection.",
+        "workdir_outside_proposal/data/proto7_m64/pw2/calm/seed0.json and proposal/logs/runs/pw2/calm/seed0.json both record test_set.n=16384, seed=777 and sha1=57a9ba5103919c72b5bf4c33e0a5fb3d99ecfd27.",
+        "proposal/sections/setup.tex:32-33 additionally states that the headline gSMART weight was chosen in hindsight on test error.",
+        "rubric.json: test_set_integrity.dense_grid_independent_of_acquisition includes acquisition-model selection; assessment_policy.disclosed_shortfalls does not excuse prohibited test-label leakage."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "sequential_acquisition.sequential_acquisition_logged": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Executed oracle diagnostics use unobserved true responses to choose subsequent measurements. Oracle-weight CALM evaluates truth at reference locations before selection, and the greedy oracle also evaluates candidate truth inside acquisition scoring. These diagnostics are openly labeled and are not substituted for headline CALM, whose ordinary loop uses observed data; nevertheless, the executed diagnostics satisfy this node's prohibited-information-flow predicate, which does not require concealment.",
+      "evidence": [
+        "task_spec.md:181 requires acquisition decisions to use only observations available so far and forbids future ground-truth values informing earlier decisions.",
+        "proposal/code/run_experiment.py:225 passes the true function into calm_oracle and oracle_greedy.",
+        "proposal/code/acquisitions.py:262-270 evaluates oracle_f(U) before acquisition; lines 296-301 evaluate oracle_f(x) for candidate scoring.",
+        "proposal/logs/runs/diff3d/oracle_greedy/seed0.json contains 990 completed acquisition steps with steps[0].info.oracle='greedy-true-error'; proposal/logs/runs/diff3d/calm_oracle/seed0.json similarly records oracle=true.",
+        "proposal/sections/analysis.tex:10-16 explicitly describes these true-function diagnostics as inadmissible methods; their disclosure does not change the observed information flow."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_external_code.no_undisclosed_external_code": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The inspected methodology code uses the supplied gpCAM code and disclosed scientific libraries. The notes identify the fvgp dependency, custom wrappers and equation-based reimplementation of the attributed LOO baseline. No identifiable nontrivial external implementation was found copied without acknowledgment or used contrary to the reuse rules.",
+      "evidence": [
+        "proposal/codebase_notes.md:8-10,27-35,55-63,83-89 identifies reused components, installation sources and claimed original code.",
+        "proposal/code/kriging.py, acquisitions.py and run_experiment.py use gpCAM/fvgp, NumPy and SciPy with locally implemented methodology callables.",
+        "workdir_outside_proposal/code/gpCAM/gpcam/gp_optimizer_base.py and surrogate_model.py supply the documented optimization hooks.",
+        "task_spec.md:189 permits provided codebases and standard scientific Python libraries while requiring acknowledgment of other adapted methodology code."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.originality.no_substantive_replication": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The inspected submission acknowledges the identifiable antecedents of its components and distinguishes the proposed combination from them. The closest pointwise LOO criterion is attributed and included as a baseline. The available source and reference artifacts do not establish an unacknowledged prior contribution substantively reproduced as new; this finding does not certify novelty against all literature.",
+      "evidence": [
+        "proposal/sections/method.tex:139-150 acknowledges cross-validation acquisitions, integrated variance reduction, gradient weighting and the closest Le Gratiet–Cannamela criterion.",
+        "proposal/sections/method.tex:35-44 attributes the log-squared calibration construction; lines 145-148 specify the claimed differences.",
+        "workdir_outside_proposal/data/lit/legratiet2012.txt, Eq. 10, describes the pointwise LOO-adjusted variance reproduced as the attributed baseline in proposal/code/acquisitions.py:312-327.",
+        "paper.md:100-156 and workdir_outside_proposal/data/lit/noack2020.txt provide the acknowledged SMART/gSMART and feature-weighting antecedents."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

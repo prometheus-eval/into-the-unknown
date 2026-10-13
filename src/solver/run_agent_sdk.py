@@ -95,6 +95,23 @@ GOAL_FILE = Path(__file__).resolve().parent / "goal.md"
 UNLIMITED_TIMEOUT = 100 * 24 * 3600  # ~unlimited
 
 INITIAL_PROMPT = "Read task_spec.md and complete the task it describes."
+# A turn that ends with a scheduled wakeup (the ScheduleWakeup tool) is the agent waiting, not finishing: the runner
+# sleeps until the wakeup is due and re-engages the SAME session without using an attempt (like a background task).
+WAKE_MIN_S, WAKE_MAX_S = 60, 3600   # the tool's own clamp
+# Restart of a run that already started (e.g. a harness update or a node failure): continue its Claude session with
+# its attempt count and elapsed time, so the restart neither grants nor costs attempts. Same account and workspace.
+RESUME_SESSION = os.environ.get("CLAUDE_RESUME_SESSION") or None
+RESUME_ATTEMPT = int(os.environ.get("CLAUDE_RESUME_ATTEMPT", "1"))
+PRIOR_ELAPSED_S = float(os.environ.get("CLAUDE_PRIOR_ELAPSED_S", "0"))
+RESTART_NOTE = ("the run was restarted on a new machine (a harness update or an infrastructure failure), so every process you had running "
+                "(background tasks, daemons, servers, experiments) was stopped. Check what finished, relaunch what "
+                "still has to run, and continue where you left off")
+
+
+def wakeup_prompt(prompt: str) -> str:
+    prompt = (prompt or "").strip()
+    return ("Your scheduled wakeup is due." + (f" Your note for it: {prompt}" if prompt else "")
+            + " Continue the task in THIS session.")
 
 
 def _safe_print(s: str) -> None:
@@ -448,15 +465,25 @@ async def run(args):
     })
     install_crash_saver(events)   # a batch-job walltime kill / crash still leaves a trajectory
     complete = False
-    reason = ""
-    attempt = 1
-    session_id = None
+    reason = RESTART_NOTE if RESUME_SESSION else ""
+    attempt = RESUME_ATTEMPT if RESUME_SESSION else 1
+    session_id = RESUME_SESSION
     timed_out = False
     active_bg = {}       # task_id -> description of CURRENTLY-RUNNING background tasks
     rate_reset_at = 0.0  # unix epoch of the next rate-limit reset, if known
     reconnects = 0
     limit_waits = 0  # subscription session-limit stalls absorbed WITHOUT consuming attempts
     infra_waits = 0  # overloaded-API / limit errors absorbed WITHOUT consuming reconnects or attempts
+    wake_waits = 0   # turns that ended on a scheduled wakeup, waited out WITHOUT consuming an attempt
+    wake_at, wake_note, waiting_wake = None, "", False
+    # Resuming an interrupted session can first return an empty result (0 turns) before the agent has done anything:
+    # that is the harness reconnecting, not the agent ending a turn. Re-send the prompt instead of judging it.
+    last_prompt, agent_active, empty_resends = None, False, 0
+
+    async def send(client, prompt):
+        nonlocal last_prompt, agent_active
+        last_prompt, agent_active = prompt, False
+        await client.query(prompt)
 
     def note(**kw):
         events.append({"t_offset": round(time.monotonic() - start, 3),
@@ -465,8 +492,13 @@ async def run(args):
         if live:
             events.note_meta(**live)
 
-    note(attempt=1, resume=False, reason=None)
-    _safe_print("\n[run] === Attempt 1 (initial) ===")
+    if RESUME_SESSION:
+        note(attempt=attempt, resume=True, reason="runner restarted", restarted_session=RESUME_SESSION,
+             prior_elapsed_s=PRIOR_ELAPSED_S)
+        _safe_print(f"\n[run] === Attempt {attempt} (continued after a runner restart; session {RESUME_SESSION[:8]}) ===")
+    else:
+        note(attempt=1, resume=False, reason=None)
+        _safe_print("\n[run] === Attempt 1 (initial) ===")
 
     # Outer loop reconnects+resumes across transient/rate-limit errors so a mid-run
     # 5-hour-limit hit doesn't lose the whole paper. Inner loop drains one session.
@@ -476,10 +508,11 @@ async def run(args):
             async with ClaudeSDKClient(options=build_options(session_id)) as client:
                 active_bg = {}  # a fresh process has no live background tasks
                 if fresh:
-                    await client.query(INITIAL_PROMPT)
+                    await send(client, INITIAL_PROMPT)
                 else:
-                    _safe_print(f"[run] reconnected (resume {session_id[:8]}); nudging to continue.")
-                    await client.query(resume_prompt("(reconnected after an interruption) "
+                    _safe_print(f"[run] {'restarted' if reason == RESTART_NOTE else 'reconnected'} "
+                                f"(resume {session_id[:8]}); nudging to continue.")
+                    await send(client, resume_prompt("(reconnected after an interruption) "
                                                      + (reason or "continue where you left off")))
                 last_activity = time.monotonic()
                 # receive_messages() keeps the session open ACROSS turns: when the
@@ -501,8 +534,18 @@ async def run(args):
                     # long background experiment is still running (the paper-1 bug).
                     if pending is None:
                         pending = asyncio.ensure_future(it.__anext__())
-                    done, _ = await asyncio.wait({pending}, timeout=min(remaining, POLL))
+                    tmo = min(remaining, POLL)
+                    if waiting_wake:
+                        tmo = min(tmo, max(1.0, wake_at - time.time()))
+                    done, _ = await asyncio.wait({pending}, timeout=tmo)
                     if not done:
+                        if waiting_wake and time.time() >= wake_at:
+                            waiting_wake, wake_at = False, None
+                            note(event="scheduled_wakeup_due", n=wake_waits)
+                            _safe_print("[run] scheduled wakeup due; re-engaging the agent in the same attempt.")
+                            await send(client, wakeup_prompt(wake_note))
+                            last_activity = time.monotonic()
+                            continue
                         # quiet stretch; if a background task has been silent past the
                         # ceiling, treat it as hung: stop it and re-engage the agent.
                         if active_bg and (time.monotonic() - last_activity) > IDLE_CEILING:
@@ -516,7 +559,7 @@ async def run(args):
                                     _safe_print(f"[run]   stop_task({tid}) failed: {e!r}")
                             active_bg = {}
                             note(event="hung_task_stopped", tasks=stuck)
-                            await client.query(resume_prompt(
+                            await send(client, resume_prompt(
                                 "A background task stalled with no activity for a long time and was "
                                 "stopped. Finalize with the results you already have, or re-run that "
                                 "experiment; either way log it honestly in proposal/attempts_log.md."))
@@ -554,10 +597,34 @@ async def run(args):
 
                     record(events, start, msg)
 
+                    if isinstance(msg, AssistantMessage):
+                        agent_active, empty_resends = True, 0
+                        if waiting_wake:   # the agent is active again before the wakeup was due
+                            waiting_wake, wake_at = False, None
+                        for b in (msg.content or []):
+                            if isinstance(b, ToolUseBlock) and b.name == "ScheduleWakeup":
+                                inp = b.input if isinstance(b.input, dict) else {}
+                                if inp.get("stop"):
+                                    wake_at = None
+                                else:
+                                    try:
+                                        d = float(inp.get("delaySeconds") or 0)
+                                    except (TypeError, ValueError):
+                                        d = 0.0
+                                    wake_at = time.time() + min(max(d, WAKE_MIN_S), WAKE_MAX_S)
+                                    wake_note = str(inp.get("prompt") or "")
+
                     if not isinstance(msg, ResultMessage):
                         continue
 
                     # --- a turn ended ---
+                    if not agent_active and (getattr(msg, "num_turns", 1) or 0) == 0 and last_prompt and empty_resends < 3:
+                        empty_resends += 1
+                        note(event="empty_result_resend", n=empty_resends)
+                        _safe_print(f"[run] empty result (0 turns) before any agent activity; re-sending the prompt "
+                                    f"(#{empty_resends}) -- NOT consuming an attempt.")
+                        await send(client, last_prompt)
+                        continue
                     # FAIRNESS GUARD: a subscription session-limit is an infra
                     # condition, not a model failure. Sleep to the reset and
                     # re-engage the SAME attempt; never burn wiggum budget on it.
@@ -574,7 +641,7 @@ async def run(args):
                         _safe_print(f"[run] session limit (wait #{limit_waits}); sleeping "
                                     f"{int(wait)}s -- NOT consuming an attempt.")
                         await asyncio.sleep(wait)
-                        await client.query(resume_prompt(
+                        await send(client, resume_prompt(
                             "(session limit reset) continue exactly where you left off"))
                         continue
                     # Same for a turn that ended on an overloaded model API.
@@ -585,7 +652,7 @@ async def run(args):
                         _safe_print(f"[run] model API overloaded (wait #{infra_waits}); sleeping "
                                     f"{CAPACITY_WAIT_S}s -- NOT consuming an attempt.")
                         await asyncio.sleep(CAPACITY_WAIT_S)
-                        await client.query(resume_prompt(
+                        await send(client, resume_prompt(
                             "(the model API was overloaded) continue exactly where you left off"))
                         continue
                     if msg.subtype and msg.subtype != "success":
@@ -594,6 +661,14 @@ async def run(args):
                         _safe_print(f"[run] turn ended, {len(active_bg)} background task(s) still running "
                                     f"({', '.join(str(v) for v in list(active_bg.values())[:3])}); "
                                     f"waiting for auto-re-invoke, NOT finalizing.")
+                        continue
+                    if wake_at is not None:
+                        waiting_wake = True
+                        wake_waits += 1
+                        delay = max(0, int(wake_at - time.time()))
+                        note(event="scheduled_wakeup_wait", n=wake_waits, wait_s=delay)
+                        _safe_print(f"[run] turn ended with a scheduled wakeup in {delay}s; "
+                                    f"waiting for it, NOT finalizing.")
                         continue
 
                     inc, why = cheap_incomplete(workspace)
@@ -629,7 +704,7 @@ async def run(args):
                     attempt += 1
                     note(attempt=attempt, resume=True, reason=reason)
                     _safe_print(f"\n[run] === Attempt {attempt} (resume: {_short(reason, 120)}) ===")
-                    await client.query(resume_prompt(reason))
+                    await send(client, resume_prompt(reason))
                 if pending is not None and not pending.done():
                     pending.cancel()  # cancel a dangling receive only when leaving the session
             # inner session ended cleanly (complete / cap / deadline / stream-end)
@@ -670,7 +745,7 @@ async def run(args):
                 raise
             # loop back: reconnect with resume=session_id
 
-    elapsed = time.monotonic() - start
+    elapsed = time.monotonic() - start + PRIOR_ELAPSED_S   # a restarted run counts its time before the restart
     metadata = {
         "model": MODEL,
         "effort": EFFORT,
@@ -680,6 +755,9 @@ async def run(args):
         "max_resumes": MAX_RESUMES,
         "reconnects": reconnects,
         "infra_waits": infra_waits,
+        "wakeup_waits": wake_waits,
+        "restarted_session": RESUME_SESSION,
+        "prior_elapsed_seconds": PRIOR_ELAPSED_S or None,
         "completed": complete,
         "completion_reason": reason,
         "timed_out": timed_out,

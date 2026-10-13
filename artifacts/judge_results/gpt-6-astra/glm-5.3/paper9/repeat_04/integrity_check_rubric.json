@@ -1,0 +1,201 @@
+{
+  "nodes": {
+    "number_traceability.kernel_hyperparameters_in_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The parameter literals are consistent, but the report materially contradicts its cited hyperparameter-calibration record: it claims error varies by less than one order of magnitude, whereas the logged range spans 52.5×.",
+      "evidence": [
+        "proposal/report.tex:300-308 describes the gamma/c robustness scan and claims variation of less than an order of magnitude.",
+        "proposal/attempts_log.md:45-50 records the same parameter ranges, gamma in [2.0,2.6] and c in [0.7,1.2], with errors 1.6e-4 to 8.4e-3 at kmax=9.",
+        "Read-only calculation from those logged endpoints: 8.4e-3 / 1.6e-4 = 52.5, exceeding the claimed factor of 10."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "number_traceability.emulator_metrics_in_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The completed headline metrics are supported, but the report attributes additional accuracy and resource improvements to emulator comparisons whose runs remained pending. Its high-resolution error examples instead appear in the explicitly classical calibration record. This establishes false numerical attribution beyond merely missing logs.",
+      "evidence": [
+        "proposal/report.tex:40-48 and 133-142 claim emulator improvements up to 23×, 2.6× fewer queries, and 2.5× fewer STMC gates at matched accuracy.",
+        "proposal/attempts_log.md:38-48 identifies the kmax=8 erf error 4.6e-4 and kmax=24 beta error 1.3e-3 as classical calibration results; proposal/report.tex:368-375 uses these in its reported characterization.",
+        "proposal/code/lchs_runs/results.json contains five completed records, with only one precision-sweep record: sweep_erf_kmax4_nk10.",
+        "proposal/code/lchs_runs/run_all.log:37-92 records that single sweep completion and repeatedly reports 14 jobs pending angles; angles_gen2.log:5-13 records failed or unfinished generation for remaining configurations.",
+        "The saved headline HDF5 outputs support 407079 gates and success probabilities 0.3938564491 for beta and 0.2594145051 for erf, consistent with results.json."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "number_traceability.scaling_fits_in_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The report presents four-point emulator scaling fits and numerical uncertainties, but the execution record establishes that no baseline precision-sweep point and only one variant point completed. These cannot supply the claimed fits. The bracketed instruction to insert final values does not retract the report's explicit measured-fit claims.",
+      "evidence": [
+        "proposal/report.tex:139-142 describes emulator-measured scaling; lines 354-364 report p_erf=1.26±0.04 and p_beta=2.03±0.10 from four sweep points.",
+        "proposal/report.tex:447-449 again describes the sweep as spanning [1e-4,1e-1.5] and treats p_erf≈1.26 as a result.",
+        "proposal/code/lchs_runs/results.json records only sweep_erf_kmax4_nk10 among the eight planned precision-sweep runs; run_all.log:39-92 reports 14 jobs still pending.",
+        "proposal/code/lchs_runs/make_figs.py:45-79 fits completed records only, requires at least two points per fit, and does not generate the query plot without baseline points."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_hardcoded_values.no_hardcoded_emulator_targets": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The executed pipeline reads circuit states and gate counts from emulator outputs, derives query counts from actual angle files, and computes the classical reference at runtime. Kernel parameters, initialization normalization, and calibration radii do not substitute hardcoded final states or emulator results.",
+      "evidence": [
+        "proposal/code/lchs_runs/harness.py:326-362 launches QuCF, reads output amplitudes and basic/N_gates, counts saved QSP angles, and computes errors and success probability.",
+        "proposal/code/kernel_derivation/kernels.py:29-47 constructs the ADE generator and computes expm(-A*t) applied to the Gaussian initial condition.",
+        "proposal/code/QuCF-KERNEL/src/QCircuit.cpp:1882-1910 computes kernel weights and compiles their controlled rotations.",
+        "proposal/code/lchs_runs/headline_erf_kmax3_nk6/dc.clog:180-189 records 407079 gates and completed circuit execution; its saved amplitude norm reproduces the logged success probability."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "pre_stated_method.hyperparameters_match_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The quoted hyperparameters match the configurations and outputs of completed runs. The additional parameter pairs match the planned configurations. False claims that those additional runs completed are assessed separately; there is no demonstrated substitution of different parameter values.",
+      "evidence": [
+        "proposal/report.tex:294-305 specifies QSP epsilon=1e-16, beta=0.7, and the four erf parameter pairs.",
+        "proposal/code/lchs_runs/results.json:2-54 records headline beta=0.7 and erf gamma=1.749, c=0.586, both with kmax=3, nk=6, t=0.8 and QSP epsilon=1e-16.",
+        "proposal/code/lchs_runs/headline_erf_kmax3_nk6/dc.clog:105-109 confirms the executed erf parameters; headline_beta_kmax3_nk6/dc.clog:105-108 confirms beta parameters.",
+        "proposal/code/lchs_runs/run_all.py:23-35 uses the report's remaining erf parameter pairs for the planned sweep."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_honesty.baseline_source_distinction_preserved": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The report calls the anchor results its own emulator reruns. The attempts record instead identifies analysis of supplied author outputs and classical calculations, while the new anchor jobs remained blocked. The report therefore misattributes supplied/classical baseline evidence as newly executed baseline emulations.",
+      "evidence": [
+        "proposal/report.tex:329-338 claims 'our re-run ... with our build' and reports errors 4.1e-3 at (kmax,nk)=(20,9) and 1.1e-4 at (40,10).",
+        "proposal/attempts_log.md:9-13 explicitly says the published errors were reproduced 'from the authors’ own output files'; lines 38-43 separately describe classical validation.",
+        "workdir_outside_proposal/data/ade_opt_simulations/ADE-OPT/t08/nk9_kmax20-OPT/dc_OUTPUT.hdf5, basic/date-of-simulation: 09-30-2024 14:36:23; the nk10_kmax40-OPT counterpart is dated 09-26-2024 02:02:12.",
+        "proposal/code/lchs_runs/run_all.py:18-20 lists the two new anchor jobs; results.json contains neither, and run_all.log records the remaining jobs as pending angles."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_paper_alignment.methodology_describes_code": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The paper accurately describes the executed DirDec path, but materially misrepresents the standalone QSVT validation as completed. The corresponding records show failed angle generation and a subsequent incomplete attempt, rather than the claimed polynomial reproduction and emulator validation.",
+      "evidence": [
+        "proposal/report.tex:260-275 says compute_angles produces phase factors reproducing the target tolerance and that the standalone circuit 'is run on the emulator' for both kernels.",
+        "proposal/logs/qsvt_weights/qsvt_weights_results.json records 'compute_angles failed' for both beta_kmax12_nk10 and erf_kmax6_nk10, including the missing date-of-simulation dataset error.",
+        "proposal/attempts_log.md:91-93 states the beta angle calculation was suspended and would be completed later.",
+        "proposal/logs/qsvt_weights/wang_beta_kmax12_nk10.hdf5 contains results/x and results/pol-coefs, but no results/phis or results/pol-angles; validate_weights_qsvt.py:134-147 requires those before constructing and executing the validation circuit."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_paper_alignment.kernel_in_code_matches_paper": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The implemented erf and beta kernels match the paper's formulas after accounting for the LCHS pole factor and reciprocal exponential expressions. The earlier kernel coding error is explicitly documented as repaired; the final implementation does not contradict the reported kernel.",
+      "evidence": [
+        "proposal/report.tex:217-220 defines xi_erf; lines 251-254 give the resulting weights with denominator pi*(1+k_j^2).",
+        "proposal/code/kernel_derivation/kernels.py:52-78 implements both kernel formulas and multiplies xi by the FCC Jacobian divided by (1-i*k).",
+        "proposal/code/QuCF-KERNEL/src/QCircuit.cpp:1901-1908 computes the algebraically equivalent erf square-root weights; lines 1944-1969 implement the beta kernel.",
+        "proposal/attempts_log.md:75-79 discloses the initial Gaussian/pole-factor bug and its correction."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "held_fixed_disclosure.deviations_disclosed": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected implementation supports the claimed preservation of selector, quadrature, qubitization, block encoding, and benchmark. The paper discloses the sweep-grid change and lower variant success probability. Uncompleted accuracy comparisons and missing QSVT work do not independently establish concealed structural drift or false held-fixed compliance.",
+      "evidence": [
+        "Comparing proposal/code/QuCF-KERNEL/src and include against workdir_outside_proposal/code/QuCF-OPT-LCHS shows only the two added DirDec weight profiles in QCircuit.cpp; the other 20 source/header files match.",
+        "proposal/code/lchs_runs/harness.py:149-195 constructs both block encodings and the single QSP selector; lines 335-354 obtain total gates and query counts from saved execution artifacts.",
+        "proposal/report.tex:280-284 and kernels.py:22-47 agree on v=1, D=0.01, Nx=64 and the Gaussian initial condition.",
+        "proposal/report.tex:318-324 discloses changing the sweep from nk=6 to nk=10; lines 407-411 disclose success probabilities 0.26 versus 0.39.",
+        "task_spec.md:98 explicitly excludes kernel-dependent weight construction from the held-fixed framework structure."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Explicit claims of completed baseline reruns, a four-target emulator sweep, and standalone QSVT validation conflict with the execution and attempts records. These are affirmative contradictions, not findings inferred solely from absent artifacts.",
+      "evidence": [
+        "proposal/report.tex:329-364 claims baseline reruns and completed sweep fits; lines 260-275 claim standalone QSVT emulator validation.",
+        "proposal/code/lchs_runs/run_all.log:37-92 records only one completed sweep configuration and repeatedly reports 14 pending jobs.",
+        "proposal/code/lchs_runs/angles_gen2.log:5-13 records terminated or killed angle-generation jobs for the remaining sweep.",
+        "proposal/logs/qsvt_weights/qsvt_weights_results.json records both angle-generation failures, and attempts_log.md:91-93 describes the later beta attempt as suspended.",
+        "proposal/codebase_notes.md:74-78 also claims the authored Python generator matched reference angles to machine precision, whereas attempts_log.md:16-27 explicitly says that implementation failed and was abandoned."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The saved plan and hash record are consistent with commitment before the inspected validation executions. The axis and kernel remain consistent, and the resolution amendment is disclosed. No dated artifact establishes undisclosed post-result selection or backdating.",
+      "evidence": [
+        "proposal/code/kernel_plan.json records frozen_at=2026-08-31T06:14:53.676413; a read-only SHA-256 calculation matches its stored hash for kernel_plan.md.",
+        "proposal/code/kernel_plan.md:5-42 commits to query complexity and the Low–Somma erf kernel; lines 92-119 state the sweep and calibration procedure.",
+        "proposal/code/lchs_runs/conv_test/sintest_OUTPUT.hdf5 is dated 08-31-2026 08:21:17; saved smoke and headline ADE runs are dated later that day.",
+        "proposal/report.tex:318-324 and proposal/attempts_log.md:51-55 explicitly disclose the nk=6 to nk=10 amendment."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.all_sweep_configurations_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The record shows an incomplete sweep, not completed unfavorable configurations hidden through outcome-dependent selection. Completed runs are retained, execution eligibility depends on angle availability, and unsuccessful smoke-test outcomes are disclosed. The false completion claims are separate execution findings.",
+      "evidence": [
+        "proposal/code/lchs_runs/run_all.py:103-135 waits for available angles and records collected results without an error-based acceptance threshold.",
+        "proposal/code/lchs_runs/results.json retains both headline kernels, the repeated erf characterization, Cauchy, and the sole completed precision-sweep point.",
+        "proposal/code/lchs_runs/run_all.log:10-92 identifies the remaining configurations as pending rather than completed and discarded.",
+        "proposal/attempts_log.md:68-79 reports initial smoke-test errors of 0.93 and 0.88 and explains the subsequent fixes."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.hyperparameter_choices_documented": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The available records disclose the classical calibration choices, parameter ranges, adopted literature priors, and resolution amendment. They do not establish concealed outcome-dependent exclusion of completed parameter trials. Incomplete trial-level documentation is not itself evidence of selective reporting.",
+      "evidence": [
+        "proposal/attempts_log.md:38-55 lists beta and erf calibration radii/errors, the gamma/c scan range, the adopted Table-2 values, and the grid amendment.",
+        "proposal/report.tex:300-312 describes literature-derived parameters and classical per-kernel calibration.",
+        "proposal/code/kernel_plan.md:94-119 permits classical calibration and parameter refinement before validation.",
+        "proposal/code/lchs_runs/run_all.py:23-49 preserves the selected sweep and characterization configurations, including those that remained unrun."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_replication_of_published_method.not_a_known_kernel_replication": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The submission explicitly attributes the erf kernel to Low and Somma and the circuit framework to Novikau and Joseph. It differentiates its claimed contribution as implementation and numerical characterization, rather than presenting the published kernel formula as original.",
+      "evidence": [
+        "proposal/report.tex:198-220 attributes the f2 construction and erf kernel to Low and Somma.",
+        "proposal/code/kernel_plan.md:37-42 explicitly states that the contribution is not the kernel formula.",
+        "proposal/report.tex:416-435 credits the kernel, analytic-extension literature, implementation framework, and angle-generation methods.",
+        "paper.md:162-168 already describes approximate analytic-extension kernels and the framework's applicability to them; the submission acknowledges these sources."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_external_code.no_undisclosed_external_code": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The identified imported generator is the reference QuCF toolchain explicitly linked by the supplied wiki, within the permitted QuCF/wiki reuse sources. Its actual use and Microsoft provenance are disclosed in the attempts record and the report attributes the reference toolchain. The stale claim that the authored Python port was successfully validated is an execution misrepresentation, rather than evidence that the imported implementation was claimed as original.",
+      "evidence": [
+        "task_spec.md:211 permits methodology code from QuCF, its specialized implementation, and QuCF wiki examples.",
+        "workdir_outside_proposal/code/QuCF.wiki/QSP‐Ham‐angles.md:3-13 identifies Microsoft Quantum-NC and the QuCF/scripts-py generator and supplies its build/use instructions.",
+        "proposal/attempts_log.md:28-36 explicitly documents downloading and using that generator; proposal/report.tex:294-298 attributes the reference compute-QSP-angles toolchain.",
+        "proposal/code/lchs_runs/gen_angles2.sh:5-12 and harness.py:282-288 invoke that toolchain; proposal/code/qsp_gen/haah_qsp.py:4-7 also names its reference provenance."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

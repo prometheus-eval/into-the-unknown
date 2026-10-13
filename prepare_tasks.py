@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Stage the input materials (code/ and data/) for the Shoulders of Giants tasks.
+"""Stage the input materials (code/ and data/) for the Into the Unknown tasks.
 
 For each task P1..P15 this script populates
 
@@ -61,7 +61,7 @@ REPO_ROOT = Path(__file__).resolve().parent
 DEFAULT_ASSETS_DIR = REPO_ROOT / "assets"   # the P15 author-provided files, xz-compressed
 DEFAULT_TASKS_DIR = REPO_ROOT / "tasks"
 ASSETS_ENV = "SOG_ASSETS_DIR"
-USER_AGENT = "Mozilla/5.0 (compatible; shoulders-of-giants-prepare/1.0)"
+USER_AGENT = "Mozilla/5.0 (compatible; into-the-unknown-prepare/1.0)"
 HTTP_TIMEOUT = 120          # seconds per blocking socket operation
 HTTP_RETRIES = 4
 GIT_TIMEOUT = 3600          # seconds per git command (OMatG / QuCF / dakota are large)
@@ -845,7 +845,7 @@ def overall(results: List[Result]) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Download the code/ and data/ inputs of the Shoulders of Giants tasks.",
+        description="Download the code/ and data/ inputs of the Into the Unknown tasks.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="Reproducibility" + __doc__.split("Reproducibility", 1)[1],
     )

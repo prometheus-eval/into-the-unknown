@@ -1,0 +1,210 @@
+{
+  "nodes": {
+    "number_traceability.metric_values_in_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Several quantitative claims materially contradict saved results. Changing the relative-residual threshold to 0.5 produces nine additional holds, not the reported 18 additional cells. Recorded successful-run durations also contradict the stated runtime breakdown and the claim of approximately four core-minutes per PIC cell. The main classification counts and individual residuals otherwise match the saved table.",
+      "evidence": [
+        "proposal/report.tex:519-524 reports 18 additional cells under the alternative threshold. Read-only calculation using proposal/logs/sweep_results.json gives 17 holds, 39 inconclusive, 85 breaks and 3 no-baseline, versus the original 8/48/85/3: exactly nine classifications change.",
+        "proposal/report.tex:530-533 reports mean standard-run wall time 3.7 hours and high-resolution wall time 7.4 hours. The final successful START/END records in proposal/logs/pic_runs/*/timestamps.log give 1.932 hours across 30 standard runs and 5.152 hours for the high-resolution run. Earlier unsuccessful launches prevent treating this calculation as total all-attempt cost.",
+        "proposal/report.tex:585-586 claims approximately four core-minutes per reduced-scale PIC cell. H_T400_I10_B0_zz_dL07/run.log:27,90 records eight processing elements and 1 hour 55 minutes runtime, approximately 920 allocated core-minutes."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "number_traceability.boundary_threshold_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The primary decision thresholds reported in the paper are the constants actually used in classification. Saved classifications agree with those thresholds. The secondary field-boundary interpretation is explicitly identified as post-hoc; inadequate scientific support for that interpretation does not establish numerical fabrication.",
+      "evidence": [
+        "proposal/report.tex:133-141 and proposal/code/sweep_plan.md:96-112 specify denominator floor 0.25, relative-residual threshold 0.30 and absolute z-score threshold 2.",
+        "proposal/code/sweep_eval.py:135-140,236-252 implements these constants. Read-only checks of the saved finite residuals reproduce all classifications in proposal/logs/sweep_results.json.",
+        "proposal/report.tex:388-414 and proposal/attempts_log.md:129-133 explicitly disclose the secondary normalized analysis as post-hoc."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "number_traceability.pic_gain_values_in_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The reproduction log misattributes detuning-integrated reference transfer values to a fixed-detuning gain comparison. These are genuine reference numbers, but they measure a different quantity; this is not an allegation that the new PIC runs were fabricated. The primary table's provided PIC gains otherwise match their source rows.",
+      "evidence": [
+        "proposal/logs/vlasov_reproduction.log:69-75 labels the comparison H, T400, dL=0.7, zz and gives reference values 2.72 at B=0 and 1.60 at B=10 MG. proposal/code/write_repro_log.py:116-121 generates this comparison.",
+        "workdir_outside_proposal/data/pic_simulations/PIC_processed_data.zip, entries PIC_processed_data/n3T400/zz/gain_B0_zz.txt and gain_B1000_zz.txt, give fixed-detuning gains 2.123387 and 1.444929 at 0.7 angstrom.",
+        "The same archive's n3T400/zz/transfer_zz.txt contains 2.722259 and 1.601644. workdir_outside_proposal/code/magnetized_cbet_matlab/scripts/cbet_multi.m:115-119 computes this observable with trapz over detuning, rather than taking the gain at 0.7 angstrom.",
+        "proposal/report.tex:707-714 identifies the reproduction log as supporting evidence. All 128 provided-data metric gains and raw spreads in sweep_results.json match their corresponding archive rows."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_hardcoded_values.no_hardcoded_gains_or_thresholds": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The gain and boundary calculations use the dispersion implementation, PIC processing and saved input data. No hardcoded agent gain or oracle output was found replacing those computations. The pre-stated threshold constants are explicitly permitted. Literal reference rows and unit-test summaries do not, by themselves, establish that an underlying calculation was bypassed.",
+      "evidence": [
+        "proposal/code/sweep_eval.py:103-117,124-140,223-252 loads new PIC measurements, calls vg.cbet_gain and computes residuals and classifications.",
+        "proposal/code/vlasov_gain.py:227-321 implements the active coherent gain calculation; proposal/code/pic_pipeline.py:245-306 computes gains from electric-field spectra.",
+        "proposal/code/write_repro_log.py:14-31 contains literal validation summaries, but proposal/code/test_vlasov.py contains actual numerical test implementations. Their execution provenance is separately assessed under integrity.execution_claims.",
+        "rubric.json explicitly permits legitimate pre-stated thresholds stored as constants."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "pre_stated_method.metric_definition_matches_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The executed uncertainty normalization differs materially from the paper's definition. The paper specifies a platform/polarization median floor, whereas execution additionally partitions by temperature. Carbon offset uncertainty is also calculated from repeated single-detuning values instead of the committed B=0 detuning curve.",
+      "evidence": [
+        "proposal/report.tex:133-141 specifies a platform/polarization median uncertainty floor; proposal/code/sweep_plan.md:100-107 specifies the same grouping and the standard deviation over the B=0 zy detuning curve.",
+        "proposal/code/sweep_eval.py:202-210,243-251 groups floors by (platform, polarization, Te). In sweep_results.json, the H/zz/T400 floor is 0.181653573, while the platform/polarization median of the saved nonzero spreads is 0.0981185.",
+        "For record n3T400_zz_B0_dL0.7, the executed z-score is -10.91514. Applying the reported platform/polarization floor to the same gains gives -20.20796.",
+        "proposal/code/sweep_eval.py:212-220 produces carbon g0sig=0 in sweep_results.json. The archive entry PIC_processed_data/n3.5T800/B0/gain_real_B0_zy.txt has branch-0 gain standard deviation 0.200375274 across detuning."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_honesty.vlasov_from_own_reconstruction": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Reported baseline gains are associated with the submitted reconstruction, while reference PIC values are distinguished. The baseline is explicitly labeled partial, and its amplitude, resonance and root-tracking failures are disclosed. Poor reconstruction accuracy does not establish fabricated baseline quantities.",
+      "evidence": [
+        "task_spec.md:94,185 permits a documented partial reconstruction.",
+        "proposal/report.tex:193-278 describes the partial reconstruction, attributed warm-fluid components, coherent gain assembly, deviations and substantial discrepancies.",
+        "proposal/code/sweep_eval.py:124-132,223-234 evaluates the submitted gain implementation for metric cells.",
+        "proposal/logs/sweep_results.json retains extreme predictions and three no-baseline cells; proposal/report.tex:354-355,367-385,593-608 discusses those limitations."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_paper_alignment.methodology_describes_code": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The mechanism methodology materially contradicts execution. The purported ion-susceptibility diagnostic includes electrons and ions, and the implemented attribution priority differs from the reported order. These discrepancies change the meaning and assignment of mechanism labels.",
+      "evidence": [
+        "proposal/report.tex:457-459,486-489 describes fractional modification of ion susceptibility. proposal/code/vlasov_gain.py:353-355 instead calls full-plasma chi_kin and chi_kin_unmag; proposal/code/vlasov_baseline.py:446-474,495-504 sums all species.",
+        "proposal/report.tex:438-446 and table caption at 304-308 claim priority M0a, M0b, M1, M2, M3.",
+        "proposal/code/sweep_eval.py:267-293 assigns M0a/M1/M3 first and allows M0b only when the cell remains unattributed.",
+        "sweep_results.json record C_phi30_zy_B2000_dL0.9 has PIC gain 0.443971, compared with B=0 gain -0.190225: drift 0.634196 exceeds the M0b threshold 0.15, yet the reported attribution is M1."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "held_fixed_disclosure.deviations_disclosed": {
+      "value": "violation_detected",
+      "confidence": "medium",
+      "reason": "The paper presents the primary analysis as the committed pipeline, but execution omits the explicitly committed common-offset correction. This is a material, undisclosed departure from the held-fixed analysis definition. The disclosed partial baseline and reduced simulation configuration are not themselves integrity violations.",
+      "evidence": [
+        "proposal/report.tex:113-116,133-151,280-308 describes the committed design, uniformly applied metric and faithful PIC pipeline; task_spec.md:95,97,203 requires disclosure of departures from the pipeline and committed metric.",
+        "proposal/code/sweep_plan.md:93-95,114-125 requires subtracting the mean B=0 zy gain over detuning from both polarizations before metric calculation.",
+        "proposal/code/sweep_eval.py:52-84 passes source gains through unchanged, and lines 236-252 compute residuals directly from them without offset subtraction.",
+        "For carbon, the archive's n3.5T800/B0/gain_real_B0_zy.txt gives mean branch-0 offset -0.392632875. The C_phi75_zz_B0_dL0.9 record and report table retain raw gain 1.120935 rather than the committed corrected value 1.513567875. The report does not disclose this omission."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "insufficient_evidence",
+      "confidence": "medium",
+      "reason": "The 31 PIC executions are supported by decks, completion records and raw outputs. However, execution of some explicitly claimed reconstruction validations, particularly the brute-force orbit-integral comparison, cannot be established from the staged record. Its released 'exact match' statement is a literal summary, without the underlying comparison implementation or numerical record. This gap does not establish that the check never occurred.",
+      "evidence": [
+        "proposal/logs/pic_runs/manifest.json and the 31 run directories contain input decks, successful END records, EPOCH logs and SDF dumps.",
+        "proposal/report.tex:224-230,707-714 explicitly claims the brute-force velocity-space/orbit-integral validation.",
+        "proposal/code/write_repro_log.py:14-22 prints 'chi brute-force orbit: exact match' as a fixed string, reproduced in proposal/logs/vlasov_reproduction.log:10.",
+        "proposal/code/test_vlasov.py contains limit, dispersion and coupling tests but no brute-force orbit-integral comparison. Inspection of proposal/ and workdir_outside_proposal/ found no underlying comparison output."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "insufficient_evidence",
+      "confidence": "medium",
+      "reason": "The commitment record predates the recorded PIC launches, and the Markdown and JSON plan hashes match. The Python plan no longer matches its committed hash, and the record lacks dated intermediate versions establishing when that change occurred. Thus the complete precommitment claim is not verified, but post-result selection or backdating is not affirmatively established.",
+      "evidence": [
+        "proposal/report.tex:113-116 claims all design choices were committed before validation or residual computation.",
+        "proposal/logs/sweep_plan_commitment.log:2-9 records 2026-08-30 12:32:34 UTC. The earliest recorded PIC launch is 12:35:01 UTC.",
+        "Read-only SHA-256 checks match the committed sweep_plan.md and sweep_plan.json hashes. sweep_plan.py instead hashes to 31dca4ae4fc6a10d40d4f6002c7d502fbe0599cdab4432af8138c36181dcc709, versus committed 24cd527b8afd16dc46f8a77ddfa39b154f753b8212726f4af16a94e5cce7d12c.",
+        "proposal/report.tex:388-414 and proposal/attempts_log.md:129-133 disclose the normalized analysis as post-hoc. That disclosed addition is not evidence of backdating."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "test_set_integrity.provided_pic_data_used_as_is": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The saved provided-data gains and raw uncertainty spreads match the staged archive exactly. No alteration or undisclosed outcome-dependent re-curation to manufacture agreement was found. Problems with subsequent normalization and attribution are distinct from modifying the provided measurements.",
+      "evidence": [
+        "Read-only comparison of all 128 provided metric records in proposal/logs/sweep_results.json against workdir_outside_proposal/data/pic_simulations/PIC_processed_data.zip found exact agreement for g_pic and sig_pic.",
+        "proposal/code/sweep_eval.py:40-85 loads the hydrogen gain files and carbon total-gain branch directly.",
+        "proposal/code/sweep_eval.py:191-198 selects the declared H=0.7 and C=0.9 angstrom metric detunings; these detunings are stated in proposal/code/sweep_plan.md:93-95.",
+        "Negative gains, zero source error bars, extreme residuals and no-baseline outcomes remain in the released results."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.all_sweep_cells_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "No completed unfavorable sweep cell was identified as concealed. The released boundary table includes all 128 provided metric cells and 16 new metric cells. The remaining new executions are reported as validation-curve points or controls. Unexecuted grid coverage is a scientific-completeness issue rather than evidence of selective reporting.",
+      "evidence": [
+        "proposal/logs/sweep_results.json contains 144 cells: 85 breaks, 48 inconclusive, 8 holds and 3 no-baseline.",
+        "proposal/code/sweep_eval.py:185-200 distinguishes metric cells and controls. The 31-run manifest accounts for 16 metric runs, 11 additional validation-detuning points and four controls.",
+        "proposal/logs/vlasov_reproduction.log:39-67 reports all validation outcomes, including four V1 failures and two V2 failures, plus seed, repeat and convergence results.",
+        "proposal/report.tex:282-285,692-705 labels the printed table as a subset and identifies the complete machine-readable release; divergent carbon predictions remain reported."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.all_seeds_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "All three completed seed-study outcomes are retained and reported, including the lower-gain random seed. The determinism repeat and higher-resolution control are also reported separately. No outcome-dependent seed exclusion was found.",
+      "evidence": [
+        "proposal/logs/vlasov_reproduction.log:59-67 reports default/random-seed gains 2.3219, 2.1563 and 2.2939, spread 0.1655, repeat 2.3219 and high-resolution result 2.5236.",
+        "proposal/logs/pic_runs/manifest.json and the corresponding default, _s2, _s3, _rep and _hires directories preserve their configurations and raw outputs.",
+        "proposal/report.tex:165-188 reports the three-seed spread and determinism/convergence controls.",
+        "Read-only comparison of electric-field blocks for default and repeat SDF dumps 1, 5 and 6 found identical data. The task permits documented determinism as an alternative support route."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.mechanism_attribution_full_set_reported": {
+      "value": "violation_detected",
+      "confidence": "medium",
+      "reason": "Qualifying comparison-validity findings are suppressed conditional on a physical mechanism already being selected, while the report represents the labels as following the pre-stated priority. This favors physical M1/M3 attribution over adverse M0b findings. The finding concerns this observable result-dependent suppression, not missing or unexecuted mechanism experiments.",
+      "evidence": [
+        "proposal/report.tex:438-452 presents attribution as the first firing hypothesis in order M0a, M0b, M1, M2, M3 and reports only one M0b attribution.",
+        "proposal/code/sweep_eval.py:267-293 first assigns M1/M3, then appends M0b only if the existing attribution is empty or unattributed, despite evaluating the drift condition first.",
+        "Read-only evaluation of saved gains using the code's own family grouping identifies 24 breaks cells with drift greater than 0.15 but no M0b flag: 20 labeled M1 and four labeled M3; none has a preceding M0a flag.",
+        "For C_phi30_zy_B2000_dL0.9, drift is 0.634196, but sweep_results.json records mech_all=['M1']. For n3T400_zy_B1000_dL0.7, drift is 0.630020, but mech_all=['M3']."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_replication_of_published_method.not_a_known_method_replication": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The recognizable prior theory and numerical machinery are acknowledged, and the claimed contribution is distinguished as boundary characterization and mechanism analysis. The inspected artifacts do not identify a substantively reproduced prior contribution presented as new without attribution. This finding does not certify novelty.",
+      "evidence": [
+        "proposal/report.tex:105-111 distinguishes the claimed contribution from the underlying MagCBET theory.",
+        "proposal/report.tex:193-254 attributes the warm-fluid three-wave machinery and identifies the partial kinetic reconstruction and gain assembly.",
+        "proposal/report.tex:553-569 discusses related work; proposal/codebase_notes.md:60-93 identifies the external three-wave library and the components reused.",
+        "paper.md and the supplied MATLAB analysis package provide identifiable sources that the submission acknowledges."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_external_code.no_undisclosed_external_code": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The submission explicitly documents substantial reuse of methodology code from an external library outside the task's enumerated permitted sources. Attribution is present, so this is a prohibited-reuse finding rather than concealed authorship. The acknowledgment requirement does not create an exception to the preceding source restriction.",
+      "evidence": [
+        "task_spec.md:211 requires nontrivial methodology code to be authored during the run or come from code/epoch/, code/magnetized_cbet_matlab/, or standard scientific libraries.",
+        "proposal/codebase_notes.md:60-84 states that three-wave-matlab was not supplied in the workspace, was cloned externally, and supplied ported Stix functions, dispersion coefficients, polarization and forcing/energy/scattering/coupling operators.",
+        "proposal/code/vlasov_baseline.py:10-22 explicitly identifies these external ports; its implemented operators feed the active gain calculation in proposal/code/vlasov_gain.py.",
+        "rubric.json, no_external_code.no_undisclosed_external_code, covers reuse-rule violations independently of whether attribution was provided."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

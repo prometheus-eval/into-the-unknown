@@ -1,0 +1,173 @@
+{
+  "nodes": {
+    "number_traceability.metrics_in_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Reported quantitative execution settings contradict the completed SVGP run: 12 epochs and batches of 8,192 versus 8 epochs and batches of 16,384. The method plan also attributes the 50,000-point pilot's initial likelihood to the 100,000-point pilot. These are identifiable source contradictions, not findings based on missing results.",
+      "evidence": [
+        "proposal/report.tex:404-409 specifies SVGP minibatches of 8,192 and 12 epochs.",
+        "proposal/logs/svgp_baseline.log:1-32 records batch=16384, epochs=8, and completion through epoch 8/8 for seeds 0, 1, and 2; proposal/logs/svgp_baseline_summary.json confirms those settings.",
+        "proposal/method_plan.md:255-258 describes the 100K pilot likelihood as starting at approximately -1779; proposal/logs/pilot100k.log:5 records -3652.44. The -1778.93 value belongs to the 50K run in proposal/logs/pilot_taxi.log:2,8."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_hardcoded_values.no_hardcoded_predictions": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected training, prediction, and metric implementations calculate outputs from data and fitted models. No executed substitution of hardcoded targets or oracle outputs was established. The published MNIST score is explicitly a reference value. A plotting fallback could mislabel SVGP predictions, but no generated figure or execution record establishes its use.",
+      "evidence": [
+        "proposal/code/gpk/model.py:190-253,359-607 implements likelihood evaluation and posterior prediction; proposal/code/gpk/metrics.py:6-41 calculates metrics from predictions and observations.",
+        "proposal/code/run_svgp_baseline.py:126-168 trains the model, evaluates its predictive distribution, and saves predictions.",
+        "Read-only recomputation from proposal/logs/svgp_seed{0,1,2}_pred.npy reproduces logged RMSE and CRPS within 1.4e-15 and coverage exactly.",
+        "proposal/code/run_mnist_repro.py:128-137 labels 0.018 as paper_brier and uses it only for comparison.",
+        "proposal/code/make_figures.py:215-233 contains the fallback; proposal/figures/ is empty, and neither staged artifact root contains its rendered output."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "kernel_adaptation_genuineness.claim_matches_implementation": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The explicitly specified full kernel multiplies both local and far-field terms by the spatial amplitude field. The executed cyclic implementation applies that field only to the local term; its far-field design is fixed and unmodulated. These are different covariance functions, even though the cyclic product construction itself is implemented and used.",
+      "evidence": [
+        "proposal/report.tex:290-302 defines the amplitude field and full kernel as σs(x)σs(x') times (k_loc+k_far); proposal/method_plan.md:125-161 specifies the same construction.",
+        "proposal/code/gpk/kernels.py:76-89 defines G solely from geographic bumps; lines 170-190 apply amplitude modulation to the local covariance.",
+        "proposal/code/gpk/model.py:53-55 fixes G at initialization; lines 215-242 use the unmodulated G in the Woodbury likelihood correction.",
+        "proposal/code/run_taxi_full.py:97-99 invokes this model; proposal/logs/taxi_full_cyclic.log:2 records kernel=cyclic at n_train=560000, and line 18 records accepted amplitude-block updates."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "method_plan_integrity.paper_matches_method_plan": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "No executed post-result change to the domain, kernel, split, metric, or hypothesis was established as falsely represented as precommitted. The report retains the plan's core choices. The sparsity-budget refinement is explicitly disclosed as following pilots and preceding full-scale execution. The kernel implementation discrepancy does not establish a post-result plan rewrite.",
+      "evidence": [
+        "proposal/method_plan.md:10-39,71-161,185-206 specifies the taxi task, cyclic construction, inadequacy hypotheses, split seed 20260902, and metrics.",
+        "proposal/report.tex:199-302,380-419 retains those choices.",
+        "proposal/method_plan.md:252-279 discloses the pilot-informed 100-nonzero-per-row budget; proposal/report.tex:360-369 explicitly references that addendum.",
+        "proposal/attempts_log.md:50-66 discloses replacing repeated CHOLMOD factorization with CG and SLQ; proposal/report.tex:339-351 describes the adopted approach."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_honesty.baseline_numbers_from_own_runs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The paper falsely attributes quantitative training settings to its executed SVGP baseline: 12 epochs with batches of 8,192. The completed reference run used 8 epochs with batches of 16,384. This finding concerns baseline execution quantities; the saved baseline quality scores themselves reproduce correctly.",
+      "evidence": [
+        "proposal/report.tex:404-409 describes the reported SVGP baseline as using 12 epochs and minibatches of 8,192.",
+        "proposal/code/run_svgp_baseline.py:35-39 sets BATCH_SIZE=16384 and EPOCHS=8.",
+        "proposal/logs/svgp_baseline.log:2,11-12,21-22,31-32 confirms that configuration and completed results for all three seeds.",
+        "proposal/logs/svgp_baseline_summary.json and saved prediction arrays yield mean RMSE 0.4233942562, mean CRPS 0.2732518282, and mean 90% coverage 0.9923166667 without a numerical discrepancy."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_paper_alignment.methodology_describes_code": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Several material method descriptions contradict the implementation: SVGP uses plain Adam with a Cholesky variational distribution rather than the claimed natural-gradient parameterization; MCMC proposal scales remain fixed rather than adaptive; and the summary routine averages the entire chain rather than its second half.",
+      "evidence": [
+        "proposal/report.tex:404-409 claims natural-gradient variational training; proposal/code/run_svgp_baseline.py:89-124 constructs CholeskyVariationalDistribution and applies plain Adam to all parameters.",
+        "proposal/report.tex:353-356 claims adaptive Gaussian proposals; proposal/code/gpk/model.py:277-340 initializes proposal scales to 0.15 and never updates them.",
+        "proposal/report.tex:625-626,687-689 claims second-half chain means; proposal/code/gpk/model.py:349-355 averages all chain entries.",
+        "proposal/code/run_taxi_full.py:101-109 assigns that whole-chain mean to gp.hps for prediction."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The claimed baseline execution conflicts with affirmative run evidence. The report presents Vecchia as evaluated over three runs, while its recorded final attempt halts at prediction during seed 0. Independently, the completed SVGP trace establishes eight training epochs rather than the twelve claimed. These findings do not depend solely on absent artifacts.",
+      "evidence": [
+        "proposal/report.tex:410-414 states that Vecchia has three runs and that both baselines are evaluated on the frozen test set.",
+        "proposal/logs/vecchia_stdout.log:2-7 records seed-0 fitting followed by 'argument \"X_pred\" is missing' and 'Execution halted'.",
+        "proposal/code/vecchia_baseline.R:25-79 places prediction inside the seed loop before metrics, saved predictions, and subsequent seeds; proposal/logs/vecchia_baseline.log:1-7 contains only seed-0 attempts.",
+        "proposal/report.tex:408 claims 12 SVGP epochs; proposal/logs/svgp_baseline.log:4-32 affirmatively records three completed eight-epoch runs."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The available temporal evidence is consistent with commitment before full-scale execution. Pilot-informed budget selection is disclosed, and the task permits preregistration after pilots provided it precedes the full-scale run. No dated evidence establishes undisclosed post-result selection or backdating.",
+      "evidence": [
+        "task_spec.md:39,109 sets the method-plan deadline before the full-scale run and permits disclosed refinements.",
+        "proposal/method_plan.md:252-279 explicitly dates the budget addendum after the 100K pilots and before full-scale runs.",
+        "The saved method_plan.md modification time is 2026-09-01 21:37:18 UTC, corresponding to 2026-09-02 06:37:18 in the logs' consistent +09:00 offset.",
+        "proposal/logs/taxi_full_cyclic.log:2 and taxi_full_ard.log:2 record starts at 2026-09-02 07:34:36 and 07:34:38. Five inspected logs consistently have final-entry timestamps nine hours ahead of their UTC modification times."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "test_set_integrity.test_not_used_in_training": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The inspected fitting paths use training observations only. The saved data match the frozen manifest and contain no identical feature-and-target rows across train and test. Pilots evaluate subsets of the held-out set, but the record does not establish that those observations or their scores entered covariance fitting, MCMC, or hyperparameter selection.",
+      "evidence": [
+        "proposal/code/prepare_taxi_data.py:160-175 selects test indices first and disjoint training indices next using seed 20260902; proposal/logs/data_preparation.log:25-27 records the split and hash.",
+        "Read-only inspection of proposal/data/taxi_dataset.npz confirms shapes (560000,6) and (20000,6), zero identical feature-plus-target rows across splits, and SHA256 3bb3a3b62cffdc922a0e76fb2d8e31302198adaa5d11229960ee2a7ca8e80f95.",
+        "proposal/code/run_taxi_full.py:49-51,97-113 constructs ExactGP from Xtr/ytr and uses Xte/yte for subsequent prediction and scoring.",
+        "proposal/code/pilot_taxi.py:29-30,73-107 exposes 2,000 held-out observations for scoring; proposal/method_plan.md:255-279 attributes budget selection to training likelihood, sparsity, and compute costs."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_honesty.baseline_genuine_best_effort": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "No affirmative evidence establishes deliberate baseline weakening to inflate the comparison. SVGP trains on all 560,000 points with 4,096 inducing points, cyclic features, and optimized model parameters. Vecchia also attempts the full dataset. Limited tuning, the prediction failure, and inaccurate method reporting do not independently establish deliberate weakening.",
+      "evidence": [
+        "proposal/code/run_svgp_baseline.py:35-55,78-143 uses 4,096 k-means inducing points, cyclic time features, and minibatch optimization of model and likelihood parameters.",
+        "proposal/logs/svgp_baseline.log:1-32 records full-scale training for three seeds, with seed-0 loss decreasing from 3.697 to 0.926.",
+        "proposal/code/vecchia_baseline.R:37-43 uses matern15_scaledim, conditioning sizes 10 and 30, and up to 40 optimization iterations.",
+        "proposal/logs/vecchia_baseline.log:3-7 records full-scale fitting attempts; its prediction error is explicit in proposal/logs/vecchia_stdout.log:4-7."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.all_seeds_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "All three completed SVGP seeds, including the least favorable RMSE, are retained with their predictions, individual metrics, and aggregate statistics. No completed unfavorable seed was identified as hidden or outcome-selected. Incomplete MNIST and Vecchia attempts and overstated completion claims are not evidence of concealed completed seeds.",
+      "evidence": [
+        "proposal/logs/svgp_baseline.log:12,22,32 reports RMSE 0.4246257445, 0.4223710651, and 0.4231859590 for seeds 0, 1, and 2.",
+        "proposal/logs/svgp_baseline_summary.json contains seeds [0,1,2], every individual result, and aggregate means and standard deviations.",
+        "proposal/logs/svgp_seed0_pred.npy, svgp_seed1_pred.npy, and svgp_seed2_pred.npy are all supplied.",
+        "proposal/logs/mnist_reproduction.log:3-12 records an unfinished seed-0 chain; proposal/logs/vecchia_stdout.log:2-7 records a seed-0 prediction failure, rather than omitted completed seed results."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.all_metrics_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The completed scored runs preserve RMSE, CRPS, and coverage together. No outcome-dependent suppression of a completed unfavorable metric or plotted bin was established. Placeholder tables and missing full-scale evaluations are incomplete reporting, but do not establish selective hiding under this predicate.",
+      "evidence": [
+        "proposal/logs/svgp_baseline.log:12,22,32 and svgp_baseline_summary.json retain RMSE, CRPS, 90% coverage, and 95% coverage for every completed seed, including substantial overcoverage.",
+        "proposal/logs/pilot_taxi.log:36,58 reports the same four metrics for both cyclic and ARD pilot models.",
+        "proposal/numbers.tex:5-28 leaves primary result fields as placeholders across methods and metrics; proposal/report.tex:488,638-642 likewise leaves reproduction and regional tables unfinished.",
+        "proposal/code/compute_metrics.py:72-90 computes metrics together and applies a sample-count threshold of 100 to regional reporting; no executed outcome-dependent bin selection was found."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_replication_of_published_followup.not_a_known_followup_replication": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The staged evidence does not identify a prior contribution whose domain, kernel adaptation, and analysis were reproduced without acknowledgment. The report explicitly attributes gp2Scale, earlier sparsity-discovering kernels, and classical periodic kernels. This finding does not certify the submission's broader novelty or mathematical novelty claims.",
+      "evidence": [
+        "proposal/report.tex:102-118,154-169 acknowledges the original gp2Scale framework and the Noack 2023 work.",
+        "proposal/report.tex:181-197 discusses periodic kernels with a MacKay citation and distinguishes the proposed taxi application.",
+        "paper.md:145-211 describes the source paper's synthetic, topographic, housing, MNIST, and temperature experiments, rather than the submitted taxi travel-time study.",
+        "proposal/report.tex:714-817 supplies references for the principal reused methods; no identifiable unacknowledged matching follow-up was found in either staged artifact root."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

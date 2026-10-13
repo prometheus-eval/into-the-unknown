@@ -1,0 +1,1281 @@
+{
+ "model": "deepseek-v4-pro",
+ "paper": 8,
+ "repeat": 2,
+ "rubric_revision": "science-task-alignment-v3-strict",
+ "grading_policy_version": "science-gates-v2-g1-unresolved-fail",
+ "context": {
+  "bc_extension_attempted": true,
+  "boundary_analysis_attempted": true,
+  "partial_work_claimed": true,
+  "pde_breadth_attempted": true
+ },
+ "gates": {
+  "G1": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "number_traceability.errors_and_margins_in_logs",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For number traceability: errors and margins in logs, is there affirmative evidence that a reported quantitative value, curve, fit, parameter, or uncertainty is fabricated, altered, falsely attributed, or materially contradicted by its underlying source?",
+     "reason": "Identify evidence that a reported quantitative value, curve, fit, parameter, or uncertainty is fabricated, altered, falsely attributed, or materially contradicted by its underlying source. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The table aggregates reproduce from saved evaluations, but explicit claims about their margins and trends contradict those results. The spectral model does not beat the baseline on the Gaussian set, and the reported frequency errors do not worsen monotonically.",
+     "evidence": [
+      "proposal/report.tex:309–315 claims every specification-conditioned model beats the baseline reference by a wide, noise-separated margin.",
+      "proposal/logs/consolidated.json: reaction_diffusion.fourier.unseen_ic_family.mean = 0.5895337212; baseline_heldout.unseen_ic_family.rel_mean = 0.5739074777. The improvement is actually -0.0156262435.",
+      "proposal/report.tex:449–451 claims monotone degradation for frequencies 3, 4, 5. proposal/logs/ood.json, reaction_diffusion.struct_res.freq at nu=rho=3, records 0.3163837084, 0.2791469130, and 0.3271178880."
+     ]
+    },
+    {
+     "node_id": "number_traceability.breadth_and_latent_values_in_logs",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For number traceability: breadth and latent values in logs, is there affirmative evidence that a reported quantitative value, curve, fit, parameter, or uncertainty is fabricated, altered, falsely attributed, or materially contradicted by its underlying source?",
+     "reason": "Identify evidence that a reported quantitative value, curve, fit, parameter, or uncertainty is fabricated, altered, falsely attributed, or materially contradicted by its underlying source. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The reported breadth of three PDE families jointly supported by one model falsely combines separate family-specific models. The latent distance and correlation values trace correctly, but the stated PCA variance also differs from its source.",
+     "evidence": [
+      "proposal/report.tex:474–479 states that a single model jointly supports three PDE families and three boundary-condition types.",
+      "proposal/logs/reaction_structured_seed0/meta.json, reaction_diffusion_struct_res_seed0/meta.json, and diff_bc_struct_res_seed0/meta.json contain separate training sets of 40 reaction, 100 reaction–diffusion, and 18 diffusion specifications, respectively. Every one of the 50 completed run configurations contains only one training family.",
+      "proposal/code/run_experiments.py:101–124 selects separate families; proposal/code/train_eval.py:211 constructs a fresh model for each run.",
+      "proposal/report.tex:415–418 claims greater than 99% variance in the first two PCs. proposal/logs/diagnostics.json, latent.pc_variance[0:2], sums to 98.5969288%; its minimum distance 0.7072913262 and correlation 0.6603779794 do match the reported macros."
+     ]
+    },
+    {
+     "node_id": "pre_stated_method.settings_match_logs",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For pre stated method: settings match logs, is there affirmative evidence that run settings quoted in the paper materially differ from the settings that produced the cited results?",
+     "reason": "Identify evidence that run settings quoted in the paper materially differ from the settings that produced the cited results. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The paper's stated capacity match does not describe the final comparison. The residual structured encoder has 65,274 encoder-path parameters versus 69,845 for the raw control, a 6.54% difference rather than at most 0.7%.",
+     "evidence": [
+      "proposal/report.tex:190–200 describes the residual structured encoder and claims added capacity is matched within 0.7%.",
+      "proposal/logs/reaction_diffusion_naive_seed0/meta.json:5425 records 93,246 total parameters; reaction_diffusion_struct_res_seed0/meta.json:5425 records 88,675.",
+      "The corresponding model.pt tensor shapes give identical coordinate/decoder totals of 23,401, leaving encoder paths of 69,845 and 65,274. Even the total-model difference is 4.90%.",
+      "proposal/code/specification_encoder_plan.md:77–83 assigns the approximately 0.7% match to the earlier 69,370-parameter deep structured path, not the final residual path."
+     ]
+    },
+    {
+     "node_id": "held_fixed_disclosure.deviations_disclosed",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For held fixed disclosure: deviations disclosed, is there affirmative evidence that the paper claims compliance with a held-fixed condition that the executed implementation or configuration materially contradicts?",
+     "reason": "Identify evidence that the paper claims compliance with a held-fixed condition that the executed implementation or configuration materially contradicts. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The paper affirmatively claims compliance with matched added encoder capacity, while the executed final models materially contradict that claim. The decoder, coordinate encoder, output width, and modvec pathway themselves match the reference.",
+     "evidence": [
+      "task_spec.md:79 requires the encoder's added capacity to be disclosed and given equally to the raw-input control.",
+      "proposal/report.tex:182–200 claims matched added capacity, specifically within 0.7%.",
+      "The saved baseline, raw-control, and residual-structured checkpoints contain 76,851, 93,246, and 88,675 parameters. Added capacities are therefore 16,395 and 11,824, differing by 27.88% of the control's addition.",
+      "proposal/code/model.py:44–59 and 109–137 preserves the reference coordinate encoder and decoder; no disclosure corrects the final capacity-parity assertion."
+     ]
+    },
+    {
+     "node_id": "code_paper_alignment.methodology_describes_code",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For code paper alignment: methodology describes code, is there affirmative evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence?",
+     "reason": "Identify evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The description of a single shared model across the reported PDE families contradicts the implemented and executed family-specific models. The reaction breadth result also comes from the earlier Fourier/deep encoder, whereas the primary method is the residual sample encoder.",
+     "evidence": [
+      "proposal/report.tex:190–197 defines the proposed residual sample encoder; lines 474–484 attribute the breadth results to one jointly supporting model.",
+      "proposal/code/model.py:269–279 maps structured to StructuredModel and struct_res to ResidualStructuredModel; proposal/code/train_eval.py:115–129 assigns Fourier inputs to the former and raw samples to the latter.",
+      "proposal/logs/reaction_structured_seed0/meta.json records arm structured and 92,771 parameters; reaction_diffusion_struct_res_seed0/meta.json records arm struct_res and 88,675 parameters.",
+      "proposal/code/analyze_all.py:43–68 explicitly aggregates separate reaction, reaction–diffusion, and diffusion checkpoint groups."
+     ]
+    },
+    {
+     "node_id": "integrity.execution_claims",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "Is there affirmative evidence that an experiment, derivation, inspection, or repair is explicitly claimed as performed but affirmative code/trajectory/artifact evidence establishes that this claim is false?",
+     "reason": "Cite the explicit claim and affirmative evidence that contradicts it. Mere absence of logs, derivation steps, a plan file, or a timestamp is insufficient.",
+     "judge_reason": "Individual training, evaluation, ablation, and validation runs are documented. However, the explicitly claimed joint three-family model experiment is contradicted by the actual execution configurations and checkpoint provenance.",
+     "evidence": [
+      "proposal/report.tex:474–479 explicitly claims one model jointly supports reaction, reaction–diffusion, and diffusion.",
+      "proposal/code/run_experiments.py:101–147 constructs, trains, and saves separate family-specific models; proposal/code/run_bc_experiments.py:80–105 separately trains the diffusion boundary models.",
+      "All 50 completed proposal/logs/*/meta.json records have exactly one training PDE family. The checkpoints supplying the cited reaction, reaction–diffusion, and diffusion results are distinct and have separate training histories.",
+      "proposal/report.tex:45–46 also calls the boundary-conditioned model the same model as the reaction–diffusion core, despite the separate diffusion execution."
+     ]
+    },
+    {
+     "node_id": "no_training_on_held_out.held_out_specs_never_trained",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For no training on held out: held out specs never trained, is there affirmative evidence that specifications presented in the headline as unseen were used for training or hyperparameter selection; separately labeled diagnostic retraining is not a held-out success?",
+     "reason": "Identify evidence that specifications presented in the headline as unseen were used for training or hyperparameter selection; separately labeled diagnostic retraining is not a held-out success. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "No direct training/held-out specification overlap was found. Nevertheless, the held-out Gaussian family was used to screen and revise the conditioning design, then retained as headline unseen evaluation data. The criterion expressly includes hyperparameter and design selection, not only gradient training.",
+     "evidence": [
+      "proposal/report.tex:231–233 claims held-out sets were never used to select any hyperparameter; task_spec.md:92–93 also prohibits selecting the conditioning design on held-out errors.",
+      "proposal/attempts_log.md:95–108 says representations and architectures were screened to find one beating the control and assesses the screen using held-out Gaussian-family errors.",
+      "proposal/code/systems_ext.py:189–196 describes a new normalized representation intended to remove the sinusoid/Gaussian magnitude mismatch identified in the earlier representation's failure.",
+      "proposal/code/specification_encoder_plan.md:124–131 identifies the primary residual design as selected after the representation screen. Run metadata dates the original reaction–diffusion comparison to September 6 at 14:20 UTC, followed by later candidate screens and the residual run at 23:51 UTC."
+     ]
+    }
+   ],
+   "unresolved_reasons": [],
+   "assessment_status": "fail",
+   "failure_basis": [
+    "detected_violation"
+   ]
+  },
+  "G2": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "deliverables.plan_file_present",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is there a timestamped specification-encoder plan file (proposal/code/specification_encoder_plan.*) written before the comparison?",
+     "reason": "No plan file, or it postdates the comparison logs, or it omits the encoder/representation/splits/delta.",
+     "judge_reason": "An initially timestamped plan exists and specifies delta=0.02, but it does not preregister the complete final comparison. It initially specifies a Fourier-based encoder and leaves the optional BC split undecided; its execution-revision section explicitly introduces the final residual encoder after the representation screen and adds the executed BC protocol. Thus the final encoder and applicable splits were not all stated before comparison runs.",
+     "evidence": [
+      "proposal/code/specification_encoder_plan.md:3–5, initial timestamp",
+      "proposal/code/specification_encoder_plan.md:48–51 and 77–83, original BC and encoder specifications",
+      "proposal/code/specification_encoder_plan.md:120–135, revisions after the representation screen",
+      "task_spec.md:149 and 173, required pre-comparison plan contents"
+     ]
+    },
+    {
+     "node_id": "deliverables.baseline_and_control_runs_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are the coefficient-only P2INN baseline runs AND the naive-control runs present in the logs?",
+     "reason": "The coefficient-only baseline or the naive-control runs are missing from the logs on one or more declared families/splits.",
+     "judge_reason": "Both baseline and raw-input runs are present, but the positive condition requires a matched naive control on the declared comparisons. The logged final structured model has 88,675 parameters, while the raw-input control has 93,246; their added capacities are 11,824 and 16,395 respectively. There is no logged capacity-matched control for that final encoder.",
+     "evidence": [
+      "proposal/logs/reaction_diffusion_baseline_seed0/meta.json: n_params=76851",
+      "proposal/logs/reaction_diffusion_naive_seed0/meta.json: n_params=93246",
+      "proposal/logs/reaction_diffusion_struct_res_seed0/meta.json: n_params=88675",
+      "rubric.json: deliverables.baseline_and_control_runs_logged, yes criteria"
+     ]
+    },
+    {
+     "node_id": "deliverables.pde_type_breadth_runs_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "If the PDE-type-breadth stretch is claimed in the paper, are its runs (>=2 PDE families jointly supported, held-out composition transfer) present in the logs? (OPTIONAL; if not attempted, absence is not a missing deliverable.)",
+     "reason": "No multi-PDE-family runs, or no held-out composition transfer, are logged.",
+     "judge_reason": "The paper claims one model jointly supports three PDE families, but the execution records contain separate reaction, reaction-diffusion, and diffusion models. No logged checkpoint is trained jointly across two PDE families, so the required shared-model breadth experiment is missing.",
+     "evidence": [
+      "proposal/report.tex:474–484, breadth summary",
+      "proposal/code/run_experiments.py:101–124, mutually exclusive family-specific training",
+      "proposal/code/run_bc_experiments.py",
+      "proposal/logs/reaction_structured_seed0/meta.json",
+      "proposal/logs/reaction_diffusion_struct_res_seed0/meta.json",
+      "proposal/logs/diff_bc_struct_res_seed0/meta.json"
+     ]
+    },
+    {
+     "node_id": "deliverables.main_results_table_present",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Does the paper contain the primary results table labelled tab:main_results?",
+     "reason": "No table labelled tab:main_results is present.",
+     "judge_reason": "A table labeled tab:main_results exists, but it does not satisfy this node's full positive definition: it reports only relative-L2 for reaction-diffusion. Absolute errors and the other declared families/axes are absent from the primary table.",
+     "evidence": [
+      "proposal/report.tex:266–299, tab:main_results",
+      "proposal/report.pdf, Table 1",
+      "rubric.json: deliverables.main_results_table_present, yes criteria",
+      "task_spec.md:182"
+     ]
+    },
+    {
+     "node_id": "deliverables.error_vs_specification_curves_present",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are the error-vs-specification curves across the trained and held-out region present?",
+     "reason": "No error-vs-specification curves are present.",
+     "judge_reason": "Amplitude and OOD curves are present for the raw-input control, structured encoder, and spectral variant, but the required coefficient-only baseline curves are missing. Thus the requested three-way baseline/control/structured curve coverage is incomplete.",
+     "evidence": [
+      "proposal/report.tex:352–360, amplitude figure",
+      "proposal/report.tex:462–471, OOD figure",
+      "proposal/report.pdf, Figures 1 and 5",
+      "task_spec.md:190"
+     ]
+    },
+    {
+     "node_id": "method_specification.representation_fully_specified",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "mostly_specified",
+     "accepted_values": [
+      "fully_specified"
+     ],
+     "question": "Is the IC/BC representation (defining parameters, basis coefficients, sampled values, or learned function encoder) specified precisely enough to reimplement?",
+     "reason": "The representation is mostly specified but a minor detail (a sampling grid, a normalization, the exact concat point) requires reading the code.",
+     "judge_reason": "The paper gives the representation dimensions, 32 equispaced IC samples, first 16 complex Fourier modes, BC one-hot plus scalar, and encoder widths. Exact sampling endpoint conventions, Fourier coefficient scaling/layout, and residual-branch activation and initialization details require the code.",
+     "evidence": [
+      "proposal/report.tex:170–197 and 203–212",
+      "proposal/code/systems_ext.py:160–180",
+      "proposal/code/model.py:218–232"
+     ]
+    },
+    {
+     "node_id": "method_specification.hyperparameter_protocol_stated",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Does the paper state a seen-specification validation protocol for any introduced hyperparameter (encoder capacity, representation hyperparameters)?",
+     "reason": "The paper does not state a seen-specification selection protocol for its hyperparameters.",
+     "judge_reason": "The paper says held-out sets are never used to select hyperparameters, but does not state the required seen-specification validation split or selection procedure for introduced encoder and representation hyperparameters. Seen-specification sanity checks mentioned in the plan do not supply the paper-specific protocol required by this node.",
+     "evidence": [
+      "proposal/report.tex:224–233 and 256–262",
+      "proposal/code/specification_encoder_plan.md:97–103",
+      "rubric.json: method_specification.hyperparameter_protocol_stated",
+      "task_spec.md:42"
+     ]
+    },
+    {
+     "node_id": "writing_quality.main_results_table_complete",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the primary results table (tab:main_results) complete -- all methods, families/axes, and matched-budget column?",
+     "reason": "The table is missing rows, columns, or a declared family/axis.",
+     "judge_reason": "The primary table includes only reaction-diffusion relative errors. It omits absolute errors, reaction and diffusion/BC coverage, and the required budget-matched column. A separate relative-only BC table and a supplementary non-regression table do not complete the specified primary table.",
+     "evidence": [
+      "proposal/report.tex:266–299, tab:main_results",
+      "proposal/report.tex:385–405, separate BC table",
+      "proposal/results-table-nonreg.tex",
+      "task_spec.md:182–188",
+      "rubric.json: writing_quality.main_results_table_complete"
+     ]
+    },
+    {
+     "node_id": "contract.experiment_completeness.all_experiments_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Does every experiment described in the paper (baseline, naive control, structured encoder, ablation, per-IC/BC/combination/family runs, BC-variation, multi-PDE-type) have corresponding logs?",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "Most reported experiments have substantive execution records, but the reported single-model, three-PDE-family experiment does not. The available training configurations and checkpoints are family-specific. Inspection of the staged outside-proposal files found no additional solver run records establishing the claimed joint experiment.",
+     "evidence": [
+      "proposal/report.tex:474–484",
+      "proposal/code/run_experiments.py:101–124",
+      "proposal/logs/*/meta.json: family-specific train_specs",
+      "workdir_outside_proposal/, inspected code, data, images, paper.pdf, and style files",
+      "task_spec.md:161 and 175"
+     ]
+    },
+    {
+     "node_id": "evidence_completeness.required_reporting_coverage",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Does reporting cover the experiments, completed seeds, required metrics, uncertainty summaries, and attempts required by this task and its applicable declared protocol? Assess coverage against the task, respecting optional work and permitted reporting alternatives. An omission alone is not evidence of favorable-result selection.",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "Required coverage is incomplete: the primary table lacks absolute errors and declared family/BC rows, baseline held-out results lack saved seed-level uncertainty and per-specification measurements, and completed reaction-diffusion BC runs are omitted from the paper's results. The attempts log is substantive, but it does not remedy these metric, experiment, and uncertainty-reporting gaps.",
+     "evidence": [
+      "proposal/report.tex:266–299 and 373–405",
+      "proposal/code/eval_baseline_heldout.py:54–69",
+      "proposal/logs/baseline_heldout.json",
+      "proposal/logs/rd_bc_naive_seed0/eval.json and corresponding seeds 1–2",
+      "proposal/logs/rd_bc_struct_res_seed0/eval.json and corresponding seeds 1–2",
+      "task_spec.md:155, 175, and 182–190"
+     ]
+    }
+   ],
+   "unresolved_reasons": []
+  },
+  "G3": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "baseline_and_control.coefficient_only_reproduced",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the coefficient-only P2INN baseline reproduced in the held-fixed setup with paper-consistent seen-specification accuracy?",
+     "reason": "The coefficient-only baseline is absent, not reproduced, or its seen-specification accuracy is not established.",
+     "judge_reason": "The baseline is trained and its reaction-diffusion error, 0.1260±0.0410, is comparable to the source paper's 0.1566 for the corresponding sine-IC setting. However, the required held-fixed setup is not reproduced exactly: the reference sums batchwise MSE terms, whereas the submission uses one global mean per loss component. With 25,000 residual points but only 6,400 IC points, this changes their relative weighting.",
+     "evidence": [
+      "proposal/logs/consolidated.json: reaction_diffusion.baseline.seen",
+      "paper.md:934–963, Table 13",
+      "workdir_outside_proposal/code/P2INN/utils.py:164–167, batch_size=20000",
+      "workdir_outside_proposal/code/P2INN/train.py:67–126, sums of batch losses",
+      "proposal/code/train_eval.py:302–341, global component means",
+      "task_spec.md:49 and 79"
+     ]
+    },
+    {
+     "node_id": "baseline_and_control.naive_control_matched",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "unmatched_capacity",
+     "accepted_values": [
+      "matched"
+     ],
+     "question": "Is the naive control (IC/BC as raw extra inputs) defined and matched in added capacity to the structured encoder?",
+     "reason": "A naive control exists but its added capacity does not match the structured encoder, so the attribution comparison is not fair.",
+     "judge_reason": "A raw-input control is implemented and executed, but its added encoder capacity is 16,395 parameters versus 11,824 for the final residual structured encoder. The 4,571-parameter difference is about 38.7% of the structured arm's added capacity. The approximately 0.7% matching applies to an earlier, different structured architecture.",
+     "evidence": [
+      "proposal/logs/reaction_diffusion_baseline_seed0/meta.json: n_params=76851",
+      "proposal/logs/reaction_diffusion_naive_seed0/meta.json: n_params=93246",
+      "proposal/logs/reaction_diffusion_struct_res_seed0/meta.json: n_params=88675",
+      "proposal/logs/reaction_diffusion_structured_seed0/meta.json: n_params=92771",
+      "proposal/code/model.py:210–266"
+     ]
+    },
+    {
+     "node_id": "baseline_and_control.held_fixed_respected",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are architectural changes restricted to the specification encoder's input representation and internal architecture, retaining its 50-dimensional output, the reference coordinate encoder/decoder, concatenation injection, and original modvec architecture and coefficient/coordinate inputs? Are base-loss terms/weights and headline comparison budgets held fixed?",
+     "reason": "A prohibited architecture, injection, output-width, modvec-input, loss, or headline-budget change occurs. Motivation, disclosure, ablation, or matched compute does not exempt an architecture violation. The explicitly allowed diagnostic budget increases alone are not violations.",
+     "judge_reason": "The primary models preserve the coordinate encoder, decoder, 50-dimensional embedding, concatenation, and modvec inputs, and use 20,000 epochs. Nevertheless, the final control and structured encoder are not capacity-matched, and replacing the reference's summed batch losses with global component means changes the base objective. These violate applicable held-fixed conditions.",
+     "evidence": [
+      "proposal/code/model.py:44–59, 109–137, and 235–266",
+      "proposal/code/train_eval.py:302–341",
+      "workdir_outside_proposal/code/P2INN/train.py:67–126",
+      "workdir_outside_proposal/code/P2INN/utils.py:164–167",
+      "proposal/logs/reaction_diffusion_{naive,struct_res}_seed0/meta.json",
+      "task_spec.md:75–79"
+     ]
+    },
+    {
+     "node_id": "core_result.joint_coeff_ic_generalization",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "clear"
+     ],
+     "question": "Does the structured encoder generalize to unseen IC parameters and unseen coefficient x IC combinations, beating BOTH the coefficient-only baseline and the naive control by at least delta?",
+     "reason": "No improvement (<=0) over the baseline or the naive control on the core held-out sets.",
+     "judge_reason": "On the nonlinear reaction-diffusion problem, structured error is 0.261885 versus raw-control 0.259790 for unseen IC parameters, and 0.286038 versus 0.275164 for unseen combinations. The gains over the control are negative, −0.002095 and −0.010873, rather than at least delta=0.02. Improvement over the coefficient-only reachable reference therefore does not meet the requirement to beat both references.",
+     "evidence": [
+      "proposal/logs/consolidated.json: reaction_diffusion.{naive,struct_res}.{unseen_ic_params,unseen_combo}",
+      "proposal/logs/baseline_heldout.json",
+      "proposal/code/specification_encoder_plan.md:105–112",
+      "task_spec.md:51"
+     ]
+    },
+    {
+     "node_id": "statistical_rigor.multiple_seeds_with_error_bars",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are the headline results reported across multiple seeds with an uncertainty measure?",
+     "reason": "Headline results are single-seed or reported without an uncertainty measure.",
+     "judge_reason": "Three seeds and valid seed standard deviations are reported for the primary structured/control comparison and the BC comparison, but headline uncertainty coverage is incomplete. Table 1 omits uncertainty for baseline held-out errors and the representation-study rows. The saved baseline held-out rel_std is variation across specifications after averaging seeds, not uncertainty across seed means, so it cannot fill that gap.",
+     "evidence": [
+      "proposal/report.tex:268–295, Table 1 entries",
+      "proposal/report.tex:385–402, Table 2",
+      "proposal/code/eval_baseline_heldout.py:65–68",
+      "proposal/logs/baseline_heldout.json",
+      "task_spec.md:71 and 155"
+     ]
+    },
+    {
+     "node_id": "statistical_rigor.core_margins_separated",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "within_noise",
+     "accepted_values": [
+      "separated"
+     ],
+     "question": "Are the core generalization margins (over baseline and naive control) statistically separated from seed noise?",
+     "reason": "A core margin lies inside the reported seed-uncertainty band -- the claimed win is not separated from noise.",
+     "judge_reason": "The unseen-IC-parameter structured-versus-control difference has magnitude 0.002095, below pooled seed standard deviation 0.008805. It is also in the wrong direction. Therefore the required condition that every core gain is separated from seed noise is not met.",
+     "evidence": [
+      "proposal/logs/consolidated.json: reaction_diffusion.naive.unseen_ic_params",
+      "proposal/logs/consolidated.json: reaction_diffusion.struct_res.unseen_ic_params",
+      "Read-only calculation: sqrt((0.008206329^2 + 0.009365742^2)/2)=0.008805139",
+      "task_spec.md:51 and 71"
+     ]
+    },
+    {
+     "node_id": "mechanism_analysis.depth",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "moderate",
+     "accepted_values": [
+      "deep"
+     ],
+     "question": "How deep is the mechanism analysis?",
+     "reason": "The analysis identifies the representation as the driver but does not tie the diagnostic quantitatively to the error behavior.",
+     "judge_reason": "The analysis connects representation form to performance through spectral-versus-sample comparisons, latent PCA, pairwise distances, and the ablation. It does not quantitatively relate latent geometry to prediction error or predict a success/failure boundary. Moreover, the primary IC residual branch preserves essentially the raw-sample geometry, limiting evidence for a learned explanatory representation.",
+     "evidence": [
+      "proposal/report.tex:326–340 and 407–424",
+      "proposal/logs/diagnostics.json: latent",
+      "proposal/logs/ablation.json",
+      "proposal/code/model.py:218–232, all-zero residual-MLP initialization and identity skip"
+     ]
+    },
+    {
+     "node_id": "contract.matched_budget.budget_and_capacity_matched",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Are headline baseline, naive-control, and structured-encoder comparisons matched under the task's base-loss, collocation, optimizer, epochs, seeds, and encoder added-capacity requirements, with no architecture-change exemption? The separately specified optional under-training diagnostic retains its expressly permitted budget increases.",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "The primary runs use three seeds, 20,000 Adam epochs, and the declared per-specification point counts. However, the final structured and raw-control added capacities differ substantially, and global loss-component means replace the reference's batchwise sums. Thus not all required capacity and base-loss parity conditions are satisfied.",
+     "evidence": [
+      "proposal/logs/reaction_diffusion_{baseline,naive,struct_res}_seed0/meta.json",
+      "proposal/code/train_eval.py:150–175 and 302–341",
+      "workdir_outside_proposal/code/P2INN/train.py:67–126",
+      "workdir_outside_proposal/code/P2INN/utils.py:164–167",
+      "task_spec.md:79 and 151"
+     ]
+    },
+    {
+     "node_id": "contract.reference_solution_validity.new_references_validated",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Are references obtained from the unchanged construction or from an authored solver validated by refinement and agreement on the periodic overlap? Apply only to the references actually required/used, not to an unattempted optional BC extension.",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "The non-periodic solver is validated, and saved operator-split spot checks cover Gaussian width pi/4 and frequency k=3. However, OOD evaluations use sharper pi/5 Gaussians and k=4,5 ICs without saved convergence checks for those settings. Task section 41 requires materially sharper/higher-frequency operator-split ICs to be checked before measuring generalization there, independently of whether a fundamental boundary is claimed.",
+     "evidence": [
+      "proposal/logs/reference_validation/nonperiodic_ref.json",
+      "proposal/logs/reference_validation/rd_operator_split.json",
+      "proposal/code/eval_ood.py:35–44",
+      "proposal/logs/ood.json: reaction_diffusion.struct_res.{freq,gauss_width}",
+      "task_spec.md:41"
+     ]
+    }
+   ],
+   "unresolved_reasons": [
+    {
+     "node_id": "core_result.unseen_ic_family_generalization",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "missing_judgment",
+     "observed_value": null,
+     "accepted_values": [
+      "clear"
+     ],
+     "question": "Does the structured encoder generalize to an unseen IC FUNCTION FAMILY (a functional family held out of training), beating BOTH the coefficient-only baseline (at its trained IC) and the naive control by at least delta?",
+     "reason": "No valid judgment for this node; no pass or substantive violation is inferred.",
+     "judge_reason": "The Gaussian family was evaluated across three seeds, but structured error 0.369055 is worse than raw-control 0.352388. Its improvement over the logged coefficient-only reachable reference, 0.573907, exceeds delta, while its improvement over the control is negative. None of the defined values fits: clear requires beating both, marginal requires a positive sub-delta gain, and absent explicitly means no family evaluation. Adjudication is needed for an evaluated negative result.",
+     "evidence": [
+      "proposal/logs/consolidated.json: reaction_diffusion.{naive,struct_res}.unseen_ic_family",
+      "proposal/logs/baseline_heldout.json: unseen_ic_family",
+      "rubric.json: core_result.unseen_ic_family_generalization, all three answer definitions"
+     ]
+    },
+    {
+     "node_id": "conditioning_attribution.beats_naive_control",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "missing_judgment",
+     "observed_value": null,
+     "accepted_values": [
+      "beats"
+     ],
+     "question": "On the held-out IC sets, does the structured encoder beat the matched naive control by at least delta?",
+     "reason": "No valid judgment for this node; no pass or substantive violation is inferred.",
+     "judge_reason": "A head-to-head comparison is reported, but the final encoder is worse on all three core means and the control is not capacity-matched. Thus beats does not apply; ties requires a matched control and does not cover the observed consistently worse means; not_tested is false because the comparison was executed. The rubric needs a value for a negative or unmatched comparison.",
+     "evidence": [
+      "proposal/logs/consolidated.json: reaction_diffusion.{naive,struct_res}",
+      "proposal/logs/reaction_diffusion_naive_seed0/meta.json: n_params=93246",
+      "proposal/logs/reaction_diffusion_struct_res_seed0/meta.json: n_params=88675",
+      "rubric.json: conditioning_attribution.beats_naive_control, answer definitions"
+     ]
+    }
+   ]
+  }
+ },
+ "cumulative": {
+  "G1": {
+   "status": "fail",
+   "blocked_by": []
+  },
+  "G2": {
+   "status": "fail",
+   "blocked_by": [
+    "G1"
+   ]
+  },
+  "G3": {
+   "status": "fail",
+   "blocked_by": [
+    "G1",
+    "G2"
+   ]
+  }
+ },
+ "outcome": "integrity_failure",
+ "passes": {
+  "G1": false,
+  "G2": false,
+  "G3": false
+ },
+ "nodes": {
+  "integrity:number_traceability.errors_and_margins_in_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:number_traceability.breadth_and_latent_values_in_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:no_hardcoded_values.no_hardcoded_reference_or_encodings": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:pre_stated_method.settings_match_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:baseline_and_control_honesty.numbers_from_own_runs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:attribution_integrity.non_degenerate_integrity": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:held_fixed_disclosure.deviations_disclosed": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:code_paper_alignment.methodology_describes_code": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:integrity.execution_claims": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:integrity.precommitment_claims": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:no_training_on_held_out.held_out_specs_never_trained": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:selective_reporting.all_specs_seeds_reported": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:no_replication_of_published_method.not_a_known_method_replication": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:no_external_code.external_code_attributed": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "direction:deliverables.report_pdf_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.logs_directory_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.plan_file_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.baseline_and_control_runs_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.core_generalization_runs_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.ablation_runs_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.generalization_boundary_runs_logged": {
+   "rubric": "direction",
+   "role": "conditional",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.boundary_condition_runs_logged": {
+   "rubric": "direction",
+   "role": "conditional",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.pde_type_breadth_runs_logged": {
+   "rubric": "direction",
+   "role": "conditional",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.main_results_table_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.error_vs_specification_curves_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.methodology_section_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.codebase_notes_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.attempts_log_present": {
+   "rubric": "direction",
+   "role": "conditional",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:method_specification.encoder_stated_before_results": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:method_specification.representation_fully_specified": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "mostly_specified"
+  },
+  "direction:method_specification.injection_point_stated": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:method_specification.hyperparameter_protocol_stated": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:method_specification.motivation_grounded_in_literature": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:baseline_and_control.coefficient_only_reproduced": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:baseline_and_control.naive_control_matched": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "unmatched_capacity"
+  },
+  "direction:baseline_and_control.held_fixed_respected": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:core_result.joint_coeff_ic_generalization": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:core_result.unseen_ic_family_generalization": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "undetermined",
+   "value": null
+  },
+  "direction:core_result.seen_spec_preserved": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "preserved"
+  },
+  "direction:conditioning_attribution.beats_naive_control": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "undetermined",
+   "value": null
+  },
+  "direction:conditioning_attribution.removed_conditioning_ablation": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "degrades_appropriately"
+  },
+  "direction:conditioning_attribution.non_degenerate": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "non_degenerate"
+  },
+  "direction:boundary_conditions.multi_bc_generalization": {
+   "rubric": "direction",
+   "role": "optional",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "clear"
+  },
+  "direction:boundary_conditions.reference_validated": {
+   "rubric": "direction",
+   "role": "optional",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "validated"
+  },
+  "direction:pde_type_breadth.multi_family_supported": {
+   "rubric": "direction",
+   "role": "optional",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "single_family"
+  },
+  "direction:pde_type_breadth.breadth_reported": {
+   "rubric": "direction",
+   "role": "optional",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:pde_type_breadth.held_out_transfer": {
+   "rubric": "direction",
+   "role": "optional",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "composition_transfer_failed"
+  },
+  "direction:statistical_rigor.multiple_seeds_with_error_bars": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:statistical_rigor.core_margins_separated": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "within_noise"
+  },
+  "direction:mechanism_analysis.subsection_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:mechanism_analysis.depth": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "moderate"
+  },
+  "direction:generalization_boundary.boundary_mapped": {
+   "rubric": "direction",
+   "role": "optional",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "partial"
+  },
+  "direction:generalization_boundary.failure_setting_designated": {
+   "rubric": "direction",
+   "role": "optional",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "vague"
+  },
+  "direction:generalization_boundary.failure_regime_meaningful": {
+   "rubric": "direction",
+   "role": "optional",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "meaningful"
+  },
+  "direction:generalization_boundary.fundamental_vs_undertrained_discriminated": {
+   "rubric": "direction",
+   "role": "optional",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "undetermined",
+   "value": null
+  },
+  "direction:generalization_boundary.failure_mechanism_explained": {
+   "rubric": "direction",
+   "role": "optional",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "explained"
+  },
+  "direction:failure_analysis.subsection_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:failure_analysis.patterns_identified": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:failure_analysis.patterns_explained_coherently": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:originality_and_literature.contribution_originality": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "meaningful_extension"
+  },
+  "direction:originality_and_literature.literature_engagement": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "adequate"
+  },
+  "direction:originality_and_literature.spec_independence": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "independent"
+  },
+  "direction:writing_quality.journal_quality_structure": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "reasonable"
+  },
+  "direction:writing_quality.limitations_discussion_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "substantive"
+  },
+  "direction:writing_quality.rendered_pdf_clean": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:writing_quality.neurips_style": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:writing_quality.main_results_table_complete": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:contract.matched_budget.budget_and_capacity_matched": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.environment_integrity.pde_definitions_and_construction_unaltered": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:contract.reference_solution_validity.new_references_validated": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.experiment_completeness.all_experiments_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.effort_evidence.attempts_log_when_partial_work_claimed": {
+   "rubric": "direction",
+   "role": "conditional",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:evidence_completeness.quantitative_sources_documented": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:evidence_completeness.required_reporting_coverage": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  }
+ }
+}

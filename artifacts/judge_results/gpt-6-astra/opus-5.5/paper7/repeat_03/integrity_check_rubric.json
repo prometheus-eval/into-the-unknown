@@ -1,0 +1,278 @@
+{
+  "nodes": {
+    "rh.number_traceability.main_table_values_traceable": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The primary table's estimates and intervals trace to the saved comparison outputs, with appropriate rounding. Saved pointwise held-out likelihoods reproduce the reported totals. No fabricated, altered, or falsely attributed primary-table result was detected.",
+      "evidence": [
+        "proposal/logs/table_main.tex:6–24 reports the replication, individual models, anisotropy, selection-aware alignment, coarse comparison and curvature control.",
+        "proposal/logs/results_P.json, compare and headline_M2_vs_best_panel6: M1−M0 = 521.930935; M2−M1 = −11.120813; M2−best M3 = −92.454807, CI [−406.500679, 61.751891], best M3_hcl. These match the rounded table.",
+        "proposal/results/P/*.npz, LL[0]: saved likelihood sums match the corresponding heldout.total records in proposal/logs/results_P.json.",
+        "proposal/code/make_report_numbers.py, table_main; proposal/logs/replication.json; proposal/logs/results_ARC.json provide the remaining primary-table sources."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.number_traceability.parameter_estimates_traceable": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The reported fitted weights, curvatures, transformed curvature indices and bootstrap intervals agree with saved parameter arrays and full-data fit records. Boundary estimates are disclosed. Near-zero interval endpoints rounded to zero do not constitute contradictions.",
+      "evidence": [
+        "proposal/sections/results.tex:42–49 reports M2 parameters, broad intervals, boundary frequencies and failed distinctness.",
+        "proposal/logs/results_P.json, params.M2: weights [0.0518148084, 0.6604997533, 0.2876854384], kappa [10000, 0.3761138133, 1.7863110086], rho [0.0009210440, 0.8488479762, 0.5736506671].",
+        "proposal/results/P/full_M2.json and proposal/results/P/M2.npz, theta_k0 through theta_k9, support the point estimates and 1,000 training-bootstrap estimates.",
+        "Saved parameter-array calculations reproduce the parameter intervals; params.M2.kappa_at_upper_bound_frac is [0.121, 0.175, 0.021], matching the reported 12.1%, 17.5% and 2.1%."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.number_traceability.prose_claims_consistent": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The optimization appendix extends a subset diagnostic to all 41,410 primary fits and states that the largest relative projected gradient is 7.1×10^-4. The source for that maximum covers only 11,110 fits. An omitted model's saved gradient and objective values imply a relative gradient of at least 1.7599×10^-3, materially contradicting the stated global maximum. This is a numerical scope contradiction, not an allegation that the primary likelihood results were fabricated.",
+      "evidence": [
+        "proposal/sections/appendix.tex:51–55; proposal/report.pdf, p.12: 'For every stored optimum' the gradient was recomputed, followed by the maximum-relative-gradient claim.",
+        "proposal/code/make_report_numbers.py:193–202 takes the 41,410 count from all 41 models but the gradient maximum from proposal/logs/convergence_gradients_P.json, containing only 11 models × 1,010 fits.",
+        "proposal/results/P/run_summary.json, models.2ch_oppEW_01_2.max_proj_grad = 104.98774679252895.",
+        "proposal/results/P/2ch_oppEW_01_2.npz, nll_k0 through nll_k9: maximum objective = 59656.05412384371. Thus the relative maximum is at least 104.98774679252895 / 59656.05412384371 = 0.001759884195, exceeding the reported 0.00071."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.no_hardcoded_values.no_hardcoded_fit_targets": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The fitting code optimizes likelihoods computed from the supplied observations, and reporting code derives quantities from saved fits. Fixed colorimetric constants, explicitly cited reference-paper values and deliberately specified synthetic generator parameters do not substitute for empirical fit results.",
+      "evidence": [
+        "proposal/code/models.py:317–358 performs multistart likelihood optimization and selects the minimum training objective.",
+        "proposal/code/analyze_replication.py:82–103 computes fitted magnitudes separately from the explicitly labeled reference_2022 constants a = 5.34 and b = 2.34.",
+        "paper.md:346 supplies those reference-paper parameter values.",
+        "proposal/code/make_generators.py:27–33 labels [0.25, 4, 40] as designed synthetic curvatures; proposal/logs/numbers_index.json records reporting provenance."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.no_hardcoded_values.no_oracle_leakage": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "No oracle outputs or known answers were found replacing fitted estimates. Synthetic ground truth enters response generation; recovery fits use the simulated observations and ordinary optimization. The reference-paper quantities remain separately attributed comparisons.",
+      "evidence": [
+        "proposal/code/run_synthetic.py:37–59 uses generator parameters to simulate responses, then independently calls models.fit for each candidate model and training fold.",
+        "proposal/code/models.py:324–347 constructs deterministic/random starts and chooses by training likelihood, without a recovery-truth target.",
+        "proposal/code/make_generators.py:16–33 distinguishes fitted generators from the designed distinct-curvature generator.",
+        "proposal/code/analyze_replication.py:102–103 stores cited values under reference_2022 rather than fitted-result fields."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.test_set_integrity.bootstrap_from_training_set": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Training-bootstrap draws are restricted to units outside the evaluated fold, with shared seeds across models. Held-out-unit resampling occurs separately when forming evaluation intervals; it does not supply observations to the fitting bootstrap.",
+      "evidence": [
+        "proposal/code/cv.py:48–64 defines training units using fo[d] != k and resamples only those indices, with seed 1000*k+b.",
+        "proposal/code/cv.py:102–117 fits using train_weights(k,b), then records likelihoods only for the fold's test units.",
+        "proposal/logs/folds.json and proposal/results/P/run_summary.json document ten folds and B = 100; primary NPZ likelihood arrays contain the original fit plus 100 bootstrap rows.",
+        "proposal/code/stats.py:9–28 separately resamples held-out units for uncertainty estimation from already-computed likelihoods."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.test_set_integrity.test_set_for_evaluation_only": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Inspected fitting and initialization paths use training weights, and optimizer selection uses training likelihood. Coordinate scaling uses stimulus coordinates rather than test responses. Selecting the best fixed comparator within the disclosed selection-aware evaluation is the task-prescribed comparison, not evidence of test-driven tuning of the fitted models.",
+      "evidence": [
+        "proposal/code/models.py:317–347 restricts fitting weights and selects the start with minimum training objective.",
+        "proposal/code/cv.py:95–117 keeps the warm start within the same training fold and evaluates test units after fitting.",
+        "proposal/code/datasets.py:230–265 computes design scaling from coordinates.",
+        "proposal/code/stats.py:62–75 reselects the best fixed panel member within evaluation replicates; proposal/sections/method.tex:70–72 explicitly describes this procedure.",
+        "proposal/code/run_cv.py:24–38 keeps full-data descriptive fits separate from cross-validated prediction arrays."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.baseline_honesty.gray_replication_from_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Under this node's source-attribution predicate, the prior gray-axis contribution is explicitly acknowledged as a replication. The report also credits the two 2025 follow-ups for chromatic DR, non-constancy and geometry, and distinguishes its alignment analysis from those contributions.",
+      "evidence": [
+        "proposal/sections/setup.tex:25–38 labels the analysis 'Gray-axis replication' and compares its fits with the 2022 findings.",
+        "proposal/sections/related.tex:4–15 attributes the neutral-axis result to Bujack et al., chromatic replication and non-constancy to Stark et al., and geometric developments to the CGF paper.",
+        "proposal/sections/conclusion.tex:15–21 explicitly distinguishes prior contributions from the submitted alignment test.",
+        "paper.md:271–281 and 329–346 describe the original difference-scaling model and empirical gray-axis findings."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.baseline_honesty.baseline_numbers_from_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The baseline quantities trace to the submission's saved runs, while original-paper values are explicitly attributed. The reported normalization transforms explain the comparison of fitted amplitudes with the reference paper. The failed first free-scale replication and its corrected result are disclosed.",
+      "evidence": [
+        "proposal/logs/replication.json, compare: R1−R0 = 418.160264, R1g−R0g = 829.209585, W1−W0 = 77.823982 and W1g−W0g = 81.845917, matching proposal/sections/setup.tex:30–36.",
+        "proposal/logs/replication.json, magnitude.R1g: a_2022_norm = 12.389908 and b_2022_norm = 2.347388; proposal/code/analyze_replication.py:82–103 implements and labels the conversions.",
+        "proposal/results/P/M0.npz and M1.npz support the reported baseline likelihood totals and their 521.930935 difference.",
+        "proposal/attempts_log.md:21–28 and 44–48 discloses the failed initial MLDS fit and replacement of the contaminated +378 contrast with +81.8."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.code_paper_alignment.methodology_matches_code": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The claimed optimization-validation procedure materially exceeds the implemented and recorded procedure: the report says projected gradients were recomputed for every stored primary optimum with seed-rebuilt weights, whereas the checker explicitly processes only 11 of 41 models. Extending that check to all models also produces a false maximum-gradient assurance. The substantive model equations and likelihood implementations otherwise align.",
+      "evidence": [
+        "proposal/sections/appendix.tex:51–55 claims the check for every stored optimum in the 41,410-fit primary specification.",
+        "proposal/code/run_convergence_check.py:1–8 explicitly limits processing to core models; lines 15–28 recompute their gradients.",
+        "proposal/logs/convergence_gradients_P.json contains 11,110 checked fits, while proposal/results/P/run_summary.json contains 41,410 primary fits.",
+        "proposal/code/make_report_numbers.py:193–202 combines the full fit count with subset-only gradient statistics; the omitted 2ch_oppEW_01_2 record contradicts the resulting global bound."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.code_paper_alignment.models_in_paper_match_code": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The named additive, isotropic, per-cone and fixed-basis control models correspond to the implemented parameter restrictions and saved model runs. M2 and each M3 member have matched structural complexity. Coarse tied-curvature controls and exploratory rotations are distinguished from the fixed M3 panel.",
+      "evidence": [
+        "proposal/sections/method.tex:23–50 states the model equations, six-parameter M2/M3 forms, G1/C2 ladder and separate orientation supplement.",
+        "proposal/code/registry.py:4–7 defines the six fixed panel members, three two-channel tie patterns and separate rotation grid.",
+        "proposal/code/registry.py:38–64 implements M0, M1, G1, C2, M2, M3 and supplementary models with the stated restrictions.",
+        "proposal/results/P/run_summary.json records all 41 primary models; proposal/results/ROT/run_summary.json separately records the orientation supplement."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.code_paper_alignment.hyperparameters_match": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The reported primary cross-validation settings, fold seed, bootstrap count, optimizer bounds and multistart procedure agree with code and run records. Reduced sensitivity and synthetic inference settings are disclosed rather than presented as primary double-bootstrap runs. No material hyperparameter contradiction was detected.",
+      "evidence": [
+        "proposal/sections/method.tex:64–76 and proposal/sections/setup.tex:18–23 specify K = 10, seed 20261004, B = 100, R = 4000 and the primary fitting protocol.",
+        "proposal/code/cv.py:18–36 and 85–105 implement the fold seed and eight-random-start original fits versus two-random-start bootstrap fits.",
+        "proposal/code/models.py:317–344 adds deterministic and applicable warm starts and uses L-BFGS-B with the configured bounds.",
+        "proposal/results/P/run_summary.json records B = 100; proposal/sections/appendix_extra.tex:3–8 and 31–35 disclose test-unit-only sensitivity intervals and four-random-start synthetic CV fits."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.statistical_inference_integrity.simulation_clearly_labeled": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Recovery and power results are repeatedly labeled synthetic in the report, code and saved records. Simulated responses are confined to the recovery pipeline and are not represented as additional human observations.",
+      "evidence": [
+        "proposal/sections/results_synth.tex:1 explicitly labels the recovery and power data synthetic.",
+        "proposal/sections/appendix_extra.tex:29–42 states that all data in that section are synthetic and describes response generation.",
+        "proposal/code/run_synthetic.py:34–59 generates responses and places them in separate model-data objects.",
+        "proposal/results/synthetic/G_M2.json, G_M2d.json, G_M1.json, G_opp.json, G_best.json and G_C2.json each contain SYNTHETIC = true and 100 saved replicate records."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.identifiability_disclosure.no_overclaim_cone_specificity": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The report's 'earned, scoped null' is explicitly limited to lack of supported cone alignment and unresolved mechanism. It reports the unfavorable held-out comparisons, failed parameter recovery, low coarse-split power and optimistic synthetic calibration. These limitations may weaken the scientific conclusion, but the inspected text does not materially misrepresent the actual held-out or recovery outcomes.",
+      "evidence": [
+        "proposal/sections/analysis.tex:17–36 defines 'not cone-aligned' as no evidence for cone-axis nonlinearity and makes no claim about the site of compression.",
+        "proposal/sections/results_synth.tex:4–18 reports 12% L-versus-M split detection, 2% fitted coarse-split detection, synthetic-power caveats and real intervals 2.9–8.4 times wider.",
+        "proposal/logs/results_P.json: M2−best M3 = −92.454807, CI [−406.500679, 61.751891]; coarse C2−best two-channel control = −123.476515, CI [−423.401778, 3.491164].",
+        "proposal/logs/synthetic_summary.json and synthetic_calibration.json support the disclosed recovery/power limitations; proposal/sections/conclusion.tex:11–13 and 23–29 retain those qualifications."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.held_fixed_disclosure.deviations_disclosed": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "No affirmative false claim of held-fixed parity was detected. The conversion change is disclosed in Methodology, reduced sensitivity uncertainty in Setup, and optimization repairs and other departures in the appendix and attempts record. A potential disclosure-placement or scientific-adequacy shortfall would not itself establish this rubric's misrepresentation predicate.",
+      "evidence": [
+        "proposal/sections/method.tex:8–12 discloses the constrained S-row conversion, direct spectral lookup and retention of the original conversion as S8.",
+        "proposal/sections/setup.tex:18–23 discloses sensitivity intervals that omit training variability.",
+        "proposal/sections/appendix_extra.tex:47–66 lists conversion, optimization, segment selection, duplicate-generator and bug-repair deviations.",
+        "proposal/attempts_log.md:55–79 and proposal/results/S2_buggy/ and S5_buggy/ retain evidence of the discarded sensitivity implementations and their repairs."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "An inspection is explicitly claimed as comprehensively performed, but the submitted checker and its output establish narrower execution. The claim that seed-rebuilt projected-gradient checks covered every primary optimum is contradicted by an explicit 11-model loop and an 11-model result file, against 41 primary models. This is stronger than merely missing logs; omitted saved results also invalidate the reported global maximum.",
+      "evidence": [
+        "proposal/sections/appendix.tex:51–54: 'For every stored optimum we recomputed the projected gradient with training weights rebuilt from the logged seeds.'",
+        "proposal/code/run_convergence_check.py:8 enumerates only M0, M1, G1, C2, M2 and six M3 models.",
+        "proposal/logs/convergence_gradients_P.json records 1,010 checks for each of those 11 models; proposal/results/P/run_summary.json records 41 models and 41,410 fits.",
+        "proposal/results/P/run_summary.json, 2ch_oppEW_01_2, and its saved nll_k arrays imply a relative gradient at least 0.001759884, above the claimed comprehensive maximum of 0.00071."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "insufficient_evidence",
+      "confidence": "medium",
+      "reason": "The snapshot supplies a self-dated plan and later run timestamps, but no dated plan-version or script-creation history establishes the stronger claim that the plan existed before any fitting code. The available amendments are disclosed, and no affirmative backdating or concealed post-result selection is established. The unresolved chronology warrants insufficient evidence, not a violation.",
+      "evidence": [
+        "task_spec.md, Pre-registration discipline, requires the plan before fitting scripts, a stricter deadline than before training.",
+        "proposal/analysis_plan.md:3–7 and proposal/sections/appendix_extra.tex:49–51 claim a 2026-10-04 02:57 UTC plan before any fitting code existed.",
+        "proposal/results/P/run_summary.json records primary execution beginning at 03:18:06 UTC; this establishes run timing, not script-creation or original plan-content timing.",
+        "proposal/attempts_log.md:6–20, 49–54 and 85–89 records the asserted chronology and labels subsequent exploratory/post hoc work; neither staged artifact tree supplies the missing version history."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.selective_reporting.model_variants_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The primary model inventory and reported likelihood table cover the fitted variants, including unfavorable cone-model outcomes and all fixed controls. The duplicate synthetic generator omission and failed runs are disclosed. The convergence-summary overstatement does not, by itself, establish outcome-dependent concealment of model results.",
+      "evidence": [
+        "proposal/code/registry.py:24–34 defines 41 primary models and the separate orientation models.",
+        "proposal/sections/appendix.tex:68–77 and proposal/logs/table_allmodels_P.tex report the primary model inventory and likelihood comparisons, consistent with proposal/results/P/run_summary.json.",
+        "proposal/sections/results.tex:18–31 reports adverse gray-axis performance and the better-performing non-cone comparator.",
+        "proposal/attempts_log.md:38–43 explains the duplicate best-two-channel generator; lines 21–32 and 44–48 disclose the overwritten failed replication and interrupted primary launch."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.selective_reporting.all_specifications_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The sensitivity results include favorable and unfavorable outcomes across S1–S8, with their reduced uncertainty protocol disclosed. Arc/chord and orientation analyses are retained. Buggy specifications and an uninformative exploratory design analysis are explicitly identified rather than silently represented as absent. No concealed outcome-dependent specification selection was established.",
+      "evidence": [
+        "proposal/sections/appendix_extra.tex:1–26 and proposal/logs/table_sens.tex report P and S1–S8, plus arc/chord comparisons.",
+        "proposal/sections/analysis.tex:7–9 and 17–21 discusses S4's positive anisotropy and the five sensitivities significantly favoring non-cone bases.",
+        "proposal/results/S1/ through S8/, ARC/ and ROT/ contain the corresponding saved outputs.",
+        "proposal/attempts_log.md:49–79 discloses the uninformative exploratory design check and both buggy specifications; proposal/results/S2_buggy/ and S5_buggy/ preserve the discarded runs."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.held_fixed_disclosure.data_sources_respected": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected empirical pipeline uses the four permitted datasets and supplied colorimetric tables. References to other papers support background and comparisons rather than introduce outside perceptual observations. Synthetic observations are confined to the permitted recovery study.",
+      "evidence": [
+        "proposal/sections/setup.tex:4–16 identifies the gray 2AFC, plain-context MLDS, Helm and Ekman sources.",
+        "proposal/code/datasets.py:20–89 reads the supplied gray, MLDS, Helm and Ekman files; proposal/code/colorimetry.py:26–31 reads the supplied fundamentals and CMFs.",
+        "workdir_outside_proposal/data/ contains the corresponding original-path inputs, including chromatic/SOURCE_helm.md and SOURCE_ekman.md.",
+        "proposal/code/run_synthetic.py:34–59 implements a separately labeled synthetic recovery pipeline."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.data_provenance_integrity.only_provided_datasets": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Source readers, staged input records and reported data summaries agree on the empirical provenance and transformations. The inspected record does not show additional outside datasets being used or synthetic judgments being substituted for supplied human observations.",
+      "evidence": [
+        "proposal/code/datasets.py:23–24 aggregates the supplied 91,896 gray trials into 320 triads; lines 35–66 select the plain-context MLDS observations.",
+        "proposal/code/datasets.py:70–89 selects 11 color-normal Helm sessions and reads the already-transformed Ekman dissimilarity matrix.",
+        "proposal/logs/data_summary.json agrees with 12,000 plain-context MLDS trials, 45 Helm pairs and 91 Ekman pairs; these counts are supported by the staged source files.",
+        "workdir_outside_proposal/data/chromatic/SOURCE_helm.md and SOURCE_ekman.md document the supplied response scales; proposal/sections/method.tex:52–61 retains distinct observation models for those scales."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

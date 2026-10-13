@@ -1,0 +1,1210 @@
+{
+ "model": "opus-5.5",
+ "paper": 11,
+ "repeat": 1,
+ "rubric_revision": "science-task-alignment-v2-scope",
+ "grading_policy_version": "science-gates-v2-g1-unresolved-fail",
+ "context": {
+  "partial_work_claimed": true,
+  "probe_law_changed": true,
+  "underconverged_baseline": false
+ },
+ "gates": {
+  "G1": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "rh.code_paper_alignment.methodology_matches_code",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For code paper alignment: methodology matches code, is there affirmative evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence?",
+     "reason": "Identify evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The report's statement that IRC and NMS are 'used only for evaluation' is materially contradicted by executed label-dependent method selection. Pilot diagnostics use their reference Hessians and forces, and those diagnostics inform the allocation design and probe budget. Saved pilot indices belong to the same datasets subsequently evaluated in full. A different pilot training seed does not make these evaluation labels independent of method selection. The appendix discloses the selection, but that disclosure does not make the evaluation-only description accurate.",
+     "evidence": [
+      "proposal/sections/setup.tex:5 states that IRC and NMS are 'used only for evaluation'; setup.tex:20 identifies pilot seed 100 as the source of design decisions.",
+      "proposal/code/pilot/diag_noise3.py:42–49 samples the actual Test/IRC/NMS pools; lines 58–98 use reference Hessians, reference forces and label-dependent gradient second moments.",
+      "proposal/code/pilot/select_hparams.py:15–45 evaluates allocation settings using worst-case Test/IRC/NMS predicted variance, explicitly excluding Train from the selection criterion.",
+      "proposal/logs/pilot_diag/diag3_ep25_IRCNMS.pt and corresponding epoch 100/200/400/500 records: each saved IRC/NMS sample contains 600 indices also present in proposal/logs/runs/phl_s0/eval_final_permol.npz.",
+      "proposal/sections/appendix.tex:40 and proposal/attempts_log.md:58–70 explicitly document Test/IRC/NMS-based selection and the resulting main probe fraction of 1/3."
+     ]
+    },
+    {
+     "node_id": "rh.code_paper_alignment.hyperparameters_match",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For code paper alignment: hyperparameters match, is there affirmative evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence?",
+     "reason": "Identify evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The final numerical hyperparameters match the reported settings, but this node's full predicate also covers contradictions in the implemented method. The hyperparameter-selection procedure contradicts the evaluation-only designation of IRC/NMS: labeled diagnostics from these final evaluation datasets were used to assess and retain allocation settings and choose the main budget. This is the same documented data-role contradiction, not an allegation that the optimizer or loss-weight values differ.",
+     "evidence": [
+      "proposal/sections/setup.tex:5 versus proposal/sections/appendix.tex:40: evaluation-only dataset language conflicts with the stated selection of score exponents and defensive weight using Test/IRC/NMS predicted variance.",
+      "proposal/code/pilot/select_hparams.py:1–5,23–45 defines a 320-setting grid and a worst-case evaluation-dataset criterion; the retained candidate is (1/4, 1/4, -1, alpha=0.2).",
+      "proposal/logs/pilot_diag/select_hparams.txt records the executed comparison: best grid value 2.107 and retained candidate 2.113.",
+      "proposal/attempts_log.md:58–70 connects these labeled diagnostics to the retained settings and choice of probe fractions 1/3 and 1/5.",
+      "proposal/sections/method.tex:96 and proposal/logs/runs/ours3_s0/config.json: the final fraction and alpha themselves agree with the implementation."
+     ]
+    }
+   ],
+   "unresolved_reasons": [],
+   "assessment_status": "fail",
+   "failure_basis": [
+    "detected_violation"
+   ]
+  },
+  "G2": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "deliverables.reimplemented_baseline_runs_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are reimplemented PHL baseline runs logged for all 5+ seeds with full per-epoch trajectories on Test/IRC/NMS for E/F/H?",
+     "reason": "Reimplemented baseline runs absent or substantively incomplete.",
+     "judge_reason": "Five completed baseline seeds have training logs, but the required full per-epoch Test/IRC/NMS E/F/H trajectories are absent: those datasets were evaluated only at the best-validation checkpoint. Validation Hessian RMSE is also recorded only every fifth epoch. Checking both staged locations found no complementary trajectory logs.",
+     "evidence": [
+      "proposal/codebase_notes.md:72–83",
+      "proposal/logs/README.md:8",
+      "proposal/logs/runs/phl_s0/epochs.csv and corresponding phl_s1–phl_s4 records",
+      "workdir_outside_proposal/ inventory"
+     ]
+    },
+    {
+     "node_id": "deliverables.proposed_method_runs_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are proposed-method runs logged for all 5+ seeds with per-minibatch probe counts and allocation decisions?",
+     "reason": "Proposed-method runs absent or substantively incomplete.",
+     "judge_reason": "Both proposed configurations have five completed seeds and complete per-step count and allocation records. However, the positive condition also requires full trajectories using the task's baseline logging structure; Hessian validation RMSE is missing from four of every five epochs. Complete counts and allocations do not satisfy that remaining trajectory requirement.",
+     "evidence": [
+      "task_spec.md:263–265",
+      "proposal/logs/README.md:8",
+      "proposal/logs/runs/ours3_s0/epochs.csv, steps.npz, and selection_log.npz",
+      "proposal/logs/runs/ours3_s1–ours3_s4 and ours5_s0–ours5_s4"
+     ]
+    },
+    {
+     "node_id": "deliverables.variance_audit_present",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are periodic gradient-variance audit logs present (minibatches, estimator gradients, oracle gradients, ratios)?",
+     "reason": "Variance audit absent or token.",
+     "judge_reason": "Substantial periodic audits are present, but the required gradient records are incomplete. Periodic JSON records retain minibatches, oracle norms, squared estimation errors, and ratios; raw oracle and estimator gradients are retained only for small subsets at the best checkpoints of phl_s0 and ours3_s0, not throughout the periodic audit.",
+     "evidence": [
+      "task_spec.md:266",
+      "proposal/logs/README.md:10–11",
+      "proposal/logs/audit/",
+      "proposal/logs/audit_vectors/",
+      "proposal/code/variance_audit.py:157–170"
+     ]
+    },
+    {
+     "node_id": "deliverables.convergence_curves_present",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are validation-loss convergence curves shown for both methods across 5+ seeds with mean ± std bands?",
+     "reason": "Curves absent or seed-aggregation missing.",
+     "judge_reason": "Figure 1 provides RTP validation E/F/H convergence curves with seed aggregation and standard-deviation bands. It does not provide the per-dataset curve coverage specified by the rubric's positive answer: Test/IRC/NMS have final evaluations, not separate convergence trajectories.",
+     "evidence": [
+      "rubric.json, deliverables.convergence_curves_present positive answer definition",
+      "proposal/report.pdf, Figure 1",
+      "proposal/sections/results.tex:43–50",
+      "proposal/codebase_notes.md:82–83"
+     ]
+    },
+    {
+     "node_id": "evidence_completeness.required_reporting_coverage",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Does reporting cover the experiments, completed seeds, required metrics, uncertainty summaries, and attempts required by this task and its applicable declared protocol? Assess coverage against the task, respecting optional work and permitted reporting alternatives. An omission alone is not evidence of favorable-result selection.",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "Completed seeds, final nine-cell evaluations, uncertainty summaries, and attempts are extensively documented. Nevertheless, the task-required logging coverage is incomplete: validation Hessian RMSE is only recorded every fifth epoch, and periodic audits do not retain the required estimator and oracle gradient vectors beyond limited best-checkpoint samples. These are concrete reporting omissions, not findings of selective reporting or fabrication.",
+     "evidence": [
+      "task_spec.md:263–266",
+      "proposal/logs/README.md:8–11",
+      "proposal/logs/runs/, epochs.csv records",
+      "proposal/logs/audit/",
+      "proposal/logs/audit_vectors/",
+      "workdir_outside_proposal/ inventory"
+     ]
+    }
+   ],
+   "unresolved_reasons": []
+  },
+  "G3": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "probe_reduction.consistency_across_datasets",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "modest_only",
+     "accepted_values": [
+      "substantial_on_all_three",
+      "substantial_on_two_matches_on_one",
+      "substantial_on_two_modest_on_one"
+     ],
+     "question": "How does the method perform across the three datasets together?",
+     "reason": "Modest reductions only, no substantial.",
+     "judge_reason": "ModAL-1/3 achieves the modest-reduction tier on all three datasets. No dataset establishes a ≥5-fold reduction with both accuracy and variance parity; the 1/5 variant exceeds the variance limit everywhere.",
+     "evidence": [
+      "proposal/logs/tables/main_results.tex:7–9",
+      "proposal/logs/tables/variance.tex",
+      "proposal/sections/analysis.tex:46–47"
+     ]
+    },
+    {
+     "node_id": "compute_cost_analysis.classical_overhead_quantified",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "partial",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the allocation rule's classical overhead (per-minibatch decision logic) quantified?",
+     "reason": "Overhead mentioned but not quantified.",
+     "judge_reason": "The per-minibatch decision operations are described, and basis precomputation and end-to-end training time are measured. However, the allocation decision logic itself is not separately timed or otherwise quantitatively costed, so the specific overhead-quantification condition is only partially addressed.",
+     "evidence": [
+      "proposal/sections/method.tex:96",
+      "proposal/sections/analysis.tex:54",
+      "proposal/logs/basis_timing.json",
+      "proposal/logs/timing/timing_summary.json"
+     ]
+    },
+    {
+     "node_id": null,
+     "rubric": "direction",
+     "rule_id": "substantial_probe_saving_on_two_datasets",
+     "gate": "G3",
+     "code": "combined_requirement_not_met",
+     "reason": "At least two of Test/IRC/NMS must attain >=5x time-averaged probe reduction. Nine-cell accuracy parity and three-dataset variance parity are separately mandatory.",
+     "node_ids": [
+      "probe_reduction.classification_on_test",
+      "probe_reduction.classification_on_irc",
+      "probe_reduction.classification_on_nms"
+     ],
+     "observed_values": {
+      "probe_reduction.classification_on_test": "modest_reduction",
+      "probe_reduction.classification_on_irc": "modest_reduction",
+      "probe_reduction.classification_on_nms": "modest_reduction"
+     },
+     "supporting_findings": [
+      {
+       "node_id": "probe_reduction.classification_on_test",
+       "rubric": "direction",
+       "assigned_gate": "G3",
+       "role": "composite_member",
+       "value": "modest_reduction",
+       "applicable": true,
+       "rationale": "Substantial reduction is required on >=2/3 datasets, not all three; global accuracy/variance checks still apply to all.",
+       "judge_reason": "Primary ModAL averages 131.4507 probes versus PHL's 395.3380, a 3.0075-fold reduction. All three Test accuracy cells pass route (a), and the prescribed aggregate variance ratio is 1.5638. This meets the ≥2 and <5 tier. The nominal fivefold variant has Test variance ratio 2.54 and does not qualify for substantial reduction at parity.",
+       "evidence": [
+        "proposal/logs/runs/phl_s0/train_summary.json",
+        "proposal/logs/runs/ours3_s0/train_summary.json",
+        "proposal/logs/parity_tests.json, ours3 Test cells",
+        "proposal/logs/variance_audit_summary.json, Test"
+       ],
+       "status": "fail",
+       "outcome_gate": "G3",
+       "finding": {
+        "node_id": "probe_reduction.classification_on_test",
+        "rubric": "direction",
+        "gate": "G3",
+        "code": "criterion_not_met",
+        "observed_value": "modest_reduction",
+        "accepted_values": [
+         "substantial_reduction"
+        ],
+        "question": "How does the method's time-averaged probe-count per minibatch on Test compare to reimplemented PHL's B-probes baseline?",
+        "reason": "≥2× and <5× fewer probes at matched accuracy and matched variance.",
+        "judge_reason": "Primary ModAL averages 131.4507 probes versus PHL's 395.3380, a 3.0075-fold reduction. All three Test accuracy cells pass route (a), and the prescribed aggregate variance ratio is 1.5638. This meets the ≥2 and <5 tier. The nominal fivefold variant has Test variance ratio 2.54 and does not qualify for substantial reduction at parity.",
+        "evidence": [
+         "proposal/logs/runs/phl_s0/train_summary.json",
+         "proposal/logs/runs/ours3_s0/train_summary.json",
+         "proposal/logs/parity_tests.json, ours3 Test cells",
+         "proposal/logs/variance_audit_summary.json, Test"
+        ]
+       }
+      },
+      {
+       "node_id": "probe_reduction.classification_on_irc",
+       "rubric": "direction",
+       "assigned_gate": "G3",
+       "role": "composite_member",
+       "value": "modest_reduction",
+       "applicable": true,
+       "rationale": "Substantial reduction is required on >=2/3 datasets, not all three; global accuracy/variance checks still apply to all.",
+       "judge_reason": "The trained method achieves a 3.0075-fold time-averaged probe reduction, all three IRC accuracy cells pass route (a), and aggregate IRC variance is 1.7568 times PHL. The nominal fivefold variant has IRC variance ratio 2.93, so it does not establish substantial reduction at parity.",
+       "evidence": [
+        "proposal/logs/results_summary.json, phl and ours3 probe averages",
+        "proposal/logs/parity_tests.json, ours3 IRC cells",
+        "proposal/logs/variance_audit_summary.json, IRC"
+       ],
+       "status": "fail",
+       "outcome_gate": "G3",
+       "finding": {
+        "node_id": "probe_reduction.classification_on_irc",
+        "rubric": "direction",
+        "gate": "G3",
+        "code": "criterion_not_met",
+        "observed_value": "modest_reduction",
+        "accepted_values": [
+         "substantial_reduction"
+        ],
+        "question": "How does the method's time-averaged probe-count per minibatch on IRC compare to reimplemented PHL's B-probes baseline?",
+        "reason": "≥2× and <5× fewer probes at matched accuracy and matched variance.",
+        "judge_reason": "The trained method achieves a 3.0075-fold time-averaged probe reduction, all three IRC accuracy cells pass route (a), and aggregate IRC variance is 1.7568 times PHL. The nominal fivefold variant has IRC variance ratio 2.93, so it does not establish substantial reduction at parity.",
+        "evidence": [
+         "proposal/logs/results_summary.json, phl and ours3 probe averages",
+         "proposal/logs/parity_tests.json, ours3 IRC cells",
+         "proposal/logs/variance_audit_summary.json, IRC"
+        ]
+       }
+      },
+      {
+       "node_id": "probe_reduction.classification_on_nms",
+       "rubric": "direction",
+       "assigned_gate": "G3",
+       "role": "composite_member",
+       "value": "modest_reduction",
+       "applicable": true,
+       "rationale": "Substantial reduction is required on >=2/3 datasets, not all three; global accuracy/variance checks still apply to all.",
+       "judge_reason": "The trained method achieves a 3.0075-fold time-averaged probe reduction, all three NMS accuracy cells pass route (a), and aggregate NMS variance is 1.5398 times PHL. The nominal fivefold variant has NMS variance ratio 2.57 and therefore fails the substantial-reduction parity condition.",
+       "evidence": [
+        "proposal/logs/results_summary.json, phl and ours3 probe averages",
+        "proposal/logs/parity_tests.json, ours3 NMS cells",
+        "proposal/logs/variance_audit_summary.json, NMS"
+       ],
+       "status": "fail",
+       "outcome_gate": "G3",
+       "finding": {
+        "node_id": "probe_reduction.classification_on_nms",
+        "rubric": "direction",
+        "gate": "G3",
+        "code": "criterion_not_met",
+        "observed_value": "modest_reduction",
+        "accepted_values": [
+         "substantial_reduction"
+        ],
+        "question": "How does the method's time-averaged probe-count per minibatch on NMS compare to reimplemented PHL's B-probes baseline?",
+        "reason": "≥2× and <5× fewer probes at matched accuracy and matched variance.",
+        "judge_reason": "The trained method achieves a 3.0075-fold time-averaged probe reduction, all three NMS accuracy cells pass route (a), and aggregate NMS variance is 1.5398 times PHL. The nominal fivefold variant has NMS variance ratio 2.57 and therefore fails the substantial-reduction parity condition.",
+        "evidence": [
+         "proposal/logs/results_summary.json, phl and ours3 probe averages",
+         "proposal/logs/parity_tests.json, ours3 NMS cells",
+         "proposal/logs/variance_audit_summary.json, NMS"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved_reasons": [
+    {
+     "node_id": "contract.held_fixed_disclosure.architecture_hyperparams_respected",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "missing_judgment",
+     "observed_value": null,
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Are the task's held-fixed PHL architecture, loss weights, optimizer/scheduler, dataset definitions, and matched training regime actually respected? Disclosing a shortfall does not satisfy the scientific requirement.",
+     "reason": "No valid judgment for this node; no pass or substantive violation is inferred.",
+     "judge_reason": "Adjudication is needed because the authoritative task gives conflicting architecture directions. Line 96 requires an identical 'HIP-NN-style MLIP', while lines 167 and 176 designate the supplied authors' notebook and architecture as the reference; that notebook implements ANI. The submission follows ANI faithfully and discloses this discrepancy. Following the named architecture would fail this condition, while following the designated reference would satisfy it; disclosure alone cannot resolve the conflict.",
+     "evidence": [
+      "task_spec.md:96",
+      "task_spec.md:167–176",
+      "workdir_outside_proposal/code/PHL/PHL_training.ipynb, architecture cells 4/6/7/8",
+      "proposal/codebase_notes.md:12–35",
+      "proposal/code/phlx/model.py",
+      "proposal/sections/setup.tex:8"
+     ]
+    }
+   ]
+  }
+ },
+ "cumulative": {
+  "G1": {
+   "status": "fail",
+   "blocked_by": []
+  },
+  "G2": {
+   "status": "fail",
+   "blocked_by": [
+    "G1"
+   ]
+  },
+  "G3": {
+   "status": "fail",
+   "blocked_by": [
+    "G1",
+    "G2"
+   ]
+  }
+ },
+ "outcome": "integrity_failure",
+ "passes": {
+  "G1": false,
+  "G2": false,
+  "G3": false
+ },
+ "nodes": {
+  "integrity:rh.number_traceability.all_quantities_trace": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.no_hardcoded_values.no_oracle_targets_in_code": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.two_baseline_integrity.paper_as_reported_traceable_to_citations": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.two_baseline_integrity.reimplemented_traceable_to_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.two_baseline_integrity.baseline_distinction_honored": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.under_convergence_disclosure.gap_disclosed_appropriately": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.pre_stated_method.consistent_tolerances": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.code_paper_alignment.methodology_matches_code": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:rh.code_paper_alignment.hyperparameters_match": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:rh.no_bias_trade.no_offline_pretraining_amortization": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.no_bias_trade.no_smuggled_hessian_information": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.consistent_reduction_reporting.consistent_baseline_used": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:integrity.execution_claims": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:integrity.precommitment_claims": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.selective_reporting.all_seeds_reported": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "direction:deliverables.report_pdf_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.logs_directory_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.reimplemented_baseline_runs_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.proposed_method_runs_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.variance_audit_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.paper_reference_doc_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.main_results_table_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.convergence_curves_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.variance_curves_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.rmse_bar_charts_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.codebase_notes_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.attempts_log_present": {
+   "rubric": "direction",
+   "role": "conditional",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "required_and_present_substantive"
+  },
+  "direction:method_specification.method_stated_before_results": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:method_specification.unbiasedness_proof_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "proof_complete"
+  },
+  "direction:method_specification.variance_analysis_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "analytical_and_empirical"
+  },
+  "direction:method_specification.allocation_rule_complete": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "complete"
+  },
+  "direction:method_specification.motivation_grounded_in_literature": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:two_baseline_reporting.paper_as_reported_row_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:two_baseline_reporting.reimplemented_row_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:two_baseline_reporting.paper_as_reported_citations_specific": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "all_cited"
+  },
+  "direction:two_baseline_reporting.matched_compute_between_method_and_reimpl": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:two_baseline_reporting.reimplementation_tracks_paper": {
+   "rubric": "direction",
+   "role": "diagnostic",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "diagnostic",
+   "value": "close_match"
+  },
+  "direction:under_convergence_transparency.gap_documented_in_setup": {
+   "rubric": "direction",
+   "role": "conditional",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": false,
+   "status": "not_applicable",
+   "value": "yes"
+  },
+  "direction:under_convergence_transparency.transfer_analysis_present": {
+   "rubric": "direction",
+   "role": "conditional",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": false,
+   "status": "not_applicable",
+   "value": "substantive"
+  },
+  "direction:baseline_verification.phl_reproduced_on_all_datasets": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:baseline_verification.seed_pairing_correct": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:experimental_completeness.five_seeds_per_method": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:experimental_completeness.three_datasets_evaluated": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:experimental_completeness.variance_audit_executed": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:experimental_completeness.hyperparameter_selection_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:probe_reduction.classification_on_test": {
+   "rubric": "direction",
+   "role": "composite_member",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "modest_reduction"
+  },
+  "direction:probe_reduction.classification_on_irc": {
+   "rubric": "direction",
+   "role": "composite_member",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "modest_reduction"
+  },
+  "direction:probe_reduction.classification_on_nms": {
+   "rubric": "direction",
+   "role": "composite_member",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "modest_reduction"
+  },
+  "direction:probe_reduction.consistency_across_datasets": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "modest_only"
+  },
+  "direction:accuracy_parity.test_energy": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "passes"
+  },
+  "direction:accuracy_parity.test_force": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "passes"
+  },
+  "direction:accuracy_parity.test_hessian": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "passes"
+  },
+  "direction:accuracy_parity.irc_energy": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "passes"
+  },
+  "direction:accuracy_parity.irc_force": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "passes"
+  },
+  "direction:accuracy_parity.irc_hessian": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "passes"
+  },
+  "direction:accuracy_parity.nms_energy": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "passes"
+  },
+  "direction:accuracy_parity.nms_force": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "passes"
+  },
+  "direction:accuracy_parity.nms_hessian": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "passes"
+  },
+  "direction:variance_parity.test_dataset": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "within_tolerance"
+  },
+  "direction:variance_parity.irc_dataset": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "within_tolerance"
+  },
+  "direction:variance_parity.nms_dataset": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "within_tolerance"
+  },
+  "direction:justification.quality_on_test": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "method_connected_justification"
+  },
+  "direction:justification.quality_on_irc": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "method_connected_justification"
+  },
+  "direction:justification.quality_on_nms": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "method_connected_justification"
+  },
+  "direction:mechanism_analysis.subsection_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:mechanism_analysis.depth": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "strong"
+  },
+  "direction:mechanism_analysis.ablations_isolate_components": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes_clean"
+  },
+  "direction:mechanism_analysis.probe_law_ablation": {
+   "rubric": "direction",
+   "role": "conditional",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "present"
+  },
+  "direction:failure_analysis.subsection_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:failure_analysis.patterns_identified": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:failure_analysis.patterns_explained_coherently": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:compute_cost_analysis.subsection_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:compute_cost_analysis.wall_clock_addressed": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes_with_floor_acknowledged"
+  },
+  "direction:compute_cost_analysis.scaling_discussed": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes_quantitative_estimate"
+  },
+  "direction:compute_cost_analysis.classical_overhead_quantified": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "partial"
+  },
+  "direction:originality_and_literature.contribution_originality": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "distinct_contribution"
+  },
+  "direction:originality_and_literature.literature_engagement": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "substantive"
+  },
+  "direction:originality_and_literature.spec_independence": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "mostly_independent"
+  },
+  "direction:writing_quality.journal_quality_structure": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "journal_quality"
+  },
+  "direction:writing_quality.limitations_discussion_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "substantive"
+  },
+  "direction:writing_quality.rendered_pdf_clean": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "clean"
+  },
+  "direction:contract.test_set_integrity.data_splits_unchanged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:contract.effort_evidence.attempts_log_corroborates_claims": {
+   "rubric": "direction",
+   "role": "conditional",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:contract.experiment_completeness.every_paper_claim_has_logs": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:contract.estimator_integrity.unbiasedness_proof_correct": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:contract.no_bias_trade.no_zeroed_hessian_loss_without_compensation": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:contract.per_dataset_characterization.results_reported_per_dataset": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:contract.consistent_reduction_reporting.time_averaged_count_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:contract.held_fixed_disclosure.architecture_hyperparams_respected": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "undetermined",
+   "value": null
+  },
+  "direction:evidence_completeness.quantitative_sources_documented": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:evidence_completeness.required_reporting_coverage": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  }
+ }
+}

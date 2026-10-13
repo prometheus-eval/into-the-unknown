@@ -1,0 +1,212 @@
+{
+  "nodes": {
+    "number_traceability.metric_values_in_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The report falsely attributes the intensity correlation statistics to the ion-magnetization ratio. It reports rho=0.45 and Holm-adjusted p=0.0015 for Omega_ci/omega_r, but those values belong to intensity I. The corresponding magnetization values are rho=0.429773 and adjusted p=0.00283954. This is a variable-attribution error, not rounding or a unit conversion.",
+      "evidence": [
+        "proposal/report.pdf, p.10, §5.4; proposal/sections/results.tex:96-101 explicitly associate Omega_ci/omega_r with AssocBestRho and AssocBestPholm.",
+        "proposal/logs/results_macros.tex:8-10 defines AssocBestRho=0.45, AssocBestPholm=0.0015, and AssocBestVar=I.",
+        "proposal/logs/boundary_results.json, compactness.one.I: rho=0.4493734819, raw p=0.0001363701673; compactness.one.Wci_over_wr: rho=0.4297733727, raw p=0.0002839535111.",
+        "proposal/code/analysis/make_macros.py:160-174 selects the strongest correlation across variables. Applying its stated Holm calculation gives 0.00150007184 for I and 0.00283953511 for Wci_over_wr."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "number_traceability.boundary_threshold_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The reported primary threshold, tau=0.30, matches the preserved plan and classification implementation. Thresholds 0.20 and 0.40 are explicitly sensitivity analyses. Saved classifications agree with the threshold rule, including the high-intensity illustrative break; no threshold fabrication or contradictory attribution was detected.",
+      "evidence": [
+        "proposal/code/sweep_plan_v0_frozen.json and proposal/code/sweep_plan.json, classification.threshold_tau=0.30.",
+        "proposal/sections/method.tex:23-46 states the threshold, sensitivity values, and established-versus-illustrative distinction.",
+        "proposal/code/analysis/boundary_analysis.py:21-26,262-285 reads the configured threshold and applies abs(Delta)<=tau.",
+        "proposal/logs/boundary_results.json, tau_sensitivity: each of 0.2, 0.3 and 0.4 yields 66 holds and one break among 67 test cells; the I=2.0 new cell has Delta=0.464601."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "number_traceability.pic_gain_values_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected PIC gains are traceable to archived measurements or saved new-run energy records. All 559 gain values across the 70 archived curves match their source files. For all 36 processed new runs, the logged Fourier gains and spreads agree with calculations from saved energies, and real-mode summaries agree with their recorded samples. Disclosed offset and spectral-window corrections are distinguishable from the original measurements.",
+      "evidence": [
+        "workdir_outside_proposal/data/pic_simulations/PIC_processed_data.zip; proposal/logs/boundary_results.json, results with source=provided and their files/g fields.",
+        "proposal/logs/pic_new/Na_B0_phi75_zz_I0.5_dl0.9_s0.json: FI.g=1.1341823919945049, consistent with the mean logarithmic energy ratios from FI.U.",
+        "proposal/code/pic/process_new_runs.py:34-61 records FI, FI_faithful_no_fallback, RM samples, dump times and configurations.",
+        "proposal/sections/simulations.tex:74-87 and proposal/codebase_notes.md:76-79 disclose the new-run window fallback and preservation of faithful values."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_hardcoded_values.no_hardcoded_gains_or_thresholds": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected code computes theoretical response, PIC gains, integrated transfers, calibration and classifications rather than substituting target outputs. The threshold is a legitimate declared configuration constant. Generated report macros contain stored results, but their generation from analysis records is inspectable; this does not constitute hardcoded computation.",
+      "evidence": [
+        "proposal/code/vlasov/magcbet.py:370-463 computes the plasma response, coupled-mode propagation and first-order transfer.",
+        "proposal/code/pic/gain_pipeline.py and proposal/code/pic/process_new_runs.py:41-59 extract gains from saved field dumps.",
+        "proposal/code/analysis/boundary_analysis.py:120-219 computes offsets, transfers, calibration and Delta; lines 262-285 classify results.",
+        "proposal/code/sweep_plan.json, classification.threshold_tau; proposal/code/analysis/make_macros.py reads saved analysis results to generate report values."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "pre_stated_method.metric_definition_matches_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The paper's agreement metric and normalization match their executed computation: inverse-log-F conversion of offset-corrected PIC gains, trapezoidal integration, one calibration per family, and normalization by the calibrated unmagnetized theoretical transfer at the same intensity. Independent calculations from saved values reproduce every reported Delta and reproduce PIC transfers to approximately 1.5e-13. The separate coupling-equation discrepancy does not change this agreement-metric formula.",
+      "evidence": [
+        "proposal/sections/theory.tex:119-133 defines the integrated observable; proposal/sections/method.tex:14-46 defines calibration, Delta and uncertainty propagation.",
+        "proposal/code/analysis/boundary_analysis.py:120-134,156-207 implements those transformations and the stated denominator.",
+        "proposal/logs/boundary_results.json, all 79 results and calib records; proposal/logs/main_table.csv contains the same 79 result identifiers.",
+        "proposal/code/analysis/boundary_analysis.py:169-177,199-202 implements shared offset draws and jointly propagated anchor calibration."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_honesty.vlasov_from_own_reconstruction": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The baseline values are supported by the submitted reconstruction and saved per-cell theoretical outputs. The report identifies the inherited theory, its reconstruction approximations, calibration and incomplete qualitative agreement. No evidence establishes that cited results were passed off as executed baselines or that the saved baseline quantities were fabricated. The implementation-description discrepancy is assessed separately.",
+      "evidence": [
+        "proposal/sections/theory.tex:34-49,85-102 attributes the theory and describes reconstruction choices; proposal/sections/limitations.tex:16-19 discloses approximations and omitted finite-size blurring.",
+        "proposal/code/vlasov/evaluate_vlasov.py:144-168 and subsequent baseline-evaluation code generate per-cell theoretical records.",
+        "proposal/logs/vlasov/C-paper_B0_phina_zz_I0.5.json and proposal/logs/boundary_results.json, calib.C-paper: T_V0=1.4479660608946363, T_PIC=2.9510886467344664, C=2.038092415585428.",
+        "proposal/logs/reproduction.json and proposal/sections/results.tex:4-17 report the failed third qualitative trend alongside successful trends."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_paper_alignment.methodology_describes_code": {
+      "value": "violation_detected",
+      "confidence": "medium",
+      "reason": "The printed coupling equations specify a pair factor twice the implemented factor, while retaining the same Gamma prefactor. Consequently, the printed first-order coupling is twice the executed coupling. Although a uniform scale cancels in calibrated Delta, it materially affects the separately discussed absolute baseline and calibration constants. The disclosed factor-of-two difference from the reference publication does not explain this discrepancy between the submission's own equations and code. This finding concerns implementation-description alignment, independent of which physical normalization is correct.",
+      "evidence": [
+        "proposal/sections/theory.tex:51-63 writes the pair factor as a+b and explicitly identifies it as 2 times the real-part contraction.",
+        "proposal/sections/theory.tex:85-94 defines Gamma with denominator 8 and w using that pair factor.",
+        "proposal/code/vlasov/magcbet.py:393-394 instead sets cf=0.5*(a+b); lines 422-430 use it with the same denominator-8 Gamma and coupling matrix.",
+        "proposal/sections/results.tex:19-35 discusses absolute underprediction and calibration; proposal/sections/limitations.tex:16-19 describes a normalization difference from the published reference, not from the submission's own displayed equations."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "held_fixed_disclosure.deviations_disclosed": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The material inspected departures from the source configuration and pipeline are disclosed: reduced resolution and particle count, RNG control, Python processing, cold eigenvectors, the spectral-window fallback, and incomplete resolution validation. The report explicitly restricts the new sweep after magnetized validation fails. These departures do not establish a false claim of held-fixed compliance.",
+      "evidence": [
+        "proposal/sections/simulations.tex:22-42,74-87 states the 12-cell/10-particle configuration, seed repeats, failed magnetized validation and processing fallback.",
+        "proposal/sections/results.tex:163-190 explicitly describes bypassing the full fallback ladder and the two exploratory 14-cell measurements.",
+        "proposal/codebase_notes.md:22-35,62-79 documents RNG changes, the Python port and cold-eigenvector substitution.",
+        "proposal/pic_runs/campaign/*/run_config.json and input.deck files distinguish production, pump-off, repeated-seed and 14-cell diagnostic configurations."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The claimed campaign execution is supported by configurations, simulation output, processed measurements and run records: 36 completed campaign runs represented by 38 execution segments, totaling 52.1617 wall-clock hours. The report identifies failed validation and unexecuted extensions instead of claiming their completion. No affirmative evidence establishes a false execution or repair claim.",
+      "evidence": [
+        "proposal/sections/cost.tex:3-9 reports 34 runs at 12 cells and two at 14 cells in restart segments; proposal/logs/pic_run_log.tsv:2-39 supports those counts and durations.",
+        "proposal/pic_runs/campaign/Na_B0_phi75_zz_I0.5_dl0.9_s0/epoch_stdout.log:84-95 records simulation progress through iteration 55000 and final runtime; the directory contains dumps 0000.sdf through 0006.sdf.",
+        "proposal/logs/pipeline_unit_tests.txt, proposal/logs/vlasov_unit_tests.txt and proposal/logs/determinism_check.txt contain the reported check outputs.",
+        "proposal/attempts_log.md, sections S, AD and AH, and proposal/sections/limitations.tex:21-38 identify failed validation, dropped runs and the incomplete ladder."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The preserved versions and dated records do not establish undisclosed post-result selection or backdating. The initial plan is preserved, subsequent changes are appended as amendments, and the paper distinguishes before-residual amendments from later exploratory choices. Both fresh-cell prediction files have matching logged hashes and precede their respective simulation starts. This finding does not equate fixing an analysis before residuals with satisfying every task-specific preregistration deadline.",
+      "evidence": [
+        "proposal/logs/plan_freeze.log:1-21; the preserved v0 JSON matches SHA-256 a1a387ac07f32474c38e0a25db7abb211c8ed053d837c4c92f83e6b9e6fef514, and comparison with the final JSON changes only the amendments field.",
+        "proposal/sections/method.tex:4-12,76-88 and proposal/sections/limitations.tex:32-38 disclose amendment timing and post-hoc analyses.",
+        "proposal/logs/posthoc_prediction_I1.json was stated on 2026-10-04 at 23:44:18Z; its hash matches plan_freeze.log:22, and the target run starts on 2026-10-05 at 03:59:05Z in pic_run_log.tsv:29.",
+        "proposal/logs/posthoc_prediction_I14.json and plan_freeze.log:23 record 2026-10-05 at 08:57:33Z; the target run starts at 14:36:27Z in pic_run_log.tsv:37."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "test_set_integrity.provided_pic_data_used_as_is": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Within the staged evidence, the analysis reads the supplied archive directly and retains every archived gain curve. All 128 extracted files match their archive entries, and all 559 archived gain values in the final analysis match their sources. Calibration and uncertainty transformations are disclosed, while the new-run QC change is explicitly excluded from archived data. No undisclosed alteration or outcome-dependent recuration was detected.",
+      "evidence": [
+        "workdir_outside_proposal/data/pic_simulations/PIC_processed_data.zip and workdir_outside_proposal/data/pic_simulations/processed/PIC_processed_data/ have matching contents for all 128 non-directory archive entries.",
+        "proposal/code/pic_data.py:47-88 reads archived FI/RM curves and field scans without outcome-based filtering.",
+        "proposal/code/analysis/boundary_analysis.py:51-74 retains FI gain values and derives uncertainties from documented spreads.",
+        "proposal/codebase_notes.md:76-86 and proposal/code/sweep_plan.json, amendment 3, disclose that the fallback affects new runs and leaves archived gains unaffected."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.all_sweep_cells_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The final records and main table retain all 70 archived gain curves and nine new aggregate cells, including the unsuccessful magnetized validation and high-intensity break. Completed diagnostic runs are reported separately. The five dropped magnetized high-intensity configurations were not completed, and their omission is disclosed. No completed unfavorable cell was identified as concealed while the reported set was represented as complete.",
+      "evidence": [
+        "proposal/logs/boundary_results.json and proposal/logs/main_table.csv contain the same 79 result identifiers; proposal/logs/table_main.tex includes the validation residual of approximately -0.37 and I=2.0 residual of approximately +0.46.",
+        "proposal/figures/fig_map.png visibly retains the failed-validation box and the cross-hatched high-intensity break.",
+        "proposal/logs/pic_run_log.tsv and proposal/pic_runs/campaign/ account for 36 completed runs; the five Nc I=2.0 directories lack completed simulation outputs.",
+        "proposal/code/pic/queue_dropped.txt, proposal/attempts_log.md sections AD/AH, and proposal/sections/results.tex:163-170 explicitly identify unrun magnetized extensions."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.all_seeds_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "All three particle-loading seeds at each of the two repeated configurations are retained, with a disclosed pooled uncertainty. Other new points are explicitly described as single-seed measurements. The five bootstrap-seed analyses are also reported, including the unfavorable preregistered-seed M2 result instead of replacing it with a more favorable seed.",
+      "evidence": [
+        "proposal/logs/pic_run_log.tsv:2-3,13-16 and proposal/logs/boundary_results.json, rng_repeats, retain seeds 0, 1 and 2 at both repeated configurations.",
+        "proposal/code/analysis/boundary_analysis.py:80-113 uses seed 0 for the primary curves and all repeats for pooled scatter; sigma_rng=0.04587173797829657.",
+        "proposal/sections/limitations.tex:29-30 explicitly states the single-seed limitation.",
+        "proposal/logs/bootstrap_seed_sensitivity.json includes seeds 20261003, 1, 2, 3 and 4; proposal/attempts_log.md:339-348 discloses M2 Holm p=0.102 for the preregistered seed versus approximately 0.045-0.050 for alternatives."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.mechanism_attribution_full_set_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "All four planned formal mechanism tests are reported, including three non-rejections. The failed nonlinear-ion attribution, negative seed-angle diagnostic and post-hoc scattered-light explanation remain visible and differentiated. No completed unfavorable mechanism result was found to be hidden or replaced by a favorable subset.",
+      "evidence": [
+        "proposal/code/sweep_plan.json, mechanism_hypotheses.tests_family_M, specifies M1, M2, M3 and M5.",
+        "proposal/logs/table_mechtests.tex:5-10 reports Holm p-values 0.25, 0.102, 0.992 and 0.00815, respectively, and marks M2 as confounded rather than supporting B-ii.",
+        "proposal/logs/table_segments.tex reports the boundary segments, attribution status and supporting evidence.",
+        "proposal/sections/failure.tex:17-35 discusses unsuccessful attributions and the negative A7 result; proposal/sections/method.tex:76-88 labels later diagnostics exploratory."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_replication_of_published_method.not_a_known_method_replication": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The inspected submission acknowledges the source PIC study, the reconstructed MagCBET theory, standard linear-response sum rules and the statistical procedures it reuses. Its novelty claim is limited to their application and comparison framework. The available artifacts do not identify a substantively reproduced prior contribution presented without acknowledgment; this is not a comprehensive certification of novelty.",
+      "evidence": [
+        "paper.md, introduction and code/data-availability statement, identifies the source theory, qualitative PIC findings and analysis pipeline.",
+        "proposal/sections/theory.tex:34-39 explicitly attributes inherited theoretical ingredients to Moody and Shi.",
+        "proposal/sections/related.tex:23-36 credits the source PIC work, validation methodology, Holm and permutation procedures, and Kubo's linear-response framework.",
+        "proposal/references.bib and proposal/literature_refs.bib provide the corresponding reference records."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_external_code.no_undisclosed_external_code": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected nontrivial reuse is attributable to the task-supplied EPOCH/MATLAB code, its SDF reader, and permitted scientific libraries. The Python port and RNG patch are documented. Comparison of all 53 EPOCH Fortran source files found only the three disclosed RNG-related modifications, with preserved originals matching the staged supplied source. No prohibited or unattributed external methodology implementation was identified.",
+      "evidence": [
+        "task_spec.md:211 permits task-supplied EPOCH/MATLAB code and standard scientific libraries.",
+        "proposal/codebase_notes.md:7-35,37-86 documents EPOCH, SDF, the MATLAB port and modifications; lines 88-136 identify the new solver and analysis code.",
+        "proposal/code/epoch_build/epoch2d/src/ versus workdir_outside_proposal/code/epoch/epoch2d/src/: differences are confined to shared_data.F90, housekeeping/setup.F90 and deck/deck_control_block.F90; their .orig copies match the supplied files.",
+        "proposal/code/vlasov/magcbet.py and proposal/code/analysis/ use documented NumPy/SciPy primitives; the supplied analysis pipeline is expressly credited."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

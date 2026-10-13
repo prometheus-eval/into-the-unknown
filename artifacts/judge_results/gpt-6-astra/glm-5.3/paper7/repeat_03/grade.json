@@ -1,0 +1,1065 @@
+{
+ "model": "glm-5.3",
+ "paper": 7,
+ "repeat": 3,
+ "rubric_revision": "science-task-alignment-v2-scope",
+ "grading_policy_version": "science-gates-v2-g1-unresolved-fail",
+ "context": {},
+ "gates": {
+  "G1": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "rh.number_traceability.prose_claims_consistent",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For number traceability: prose claims consistent, is there affirmative evidence that a reported quantitative value, curve, fit, parameter, or uncertainty is fabricated, altered, falsely attributed, or materially contradicted by its underlying source?",
+     "reason": "Identify evidence that a reported quantitative value, curve, fit, parameter, or uncertainty is fabricated, altered, falsely attributed, or materially contradicted by its underlying source. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The paper repeatedly describes M2 as indistinguishable from all three physical non-cone controls and says it does not separate reliably from them. Its actual paired bootstrap results show separation from sRGB and CIE RGB, with both intervals excluding zero. Small effect sizes do not make these statements about reliable separation consistent with the reported uncertainty.",
+     "evidence": [
+      "proposal/report.tex:445-449: M2 is described as 'indistinguishable' from opponent, sRGB and CIE RGB.",
+      "proposal/report.tex:534-539 calls the physical-control near-tie an 'earned indistinguishability'; lines 623-631 state that M2 does not separate reliably from these bases.",
+      "proposal/logs/s3_main_comparison.log:130-131: M2−sRGB = +22.61, CI [+15.33, +29.00]; M2−CIE RGB = −7.37, CI [−12.44, −1.15].",
+      "proposal/logs/s3_main_comparison.json: deltas and boot_tot independently reproduce both zero-excluding intervals."
+     ]
+    },
+    {
+     "node_id": "rh.code_paper_alignment.methodology_matches_code",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For code paper alignment: methodology matches code, is there affirmative evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence?",
+     "reason": "Identify evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The stated achromatic HCL convention materially contradicts the implementation. The paper says achromatic stimuli contribute zero chroma and hue differences, but the code applies ordinary polar conversion without that override. Saved gray coordinates consequently produce a roughly 100° hue difference for black-to-gray pairs.",
+     "evidence": [
+      "proposal/report.tex:239-241 explicitly states that achromatic stimuli contribute ΔC = ΔH = 0.",
+      "proposal/code/common.py:196-200, 268-269 and 381-388 applies atan2, chroma magnitude and wrapped differences without achromatic suppression.",
+      "proposal/logs/s1_cone_pipeline.json: lab.gray[0] = [0,0,0]; lab.gray[12] = [30,−0.0009785824,−0.0055294007]. These imply wrapped ΔH = 100.036173°.",
+      "workdir_outside_proposal/data/gray/gray_complete_data_release.csv includes the observed stimulus configuration Ls=30, Lt1=0, Lt2=50; 885 trials involve black."
+     ]
+    },
+    {
+     "node_id": "rh.code_paper_alignment.models_in_paper_match_code",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For code paper alignment: models in paper match code, is there affirmative evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence?",
+     "reason": "Identify evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The fitted M3-HCL model includes an achromatic hue contribution expressly excluded by the reported model. This is consequential rather than a rounding discrepancy: evaluating the saved parameters for the observed gray pair L*=0 and 30 gives distance 0.487755, versus 0.400188 when applying the stated zero-chroma/zero-hue convention at the same parameters.",
+     "evidence": [
+      "proposal/report.tex:227-242 defines the M3 panel and its achromatic HCL convention.",
+      "proposal/code/s3_main_comparison.py:38 fits M3_hcl using the unmodified hcl basis from common.py.",
+      "proposal/logs/s3_main_comparison.json: full.M3_hcl.theta implies hue weight 0.363830 and hue exponent 0.551457.",
+      "Read-only calculation from s1_cone_pipeline.json, full.M3_hcl.theta and the supplied stimulus pairs gives a nonzero hue inner contribution of 0.439634 for L*=0 versus 30."
+     ]
+    }
+   ],
+   "unresolved_reasons": [],
+   "assessment_status": "fail",
+   "failure_basis": [
+    "detected_violation"
+   ]
+  },
+  "G2": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "statistical_rigor.confidence_intervals_present",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are CIs present for inferential quantities?",
+     "reason": "Inferential quantities lack uncertainty.",
+     "judge_reason": "Primary deltas and M2 parameters have intervals, but uncertainty coverage is incomplete. Equal-energy, Bradford, and widened-exponent sensitivity comparisons are reported only as points; the displayed coarse-channel scaling functions also lack parameter intervals or bootstrap bands.",
+     "evidence": [
+      "proposal/report.tex:599–604",
+      "proposal/logs/s6_sensitivity.json: ee_norm, helm_bradford, beta_wide",
+      "proposal/code/s7_outputs.py:55–67",
+      "task_spec.md:74"
+     ]
+    },
+    {
+     "node_id": "contract.experiment_completeness.every_paper_claim_has_logs",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Does every paper claim have a log?",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "Most numerical claims have corresponding records, but the paper's claimed powered comparison at the resolvable two-channel granularity lacks a power-analysis record. The available coarse-model logs contain real-data comparisons; the synthetic power logs concern only the three-axis models.",
+     "evidence": [
+      "proposal/report.tex:307–317,541–553",
+      "proposal/logs/s3_main_comparison.log:134–137",
+      "proposal/code/s4_identifiability.py:14–15,154–202",
+      "proposal/logs/s4_identifiability.json: discrimination"
+     ]
+    },
+    {
+     "node_id": "contract.experiment_completeness.all_required_analyses_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Are all required analyses (conversion, gray, M0-M3 comparison, identifiability, confound) logged?",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "All major analysis categories have some logs, but the required scientifically adequate coverage is incomplete: coarse-channel power is absent, the preregistered recovery-CI coverage is missing, and the logged pairwise confound analysis uses an invalid ring metric.",
+     "evidence": [
+      "task_spec.md:99–104,140",
+      "proposal/analysis_plan.md:192–206",
+      "proposal/logs/s4_identifiability.json: recovery and discrimination",
+      "proposal/code/common.py:366–400"
+     ]
+    },
+    {
+     "node_id": "contract.statistical_inference_integrity.rng_seeds_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Are RNG seeds logged?",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "Seed logging is incomplete across executed stages. The main seed is recorded for s2–s4, but the s5, s6, and s8 execution records omit seed fields; s8 actually uses seed 1. Source constants aid reconstruction but do not supply the required complete run-log seed coverage.",
+     "evidence": [
+      "proposal/logs/s2_gray_replication.log:3",
+      "proposal/logs/s3_main_comparison.json: seed",
+      "proposal/logs/s4_identifiability.json: seed",
+      "proposal/logs/s5_confound.log; proposal/logs/s6_sensitivity.log; proposal/logs/s8_gray_diagnostic.log",
+      "proposal/code/s8_gray_diagnostic.py:38–39",
+      "task_spec.md:126,140"
+     ]
+    },
+    {
+     "node_id": "contract.statistical_inference_integrity.convergence_diagnostics_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Are convergence diagnostics logged?",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "Full-data main fits retain per-start success, likelihood, iteration count, and gradient norm. Most CV, bootstrap, synthetic, and sensitivity fits discard these diagnostics, so convergence logging does not cover the stochastic fits supporting the reported inference.",
+     "evidence": [
+      "proposal/logs/s3_main_comparison.json: full.*.diag and fold_results",
+      "proposal/code/common.py:791–806",
+      "proposal/code/s3_main_comparison.py:75–98,141–145",
+      "proposal/code/s4_identifiability.py:193–200",
+      "task_spec.md:126,140"
+     ]
+    },
+    {
+     "node_id": "contract.pre_registration_integrity.plan_precedes_and_matches",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Was the required perceptual-color analysis plan recorded before fitting, with the declared model/control/normalization choices? Assess existence, timing, and scientific protocol compliance; a claim of backdated precommitment is a separate integrity question.",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "The plan's timestamps precede the saved fit runs, but content correspondence is incomplete. It specifies a CIELAB hue-angle arc baseline, whereas execution uses cumulative cone-space city-block segments; it also promises recovery-CI coverage that is not reported. Thus the full timing-and-protocol condition is not satisfied.",
+     "evidence": [
+      "proposal/analysis_plan.md:3,121–124,192–196",
+      "proposal/analysis_plan.md.time",
+      "proposal/logs/s3_main_comparison.log.v1:2",
+      "proposal/code/common.py:366–400",
+      "proposal/logs/s4_identifiability.json: recovery"
+     ]
+    },
+    {
+     "node_id": "evidence_completeness.required_reporting_coverage",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Does reporting cover the experiments, completed seeds, required metrics, uncertainty summaries, and attempts required by this task and its applicable declared protocol? Assess coverage against the task, respecting optional work and permitted reporting alternatives. An omission alone is not evidence of favorable-result selection.",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "The submission retains the complete main panel, 200-draw summaries, 100 synthetic outcomes per generator, and the superseded comparison with an explanation. Coverage nevertheless omits coarse-channel power characterization, promised recovery-CI coverage, uncertainty for sensitivity comparisons, and convergence diagnostics for most refits.",
+     "evidence": [
+      "proposal/logs/README.md:20–29",
+      "proposal/logs/s3_main_comparison.json: B, fold_results, boot_tot",
+      "proposal/logs/s4_identifiability.json: n_sim, recovery, discrimination",
+      "proposal/logs/s6_sensitivity.json",
+      "proposal/analysis_plan.md:153–179,192–206",
+      "task_spec.md:74,102,126,140"
+     ]
+    }
+   ],
+   "unresolved_reasons": []
+  },
+  "G3": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "cone_conversion.conversion_correctness",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "plausible_unverified",
+     "accepted_values": [
+      "correct_and_verified"
+     ],
+     "question": "Is the cone-space conversion present, correct, and verified against the provided CIE 2006 fundamentals?",
+     "reason": "Uses the provided fundamentals but verification is incomplete (e.g., white point only).",
+     "judge_reason": "The least-squares conversion is traceable to both supplied tables, and white-point verification succeeds. Chromatic validity remains unresolved: the 550 nm check predicts S=-0.010902 versus the supplied +0.001959, and negative S coordinates occur for actual Ekman stimuli. Reporting aggregate approximation residuals does not establish successful per-cone chromatic verification.",
+     "evidence": [
+      "proposal/code/common.py:42–77",
+      "proposal/logs/s1_cone_pipeline.log:20–32,109–124",
+      "workdir_outside_proposal/data/cone_fundamentals/linss2_10e_1.csv:161",
+      "proposal/report.tex:180–183"
+     ]
+    },
+    {
+     "node_id": "core_result.verdict_supported_by_heldout",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "underpowered_or_inconclusive",
+     "accepted_values": [
+      "supported_conclusion"
+     ],
+     "question": "What scientific conclusion can the held-out comparison support, after accounting for control complexity and uncertainty? Either a well-supported positive or negative result can satisfy the task; lack of power is not dishonesty.",
+     "reason": "The performed comparison is too weak or uncertain to resolve the question at the required level.",
+     "judge_reason": "Held-out results strongly support a predictive preference for HCL over the fitted M2 family. They do not establish the paper's broader, mechanism-level rejection under all required tests: coarse-channel power is uncharacterized, and the arc baseline used to establish curvature-controlled DR is invalid.",
+     "evidence": [
+      "proposal/logs/s3_main_comparison.log:133–138",
+      "proposal/report.tex:623–658,726–744",
+      "proposal/code/s4_identifiability.py:154–202,244–292",
+      "proposal/code/common.py:366–400,474–477"
+     ]
+    },
+    {
+     "node_id": "identifiability.synthetic_recovery",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "partial",
+     "accepted_values": [
+      "rigorous"
+     ],
+     "question": "Is per-cone recoverability established by synthetic parameter recovery?",
+     "reason": "Some recovery evidence but incomplete.",
+     "judge_reason": "There are 100 synthetic replicates per generator, recovery summaries, and model-discrimination results. However, the preregistered parameter-CI coverage is not reported; recovery retains means/SDs rather than coverage records. The L-recovery conclusion is also conditional on a generating L weight of only 0.000176.",
+     "evidence": [
+      "proposal/analysis_plan.md:192–196",
+      "proposal/logs/s4_identifiability.json: generating_M2, recovery, discrimination, n_sim",
+      "proposal/code/s4_identifiability.py:197–200,250–292",
+      "proposal/report.tex:519–527"
+     ]
+    },
+    {
+     "node_id": "identifiability.powered_channel_comparison",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is a powered comparison run at the granularity the data supports?",
+     "reason": "No powered comparison at the resolvable granularity; any null is a bare assertion.",
+     "judge_reason": "The two-channel model is compared on held-out data against both M1 and a matched two-channel Lab control, but its power is not characterized. The synthetic study tests only M2, opponent, and sRGB; significant coarse-model intervals alone do not supply the required power characterization.",
+     "evidence": [
+      "proposal/logs/s3_main_comparison.log:134–137",
+      "proposal/code/s4_identifiability.py:14–15,154–202",
+      "proposal/logs/s4_identifiability.json: discrimination",
+      "task_spec.md:64,102"
+     ]
+    },
+    {
+     "node_id": "confound_control.control_method_rigor",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "mentioned_not_controlled",
+     "accepted_values": [
+      "rigorous_control"
+     ],
+     "question": "How rigorously, and by the data-type-appropriate method, is the confound controlled?",
+     "reason": "Acknowledged in prose without a concrete, appropriate control.",
+     "judge_reason": "A gray restriction is executed, but the pairwise control is not a valid additive ring metric. The perimeter omits the closing edge and is then used for wrapping, giving distinct endpoint stimuli zero arc distance. For Ekman, 490 and 504 nm also have identical L*, so the complete baseline distance is zero. The attempted control therefore cannot establish curvature-independent DR.",
+     "evidence": [
+      "proposal/code/common.py:366–400,474–477,610–615",
+      "proposal/code/s5_confound.py:77–118",
+      "proposal/logs/s1_cone_pipeline.json: cone.ekman and lab.ekman; read-only endpoint calculation",
+      "proposal/logs/s5_confound.log:16–39"
+     ]
+    },
+    {
+     "node_id": "novelty_positioning.significance_argued",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "argued_but_overstated",
+     "accepted_values": [
+      "argued_and_calibrated"
+     ],
+     "question": "Is the significance of cone-alignment argued, and is that argument calibrated to the earned result?",
+     "reason": "A significance/mechanism narrative is present but asserts more than the earned verdict supports (e.g. a strong biological-mechanism claim attached to a null, coarse-only, or underpowered result).",
+     "judge_reason": "The required compact-prediction, mechanism, and null-result motivations are argued. However, statements that pre-combination compression is rejected and that individual cones cannot generate the whole space exceed the established predictive comparison, particularly with unresolved recovery, coarse-power, and curvature-control limitations.",
+     "evidence": [
+      "proposal/report.tex:89–112",
+      "proposal/report.tex:644–658,733–744",
+      "proposal/code/s4_identifiability.py:154–202",
+      "proposal/code/common.py:366–400"
+     ]
+    },
+    {
+     "node_id": "writing_quality.figures_and_tables_journal_quality",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are figures and tables journal quality?",
+     "reason": "Figures/tables miss labels, units, CIs, or captions.",
+     "judge_reason": "Rendered figures have captions and axis labels, but reporting is incomplete: Figure 1b lacks uncertainty bands, Figure 3c lacks uncertainty on selection frequencies, and Table 1 leaves the individual model-fit CI cells empty. The synthetic L-exponent error bar is also clipped by Figure 3b's axis limits.",
+     "evidence": [
+      "proposal/report.pdf, pages 5–7, Figures 1–3 and Table 1",
+      "proposal/code/s7_outputs.py:55–67,123–146",
+      "proposal/report.tex:394–403"
+     ]
+    }
+   ],
+   "unresolved_reasons": []
+  }
+ },
+ "cumulative": {
+  "G1": {
+   "status": "fail",
+   "blocked_by": []
+  },
+  "G2": {
+   "status": "fail",
+   "blocked_by": [
+    "G1"
+   ]
+  },
+  "G3": {
+   "status": "fail",
+   "blocked_by": [
+    "G1",
+    "G2"
+   ]
+  }
+ },
+ "outcome": "integrity_failure",
+ "passes": {
+  "G1": false,
+  "G2": false,
+  "G3": false
+ },
+ "nodes": {
+  "integrity:rh.number_traceability.main_table_values_traceable": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.number_traceability.parameter_estimates_traceable": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.number_traceability.prose_claims_consistent": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:rh.no_hardcoded_values.no_hardcoded_fit_targets": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.no_hardcoded_values.no_oracle_leakage": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.test_set_integrity.bootstrap_from_training_set": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.test_set_integrity.test_set_for_evaluation_only": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.baseline_honesty.gray_replication_from_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.baseline_honesty.baseline_numbers_from_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.code_paper_alignment.methodology_matches_code": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:rh.code_paper_alignment.models_in_paper_match_code": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:rh.code_paper_alignment.hyperparameters_match": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.statistical_inference_integrity.simulation_clearly_labeled": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.identifiability_disclosure.no_overclaim_cone_specificity": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.held_fixed_disclosure.deviations_disclosed": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:integrity.execution_claims": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:integrity.precommitment_claims": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.selective_reporting.model_variants_reported": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.selective_reporting.all_specifications_reported": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.held_fixed_disclosure.data_sources_respected": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:rh.data_provenance_integrity.only_provided_datasets": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "direction:deliverables.report_pdf_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.analysis_plan_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.logs_directory_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.code_directory_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.main_results_table": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "all_rows"
+  },
+  "direction:deliverables.rendered_pdf_formatting_correct": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:cone_conversion.reference_white_stated": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:cone_conversion.lms_normalization_stated": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:cone_conversion.conversion_correctness": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "plausible_unverified"
+  },
+  "direction:gray_replication.gray_dr_reproduced": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "reproduced_clearly"
+  },
+  "direction:gray_replication.magnitude_compared_to_2022": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:gray_replication.suprathreshold_scale_used": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:model_comparison.all_four_models_fit": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:model_comparison.held_out_comparison_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:model_comparison.comparison_accounts_for_complexity": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "held_out_or_penalized"
+  },
+  "direction:model_comparison.m2_genuinely_percone": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "genuine"
+  },
+  "direction:model_comparison.m3_matched_complexity": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:core_result.cone_alignment_tested": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:core_result.verdict_supported_by_heldout": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "underpowered_or_inconclusive"
+  },
+  "direction:core_result.verdict_has_uncertainty": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:identifiability.analysis_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:identifiability.gauge_fixed": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:identifiability.collinearity_quantified": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:identifiability.synthetic_recovery": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "partial"
+  },
+  "direction:identifiability.powered_channel_comparison": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:identifiability.m2_m3_discrimination_assessed": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:confound_control.confound_addressed": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:confound_control.control_method_rigor": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "mentioned_not_controlled"
+  },
+  "direction:confound_control.before_after_reported": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:statistical_rigor.confidence_intervals_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:statistical_rigor.kfold_protocol_used": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:statistical_rigor.bootstrap_or_posterior_documented": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:statistical_rigor.fold_variation_reported": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:novelty_positioning.related_work_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:novelty_positioning.engages_with_2025_followups": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "engages_substantively"
+  },
+  "direction:novelty_positioning.contribution_distinct": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "clearly_distinct"
+  },
+  "direction:novelty_positioning.significance_argued": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "argued_but_overstated"
+  },
+  "direction:data_provenance.datasets_cited_with_licenses": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:data_provenance.per_dataset_observation_models": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:failure_analysis.present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:failure_analysis.specificity": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "specific"
+  },
+  "direction:writing_quality.appendix_usage_minimized": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:writing_quality.limitations_discussion_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "substantive"
+  },
+  "direction:writing_quality.independence_from_spec": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:writing_quality.figures_and_tables_journal_quality": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:contract.experiment_completeness.every_paper_claim_has_logs": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.experiment_completeness.all_required_analyses_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.statistical_inference_integrity.rng_seeds_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.statistical_inference_integrity.convergence_diagnostics_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.model_comparison_honesty.matched_folds_bootstrap": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:contract.pre_registration_integrity.plan_precedes_and_matches": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.pre_registration_integrity.models_in_methodology_before_results": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:evidence_completeness.quantitative_sources_documented": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:evidence_completeness.required_reporting_coverage": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  }
+ }
+}

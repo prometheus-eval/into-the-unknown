@@ -1,0 +1,198 @@
+{
+  "nodes": {
+    "rh.number_traceability.all_quantities_trace": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The claimed 32 HVP evaluations per step and 12.5× reduction are contradicted by the implemented computation. OPS evaluates a separate model and reference HVP for every molecule; its counter records only the 32 pool rows before molecule-specific transformations. The RMSEs and paired tests do reproduce from saved errors, but that does not resolve the false attribution of the probe counts.",
+      "evidence": [
+        "proposal/report.tex:247,305,498-504 describe 32 probes as HVP evaluations consumed by updates and claim 12.5× fewer HVP equivalents.",
+        "proposal/code/phl_lib.py:223-250 produces B molecule-specific probes; lines 289-312 evaluate model and reference HVPs for all B molecules.",
+        "proposal/code/run_experiment.py:115-132 counts probes.shape[0] for PHL but allocator.P for OPS; phl_lib.py:303-305 simply adds that supplied number.",
+        "proposal/logs/main/sop_s0/summary.json reports 5,406,720 probes over 168,960 steps, whereas its 210,979 training molecules across 320 epochs require 67,513,280 molecule-specific HVP evaluations, as for PHL."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.no_hardcoded_values.no_oracle_targets_in_code": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected code computes predictions, errors, gradients, and statistical summaries rather than substituting hardcoded RMSEs or oracle targets. The pool size is a genuine method parameter; its incorrect use as an HVP count is an accounting contradiction, not evidence of planted ground-truth results.",
+      "evidence": [
+        "proposal/code/phl_lib.py:289-336,357-409 computes losses, gradients, and evaluation errors from model outputs and supplied labels.",
+        "proposal/code/analyze_runs.py:38-57,79-106,124-141 derives RMSEs, standard deviations, and paired tests from saved errors.",
+        "proposal/code/make_numbers.py:36-91 generates reported macros from saved statistics; proposal/code/make_stub_numbers.py:18-20 creates literal X placeholders, not fabricated numerical results."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.two_baseline_integrity.paper_as_reported_traceable_to_citations": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The published reference quantities used in the report match the supplied source paper. Omitting absolute reference RMSEs from the main table is a completeness issue; the submission explicitly substitutes cited relative statements rather than inventing absolute values.",
+      "evidence": [
+        "proposal/report.tex:216,229 and proposal/logs/paper_reference.md:14-71 identify the published reference quantities and their provenance.",
+        "paper.md:202-204 reports approximately 29%, 48–49%, and 77% NMS energy, force, and Hessian reductions; Table 1 at lines 233-245 supports all nine p-values exceeding 0.05.",
+        "paper.md:284-286,314 supports approximately 4 s for E–F, 13.3 s for PHL, and 326.5 s for full-Hessian training.",
+        "paper.md:505-506 specifies batch size 400 and Gaussian probes."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.two_baseline_integrity.reimplemented_traceable_to_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The reimplemented PHL results trace to five completed runs and their saved per-molecule errors. Independent aggregation reproduces the reported values, including Test energy 5.55±0.50. The reported 13.5 s timing is explicitly attributed to a separate timing run and matches that record.",
+      "evidence": [
+        "proposal/logs/main/phl_s0 through phl_s4 contain configurations, 320 training records each, validation trajectories, audits, summaries, and per_mol_eval.json files.",
+        "Read-only aggregation of those per_mol_eval.json files gives Test energy mean 5.550374 and sample SD 0.498795, matching proposal/numbers.tex:19-20.",
+        "proposal/code/analyze_runs.py:38-106 specifies the unit conversion and aggregation used in proposal/logs/main/analysis/results_table.json.",
+        "proposal/logs/wallclock_timing.json:2-9 records PHL mean 13.5444276 s; proposal/report.tex:208,303 distinguishes these dedicated-GPU timings from the main runs."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.two_baseline_integrity.baseline_distinction_honored": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Published reference results and the submission's own PHL runs are distinctly labeled. The statistical comparisons use the reimplemented baseline, and the report does not present its results as the original paper's measurements.",
+      "evidence": [
+        "proposal/report.tex:199 explicitly defines the two baseline sources.",
+        "proposal/report.tex:216-229 and rendered report.pdf page 7 separate 'paper as reported' and 'reimpl., 5 seeds' rows.",
+        "proposal/code/analyze_runs.py:113-135 pairs phl_s0–phl_s4 with sop_s0–sop_s4.",
+        "proposal/report.tex:294 distinguishes reduced-schedule parity from transfer to the original convergence regime."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.under_convergence_disclosure.gap_disclosed_appropriately": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The report explicitly acknowledges under-convergence and discusses whether its findings might transfer to longer training. It does not falsely represent the reproduction gap as agreement with published PHL. The quality of the transfer argument is a scientific issue.",
+      "evidence": [
+        "proposal/report.tex:199 states in Experimental Setup that the reimplementation is under-converged relative to the original.",
+        "proposal/report.tex:294 discusses the actual 320-epoch schedule versus approximately 700–1000 epochs and the transfer question.",
+        "proposal/numbers.tex:19-20 reports Test energy 5.55±0.50; the supplied original Figure 3(a), workdir_outside_proposal/images/image3.jpg, labels PHL Test energy 4.09.",
+        "proposal/attempts_log.md:253-255 acknowledges the reduced schedule and limited control-run coverage."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.pre_stated_method.consistent_tolerances": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The implemented main accuracy analysis consistently uses the accepted paired-difference route with p>0.05 across all nine cells. The main variance decisions retain the stated point-estimate cutoff of 2. No affirmative evidence establishes an outcome-dependent switch of these decision rules; the analysis chronology remains separately unverified.",
+      "evidence": [
+        "proposal/report.tex:201,234 states the variance cutoff and all-cell paired-test rule.",
+        "proposal/code/analyze_runs.py:124-135 applies scipy.stats.ttest_rel to the same five matched seeds for every cell.",
+        "Independent calculations reproduce all nine p-values, ranging from 0.1016406 to 0.5045068, as saved in proposal/logs/main/analysis/results_table.json.",
+        "proposal/logs/main/sop_s0–sop_s4/audit_log.jsonl reproduces dataset means 0.946706, 0.954141, and 0.966253; the largest mixed audit is 1.490159."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.code_paper_alignment.methodology_matches_code": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The claimed no-sharing ablation is not implemented as described. Setting share=False still draws one P-row pool and assigns its rows to B molecules, exactly as the shared branch does because every slot index is already below P. Consequently, its results do not isolate fresh independent directions per molecule.",
+      "evidence": [
+        "proposal/report.tex:222,287 describes 'no sharing' as a fresh direction per molecule without a pool and interprets it as removing sharing.",
+        "proposal/code/phl_lib.py:239-243 uses pool[idx] for sharing and self._draw_pool(d)[idx % self.P] for no sharing.",
+        "proposal/code/phl_lib.py:259-270 generates indices only in 0 through P−1, making the modulo operation ineffective.",
+        "proposal/code/run_experiment.py:75-76 selects this branch; proposal/logs/main/sop_noshare_s0 and sop_noshare_s1 record pool=32 and avg_probes_per_step=32."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.code_paper_alignment.hyperparameters_match": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The main Experimental Setup materially misstates the executed schedule: it claims 400 epochs and audits at 99/199/299/399, while every main run used 320 epochs and audits at 79/159/239/319. The report also says the learning rate decayed twice, whereas all saved training records retain 0.001. Correct 320-epoch descriptions elsewhere do not eliminate these conflicting execution claims.",
+      "evidence": [
+        "proposal/report.tex:199,201,294; rendered report.pdf pages 6 and 10 contain the contradictory schedule, audit, and learning-rate claims.",
+        "proposal/logs/main/phl_s0–phl_s4/meta.json and sop_s0–sop_s4/meta.json specify epochs=320 and audit_every=80.",
+        "All corresponding summary.json files report epochs_run=320, and audit_log.jsonl records epochs 79,159,239,319.",
+        "All 320 entries in each main train_log.jsonl have lr=0.001; proposal/report.tex:522 correctly states 320 epochs in the appendix."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.no_bias_trade.no_offline_pretraining_amortization": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The main training entry point initializes a fresh model and runs its logged updates without loading pretrained weights. Checkpoint loading is confined to diagnostic scripts. No concealed offline Hessian-supervision stage is evidenced.",
+      "evidence": [
+        "proposal/code/phl_lib.py:62-80 initializes network parameters; proposal/code/run_experiment.py:62-68 constructs the model and optimizers before training.",
+        "proposal/code/run_experiment.py:97-175 records the training loop and saves the final checkpoint.",
+        "proposal/code/mechanism_overlap.py:30-35 and proposal/code/variance_lab.py:26-31 load checkpoints for measurements, not main-model pretraining.",
+        "proposal/codebase_notes.md:65-69 states that runs are fresh per seed and notebook resume logic was bypassed."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.no_bias_trade.no_smuggled_hessian_information": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The probe-saving comparison leaves online Hessian supervision uncounted: all B molecule-specific HVP products contribute to the update, but OPS charges only P=32. At a full 400-molecule step, 368 evaluations therefore disappear from the claimed HVP budget. The finding concerns concealed computation in the accounting, not the permitted use of supplied full-Hessian labels.",
+      "evidence": [
+        "task_spec.md:99,174,190 permits reference Hv from supplied Hessians but requires counting every HVP used for updates.",
+        "proposal/code/phl_lib.py:301-312 computes model HVPs and torch.bmm(true_hessian, probes) for the entire minibatch and averages all molecule losses.",
+        "proposal/code/run_experiment.py:124-132 supplies allocator.P as the counter increment regardless of the number of molecules supervised.",
+        "proposal/report.tex:305,498-504 claims P HVP equivalents and describes the reported count as evaluations consumed by parameter updates."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.consistent_reduction_reporting.consistent_baseline_used": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Batch sizes are matched, but the reduction ratio mixes accounting units: PHL counts molecule-specific evaluated probes, while OPS counts pool rows before the B distinct molecule-specific probes are formed. This contradicts the report's claim to count distinct probe-vector HVP evaluations. Rounding 399.581/32 to 12.5 is correct arithmetic; the incompatible counts are the violation.",
+      "evidence": [
+        "proposal/report.tex:247,498-504 defines the reported counts as consumed probe-vector HVP evaluations.",
+        "proposal/code/run_experiment.py:115-126 uses probes.shape[0] for PHL and allocator.P for OPS.",
+        "proposal/code/phl_lib.py:236-250 transforms pool rows into B molecule-specific probes before evaluation.",
+        "proposal/code/make_numbers.py:105-107 divides the saved averages; phl_s0/summary.json gives 399.5814394 and sop_s0/summary.json gives 32.0, with batch=400 in both configurations."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The report explicitly claims a completed no-sharing experiment that removes the shared pool and confirms sharing's effect. The submitted execution path instead retains that pool, so the claimed experimental intervention did not occur. This is affirmative contradictory evidence, not an inference from missing logs.",
+      "evidence": [
+        "proposal/report.tex:40,54,287 claims that the no-sharing ablation forfeits probe savings and removes sharing-related coupling.",
+        "proposal/code/run_experiment.py:75-76 constructs OrthoPoolAllocator(..., share=False).",
+        "proposal/code/phl_lib.py:239-243,259-270 shows that share=False still assigns the same shared P-row pool.",
+        "proposal/logs/main/sop_noshare_s0/summary.json and sop_noshare_s1/summary.json record completed 160-epoch runs still reporting 32 probes and 12.5× reduction."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "insufficient_evidence",
+      "confidence": "medium",
+      "reason": "The report claims P=32 was fixed from a preliminary selection study rather than the main runs and calls its variance rule pre-stated. Saved sweep and main configurations are consistent with that account, but no dated decision record or version history establishes the claimed chronology. The disclosed post-main theory revision is not evidence of undisclosed backdating.",
+      "evidence": [
+        "proposal/report.tex:201,313-325 contains the pre-statement and preliminary-selection claims.",
+        "proposal/logs/hyperparam/hp_sop_P8_e60_s0 through hp_sop_P48_e60_s0 contain completed selection runs; all main OPS configurations use pool=32.",
+        "proposal/attempts_log.md:60-77 describes selection without a dated decision record.",
+        "proposal/attempts_log.md:134-162 explicitly states that the theory was revised after the main runs."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.selective_reporting.all_seeds_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "All five completed main seeds are included in the reported aggregates and paired tests, including unfavorable OPS outcomes. The completed control runs and pool-size sweep are also retained and their reduced coverage disclosed. No outcome-dependent omission of completed unfavorable results is established.",
+      "evidence": [
+        "proposal/code/analyze_runs.py:61-69,113-141 collects every completed matching run and aggregates all five main seeds.",
+        "proposal/logs/main/analysis/results_table.json includes phl_s0–phl_s4, sop_s0–sop_s4, and both seeds for each reported control.",
+        "OPS seed 1's unfavorable NMS force/Hessian RMSEs, 9.152395 and 19.164477 versus PHL's 7.786775 and 17.434771, remain included in the saved aggregates and reported standard deviations.",
+        "proposal/report.tex:208,220-224,309-331,522-524 discloses the two-seed control schedules and the five pool sizes studied; all corresponding completed records are staged."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

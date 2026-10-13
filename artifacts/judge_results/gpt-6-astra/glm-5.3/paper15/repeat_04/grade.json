@@ -1,0 +1,1174 @@
+{
+ "model": "glm-5.3",
+ "paper": 15,
+ "repeat": 4,
+ "rubric_revision": "science-task-alignment-v2-scope",
+ "grading_policy_version": "science-gates-v2-g1-unresolved-fail",
+ "context": {
+  "both_accuracy_channels_improved": true,
+  "partial_work_claimed": true
+ },
+ "gates": {
+  "G1": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "number_traceability.error_values_in_logs",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For number traceability: error values in logs, is there affirmative evidence that a reported quantitative value, curve, fit, parameter, or uncertainty is fabricated, altered, falsely attributed, or materially contradicted by its underlying source?",
+     "reason": "Identify evidence that a reported quantitative value, curve, fit, parameter, or uncertainty is fabricated, altered, falsely attributed, or materially contradicted by its underlying source. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The reported errors reproduce the saved summaries but are falsely attributed to the complete intermediate-temperature reference set. The aggregation excludes 1,943 single-atom configurations, retaining only 501 of 2,444. Read-only aggregation including all configurations gives materially different errors, even using the same weighting and energy-offset removal.",
+     "evidence": [
+      "proposal/report.tex:78,123,129 describes errors over every converged configuration and labels Table 1 as the complete held-out set.",
+      "proposal/code/calibration/analyze_full_sweep.py:46-56 explicitly skips configurations with n == 1.",
+      "proposal/logs/blend_sweep_full_raw.json, records te='0.1': each blend has 2,444 configurations, including 1,943 with natoms=1.",
+      "At lambda=0, aggregating all saved records against workdir_outside_proposal/data/dft_reference/extracted/T0.1 gives F=0.160069551 eV/Angstrom and E=0.007843331 eV/atom. The reported F=0.1656 and E=0.00734 instead match the 501-configuration subset in proposal/logs/blend_sweep_full_integrated.json:130-154."
+     ]
+    },
+    {
+     "node_id": "number_traceability.defect_metrics_in_logs",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For number traceability: defect metrics in logs, is there affirmative evidence that a reported quantitative value, curve, fit, parameter, or uncertainty is fabricated, altered, falsely attributed, or materially contradicted by its underlying source?",
+     "reason": "Identify evidence that a reported quantitative value, curve, fit, parameter, or uncertainty is fabricated, altered, falsely attributed, or materially contradicted by its underlying source. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The claimed maximum defect distance of 0.61 box half-widths across non-runaway runs is directly contradicted by saved diagnostics, including defects beyond the stated 0.95 thermostat boundary. The reported excitation-floor contribution is also inconsistent with the logged equilibrium response and integration durations.",
+     "evidence": [
+      "proposal/report.tex:165 claims the farthest surviving defect in any non-runaway run is at 0.61 of the box half-width.",
+      "proposal/logs/cascade_results/eam_E10_r0.json:15,26 records max_defect_frac_halfwidth=0.999509945 and unstable_runaway=false; gs_E10_r1.json:15,26 records 0.974394472 and false.",
+      "proposal/code/analysis/analyze_cascades.py:107-119 defines this diagnostic in precisely the half-width units used by the report.",
+      "proposal/report.tex:158,167 reports an equilibrium contribution of approximately 170 atoms ps. proposal/logs/calibration.json:72 gives lambda_eq=0.079546530; the five calib_E10 records give mean adaptive duration 0.166329929 ps. With 93,312 atoms, their product is 1,234.608 atoms ps."
+     ]
+    },
+    {
+     "node_id": "baseline_honesty.numbers_from_own_runs_or_cited",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For baseline honesty: numbers from own runs or cited, is there affirmative evidence that baseline quantities are fabricated or falsely attributed to the agent's executed reference runs or to a cited source?",
+     "reason": "Identify evidence that baseline quantities are fabricated or falsely attributed to the agent's executed reference runs or to a cited source. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The baseline simulations are documented, but the running text attributes incorrect uncertainty values to their results. Neither rounding nor population-versus-sample standard deviations explains the discrepancies.",
+     "evidence": [
+      "proposal/report.tex:165 reports 10 keV sigmoid T*=1 eV as 9.0±3.2 pairs and ground-state as 19.4±6.9.",
+      "proposal/logs/cascade_summary.json, sig_T1.0_E10_r0 through r4: counts [6,9,14,8,8], giving population SD=2.683282 and sample SD=3.000000.",
+      "proposal/logs/cascade_summary.json, gs_E10_r0 through r3: counts [22,28.5,12.5,14.5], giving population SD=6.347982 and sample SD=7.330018.",
+      "proposal/code/analysis/gen_tables.py:119-122 uses population SD; proposal/report_data/table_cascade.tex:11,13 correctly reports 6.3 and 2.7, contradicting the running-text uncertainties."
+     ]
+    },
+    {
+     "node_id": "code_paper_alignment.methodology_describes_code",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For code paper alignment: methodology describes code, is there affirmative evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence?",
+     "reason": "Identify evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The methodology's explicit complete-reference-set error calculation materially contradicts the implemented aggregation. Single-point evaluations exist for the full set, but the reported error curves omit every single-atom configuration without disclosing that exclusion.",
+     "evidence": [
+      "proposal/report.tex:52,78,123,129 repeatedly specifies complete reference sets, excluding only NotConverged configurations.",
+      "proposal/code/calibration/analyze_full_sweep.py:47-49 applies an additional n==1 exclusion before both error calculations.",
+      "proposal/logs/blend_sweep_full_raw.json contains 2,444 intermediate-temperature configurations per blend, whereas the aggregation retains 501.",
+      "workdir_outside_proposal/data/dft_reference/W-VASP_T0.1eV_JSON.tar independently contains 1,943 converged single-atom and 501 converged multi-atom configurations."
+     ]
+    },
+    {
+     "node_id": "integrity.execution_claims",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "Is there affirmative evidence that an experiment, derivation, inspection, or repair is explicitly claimed as performed but affirmative code/trajectory/artifact evidence establishes that this claim is false?",
+     "reason": "Cite the explicit claim and affirmative evidence that contradicts it. Mere absence of logs, derivation steps, a plan file, or a timestamp is insufficient.",
+     "judge_reason": "The report explicitly claims a successful post-hoc verification that surviving defects do not approach the box faces. Saved diagnostics affirmatively contradict that verification at its stated all-run scope. This finding does not depend on missing logs or the incomplete recoil sweep.",
+     "evidence": [
+      "proposal/report.tex:209 states 'we verified post hoc that defects do not approach the box faces'; line 165 specifies all non-runaway runs and a 0.61 maximum against a 0.95 shell boundary.",
+      "proposal/logs/cascade_results/eam_E10_r0.json:15,26 records a non-runaway maximum of 0.999509945.",
+      "proposal/logs/cascade_results/gs_E10_r1.json:15,26 records a non-runaway maximum of 0.974394472.",
+      "proposal/code/analysis/analyze_cascades.py:107-119,197-201 implements and saves the corresponding box-adequacy diagnostic."
+     ]
+    }
+   ],
+   "unresolved_reasons": [],
+   "assessment_status": "fail",
+   "failure_basis": [
+    "detected_violation"
+   ]
+  },
+  "G2": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "deliverables.baseline_sigmoid_runs_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are the paper's sigmoid switching-function runs reproduced and logged?",
+     "reason": "No logged sigmoid baseline runs.",
+     "judge_reason": "The required paper-temperature baseline campaign is incomplete. Saved cascades use T*=1 eV and, for four 10 keV runs, 0.5 eV. The source paper's other reported temperatures—0.75, 1.25, 2.5, 3.75, and 5 eV—have no reproduced cascade records.",
+     "evidence": [
+      "paper.md, Figure 5",
+      "workdir_outside_proposal/images/image5.jpg: temperature legend",
+      "proposal/logs/cascade_summary.json",
+      "workdir_outside_proposal/work/matrix_phase1.json"
+     ]
+    },
+    {
+     "node_id": "deliverables.proposed_runs_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are the proposed switching-function runs logged?",
+     "reason": "Proposed runs missing or substantively incomplete.",
+     "judge_reason": "Eleven proposed-method cascades are logged, but the campaign is substantively incomplete: only 5 and 10 keV were executed instead of the declared 12-energy sweep, with six and five repetitions respectively.",
+     "evidence": [
+      "proposal/code/method_plan.md:96–112",
+      "proposal/logs/cascade_results/calib_E5_r0.json through calib_E5_r5.json",
+      "proposal/logs/cascade_results/calib_E10_r0.json through calib_E10_r4.json",
+      "proposal/attempts_log.md:85–109"
+     ]
+    },
+    {
+     "node_id": "two_baseline_reporting.paper_as_reported_cited",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are the paper-as-reported sigmoid results cited from specific figures or tables?",
+     "reason": "No specific paper-as-reported anchor.",
+     "judge_reason": "The report cites the source paper generally and mentions its qualitative results and 15 keV boundary, but does not identify the specific source figures or tables for the required Frenkel-pair, spike-volume, chi, and stability references.",
+     "evidence": [
+      "proposal/report.tex:47–48,165–169",
+      "proposal/report_data/table_accuracy.tex",
+      "proposal/report_data/table_cascade.tex",
+      "task_spec.md, Two-baseline reporting"
+     ]
+    },
+    {
+     "node_id": "two_baseline_reporting.reproduced_sigmoid_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the agent's reproduced sigmoid reported alongside the paper-as-reported anchor?",
+     "reason": "Only one of the two baselines is reported.",
+     "judge_reason": "The reproduced sigmoid is logged and tabulated, but the required paper-as-reported reference is not supplied alongside it across the required observables. General prose about the original stability boundary does not provide the required two-reference comparison.",
+     "evidence": [
+      "proposal/report.pdf, Tables 1–2 and Figures 1–3",
+      "proposal/report.tex:165–169",
+      "proposal/logs/cascade_summary.json",
+      "task_spec.md, Two-baseline reporting"
+     ]
+    },
+    {
+     "node_id": "validation_completeness.recoil_sweep_complete",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the declared recoil-energy / stability sweep run to completion for the proposed function and the sigmoid?",
+     "reason": "Declared recoil energies are missing results.",
+     "judge_reason": "Only 5 and 10 keV were executed. The declared 1, 2, 15, 20, 30, 50, 75, 100, 150, and 200 keV points are absent, including higher-energy sigmoid points that were not terminated by an observed instability boundary.",
+     "evidence": [
+      "proposal/code/method_plan.md:111",
+      "workdir_outside_proposal/work/matrix_phase1.json",
+      "proposal/logs/cascade_summary.json",
+      "proposal/attempts_log.md:85–98"
+     ]
+    },
+    {
+     "node_id": "validation_completeness.multi_rep_runs",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "fewer_with_doc",
+     "accepted_values": [
+      "full_reps"
+     ],
+     "question": "Are sufficient PKA repetitions run per recoil energy for both switching functions (mean and spread)?",
+     "reason": "Fewer repetitions, with the reduced count and rationale documented.",
+     "judge_reason": "There are four to six repetitions per executed comparison cell, substantially fewer than 25. Actual counts, means, spreads, and the compute-budget rationale are reported.",
+     "evidence": [
+      "proposal/report_data/table_cascade.tex",
+      "proposal/report.tex:158,209,217",
+      "proposal/attempts_log.md:85–109",
+      "proposal/logs/cascade_summary.json"
+     ]
+    },
+    {
+     "node_id": "writing_quality.main_results_table_complete",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the main results table complete (proposed vs reproduced sigmoid vs paper-as-reported across accuracy and stability)?",
+     "reason": "Axes or comparison cases missing.",
+     "judge_reason": "The tables cover reproduced accuracy and cascade observables, including runaway fractions, but omit the required paper-as-reported comparison rows. They also do not provide a matched-aggressiveness stable-range result.",
+     "evidence": [
+      "proposal/report_data/table_accuracy.tex",
+      "proposal/report_data/table_cascade.tex",
+      "task_spec.md, Two-baseline reporting and Evaluation protocol"
+     ]
+    },
+    {
+     "node_id": "contract.experiment_completeness.all_paper_experiments_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Does every experiment described in the paper have corresponding log entries?",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "The calibration and 46 production cascades have records, but the report's specific early failed cascade—adaptive phase ending after 7 fs, heating to approximately 100000 K, and a 275-fold energy amplification—has no corresponding saved execution record in either staged directory. The available benchmark run ends during its adaptive phase and does not document that annealing failure.",
+     "evidence": [
+      "proposal/report.tex:200",
+      "proposal/logs/cascade_summary.json",
+      "workdir_outside_proposal/work/bench/bench.log: final adaptive-step records",
+      "workdir_outside_proposal/work/bench/bench.out: interrupted adaptive run",
+      "Inventories of proposal/logs/ and workdir_outside_proposal/work/"
+     ]
+    },
+    {
+     "node_id": "contract.md_execution_integrity.defect_counts_from_pipeline",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Are the required Frenkel-pair and thermal-spike-volume measurements computed using the actual OVITO Wigner-Seitz/surface-mesh analysis pipeline on the executed cascade trajectories?",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "Spike volumes use OVITO PTM and surface meshes, but defect counts use a custom first-site-within-1.5-Å routine rather than the required OVITO Wigner–Seitz pipeline. It is not equivalent: it counts multiply occupied sites rather than all excess occupants and can produce half-integer pair counts. Read-only nearest-site analysis of saved gs_E5_r1 gives five vacancies and five interstitials, versus the saved five and four.",
+     "evidence": [
+      "proposal/code/analysis/analyze_cascades.py:46–119,122–146,194–200",
+      "proposal/codebase_notes.md:72–76",
+      "proposal/logs/cascade_results/gs_E5_r1.json: frenkel_pairs=4.5",
+      "workdir_outside_proposal/work/runs/gs_E5_r1/ref.dump",
+      "workdir_outside_proposal/work/runs/gs_E5_r1/final.dump"
+     ]
+    },
+    {
+     "node_id": "evidence_completeness.quantitative_sources_documented",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Are the task-required sources for quantitative claims identifiable (run/log entries for original measurements and specific citations for source-paper values), with enough information to evaluate the claims? Missing support or inaccessible artifacts are completeness weaknesses. Whether a provided source contradicts a claim is assessed only in integrity.",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "Most original accuracy and cascade numbers have identifiable saved sources, but the required specific source-paper figure/table anchors are missing, and the numerical early-failure example lacks its claimed run record. Those support gaps prevent full satisfaction; discrepancies between existing sources and prose are not treated as integrity findings here.",
+     "evidence": [
+      "proposal/logs/accuracy_analysis.json",
+      "proposal/logs/cascade_results/",
+      "proposal/report.tex:165–169,200",
+      "proposal/report.tex:235–239",
+      "workdir_outside_proposal/work/bench/bench.log"
+     ]
+    },
+    {
+     "node_id": "evidence_completeness.required_reporting_coverage",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Does reporting cover the experiments, completed seeds, required metrics, uncertainty summaries, and attempts required by this task and its applicable declared protocol? Assess coverage against the task, respecting optional work and permitted reporting alternatives. An omission alone is not evidence of favorable-result selection.",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "The submission does not cover the declared recoil sweep, required 25-repetition/30-ps cascade protocol, full paper-temperature baseline set, or matched-aggressiveness comparison. Although all 46 production records and uncertainty summaries are supplied, the reported full-set accuracy aggregate also excludes 1,943 of the 2,444 intermediate configurations through an unreported single-atom filter.",
+     "evidence": [
+      "proposal/code/method_plan.md:86,96–112",
+      "proposal/report.tex:78,144,158,209",
+      "proposal/code/calibration/analyze_full_sweep.py:46–49",
+      "proposal/logs/blend_sweep_full_raw.json: 1,943 one-atom configurations at Te=0.1 eV",
+      "proposal/logs/cascade_summary.json",
+      "workdir_outside_proposal/images/image5.jpg"
+     ]
+    }
+   ],
+   "unresolved_reasons": []
+  },
+  "G3": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "method_specification.recovers_correct_limits",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Does the switching function recover the correct limits (lambda to 0 in cold equilibrium, lambda to 1 in the hot limit)?",
+     "reason": "The function does not recover the correct cold/hot limits.",
+     "judge_reason": "The hot limit is correct, but the physical cold limit is not: the supplied parameters give S(0)=0.017892, rather than zero, and the logged mean response is 0.07955 at the 1000 K bath. This is appreciable excited-potential usage in cold equilibrium.",
+     "evidence": [
+      "proposal/report.tex:70,105–113",
+      "proposal/logs/calibration.json: Tc_K, w_K, calib_eq_1000K, calib_eq_300K",
+      "Read-only evaluation of the stated switching equation at Ti=0"
+     ]
+    },
+    {
+     "node_id": "principle_soundness.derivation_correct",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "major_errors",
+     "accepted_values": [
+      "correct"
+     ],
+     "question": "Is the selection principle correct?",
+     "reason": "An error that invalidates the principle or the function.",
+     "judge_reason": "The construction does not enforce its claimed cold endpoint: the final solver contains only the intermediate anchor, hot saturation, and width cap, producing S(0)=0.017892 despite the claimed hard cold anchor. The attempted continuous dominance refinement also subtracts E(0) from every polynomial coefficient rather than only the constant term; its resulting root differs materially from the correct boundary. These affect the claimed anchored/maximal construction, not just presentation.",
+     "evidence": [
+      "proposal/attempts_log.md:76–81",
+      "proposal/code/derivation/calibrate_switch.py:68–91",
+      "proposal/code/calibration/analyze_full_sweep.py:86–95",
+      "proposal/logs/calibration.json",
+      "Read-only calculation from saved energy values: local boundary root approximately 0.13355; implemented coefficient subtraction gives approximately 0.24251 and falls back to 0.1"
+     ]
+    },
+    {
+     "node_id": "validation_completeness.stability_criterion_applied",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the paper's stability criterion — a recoil series terminates when more than 25% of PKA reps show increasing thermal-spike volume — applied faithfully (with the paper's >25% threshold, unchanged) and consistently to both switching functions?",
+     "reason": "The stability criterion is not applied, uses a threshold other than the paper's >25% rule, or is applied differently across the two functions.",
+     "judge_reason": "Although the report uses the correct >25% threshold, the underlying growth test is not a faithful trajectory-based implementation. Checkpoints are sorted lexicographically, so later[-1] is step 8000 rather than step 20000; only that selected volume is compared with the adaptive endpoint. The harness also executes a fixed matrix without implementing recoil-series termination.",
+     "evidence": [
+      "proposal/code/analysis/analyze_cascades.py:203–223",
+      "proposal/logs/cascade_results/calib_E10_r0.json: checkpoint order and spike_growth",
+      "proposal/code/cascade/run_cascades.py:89–122",
+      "proposal/report.tex:169"
+     ]
+    },
+    {
+     "node_id": "switching_quality.physical_effect_preserved",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Does the proposed function preserve the paper's physical signature (reduced Frenkel pairs and thermal-spike volume versus ground-state-only) across the bulk of the recoil spectrum, evaluated on the mean-with-spread and tolerating the documented high-recoil-energy edge case?",
+     "reason": "The physical effect is degraded or absent beyond the documented high-energy edge case.",
+     "judge_reason": "Both required physical observables are not improved across the bulk spectrum. At 5 keV, proposed spike volume is 24.9±8.0 versus 19.3±7.2 nm³ for ground-state-only; at 10 keV even the stable-only proposed mean is 64.1 versus 63.5 nm³. Pair reductions are reported for stable runs, but two of five proposed 10 keV runs fail, and only two recoil energies were covered.",
+     "evidence": [
+      "proposal/report_data/table_cascade.tex",
+      "proposal/report.tex:158,165,169",
+      "proposal/logs/cascade_results/calib_E10_r2.json",
+      "proposal/logs/cascade_results/calib_E10_r4.json"
+     ]
+    },
+    {
+     "node_id": "mechanism_analysis.depth",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "moderate",
+     "accepted_values": [
+      "deep"
+     ],
+     "question": "How deep is the mechanism analysis?",
+     "reason": "Names the connection but does not fully establish it.",
+     "judge_reason": "The analysis connects switch shape, accuracy anchors, excitation, and instability, supported by cascade records. It does not directly establish the asserted local work-injection mechanism or local residency measure. Moreover, using the logged equilibrium response and durations, most proposed adaptive chi is equilibrium background, weakening its interpretation as additional peripheral excitation.",
+     "evidence": [
+      "proposal/report.tex:185–189,213,217",
+      "proposal/logs/calibration.json: calib_eq_1000K=0.0795465",
+      "proposal/logs/cascade_summary.json: chi_adaptive and t_adaptive_ps",
+      "Read-only calculation at 10 keV: mean adaptive chi≈1582.7, estimated equilibrium contribution≈1234.6 atoms·ps"
+     ]
+    }
+   ],
+   "unresolved_reasons": [
+    {
+     "node_id": "switching_quality.stability_range_extended",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "missing_judgment",
+     "observed_value": null,
+     "accepted_values": [
+      "comparable",
+      "extended"
+     ],
+     "question": "Classify the stable recoil-energy range of the proposed function relative to the sigmoid at matched aggressiveness (matched chi / mean residency).",
+     "reason": "No valid judgment for this node; no pass or substantive violation is inferred.",
+     "judge_reason": "No matched-aggressiveness comparison is established. Reported adaptive chi at 10 keV is approximately 1583 for the proposed switch versus 273 or 170 atoms·ps for the sigmoids. The unmatched campaign shows a smaller reported stable range for the proposed switch, but that cannot determine its range at matched chi. None of the allowed extended/comparable/reduced values describes the unmeasured matched comparison.",
+     "evidence": [
+      "proposal/report_data/table_cascade.tex",
+      "proposal/report.tex:144,167–169,213",
+      "proposal/code/method_plan.md:106–107"
+     ]
+    }
+   ]
+  }
+ },
+ "cumulative": {
+  "G1": {
+   "status": "fail",
+   "blocked_by": []
+  },
+  "G2": {
+   "status": "fail",
+   "blocked_by": [
+    "G1"
+   ]
+  },
+  "G3": {
+   "status": "fail",
+   "blocked_by": [
+    "G1",
+    "G2"
+   ]
+  }
+ },
+ "outcome": "integrity_failure",
+ "passes": {
+  "G1": false,
+  "G2": false,
+  "G3": false
+ },
+ "nodes": {
+  "integrity:number_traceability.error_values_in_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:number_traceability.defect_metrics_in_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:number_traceability.stability_thresholds_in_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:no_hardcoded_values.no_hardcoded_targets": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:pre_stated_method.parameters_match_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:baseline_honesty.numbers_from_own_runs_or_cited": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:code_paper_alignment.methodology_describes_code": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:code_paper_alignment.switching_function_in_code_matches_paper": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:held_fixed_disclosure.deviations_disclosed": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:integrity.execution_claims": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:integrity.precommitment_claims": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:selective_reporting.all_recoil_and_te_reported": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:selective_reporting.all_reps_reported": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:multiple_switching_functions_discipline.function_pre_registered_or_disclosed": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:no_replication_of_published_method.not_a_known_method_replication": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:no_external_code.no_undisclosed_external_code": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "direction:deliverables.report_pdf_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.logs_directory_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.method_plan_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.switching_function_code_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.baseline_sigmoid_runs_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.proposed_runs_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.calibration_data_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.cascade_runs_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.main_results_table_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.accuracy_vs_te_data_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.stability_range_data_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.codebase_notes_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.attempts_log_present": {
+   "rubric": "direction",
+   "role": "conditional",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.methodology_section_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:method_specification.criterion_committed": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:method_specification.switching_function_form_stated": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "fully_specified"
+  },
+  "direction:method_specification.driver_defined": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:method_specification.parameter_selection_principled": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:method_specification.recovers_correct_limits": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:method_specification.no_spontaneous_toggling": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:principle_soundness.derivation_traceable": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "traceable"
+  },
+  "direction:principle_soundness.derivation_correct": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "major_errors"
+  },
+  "direction:principle_soundness.derivation_reproducible": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:baseline_verification.sigmoid_baseline_valid": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:baseline_verification.potentials_used_unchanged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:baseline_verification.framework_algebra_preserved": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:two_baseline_reporting.paper_as_reported_cited": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:two_baseline_reporting.reproduced_sigmoid_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:two_baseline_reporting.divergence_documented": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_divergence_or_documented"
+  },
+  "direction:validation_completeness.accuracy_calibration_complete": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:validation_completeness.recoil_sweep_complete": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:validation_completeness.eval_uses_heldout_te": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:validation_completeness.multi_rep_runs": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "fewer_with_doc"
+  },
+  "direction:validation_completeness.stability_criterion_applied": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:switching_quality.accuracy_improved_vs_sigmoid": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "modest"
+  },
+  "direction:switching_quality.stability_range_extended": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "undetermined",
+   "value": null
+  },
+  "direction:switching_quality.physical_effect_preserved": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:switching_quality.not_lambda_collapse": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:switching_quality.falsifiable": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:mechanism_analysis.subsection_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:mechanism_analysis.depth": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "moderate"
+  },
+  "direction:mechanism_analysis.instability_mechanism_explained": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:failure_analysis.subsection_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:failure_analysis.regimes_identified": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:failure_analysis.regimes_explained_coherently": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:differentiators.generalization": {
+   "rubric": "direction",
+   "role": "optional",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "generalizes"
+  },
+  "direction:differentiators.theoretical_grounding": {
+   "rubric": "direction",
+   "role": "optional",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:differentiators.conservative_force_addressed": {
+   "rubric": "direction",
+   "role": "optional",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:originality_and_literature.contribution_originality": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "meaningful_extension"
+  },
+  "direction:originality_and_literature.literature_engagement": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "adequate"
+  },
+  "direction:originality_and_literature.spec_independence": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "independent"
+  },
+  "direction:writing_quality.journal_quality_structure": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "reasonable"
+  },
+  "direction:writing_quality.limitations_discussion_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "substantive"
+  },
+  "direction:writing_quality.rendered_pdf_clean": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:writing_quality.main_results_table_complete": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:contract.experiment_completeness.all_paper_experiments_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.md_execution_integrity.defect_counts_from_pipeline": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.effort_evidence.attempts_log_when_partial_work_claimed": {
+   "rubric": "direction",
+   "role": "conditional",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:evidence_completeness.quantitative_sources_documented": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:evidence_completeness.required_reporting_coverage": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  }
+ }
+}

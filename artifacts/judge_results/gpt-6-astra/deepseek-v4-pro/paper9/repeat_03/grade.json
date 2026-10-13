@@ -1,0 +1,1597 @@
+{
+ "model": "deepseek-v4-pro",
+ "paper": 9,
+ "repeat": 3,
+ "rubric_revision": "science-task-alignment-v2-scope",
+ "grading_policy_version": "science-gates-v2-g1-unresolved-fail",
+ "context": {
+  "partial_work_claimed": true
+ },
+ "gates": {
+  "G1": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "number_traceability.kernel_hyperparameters_in_logs",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For number traceability: kernel hyperparameters in logs, is there affirmative evidence that a reported quantitative value, curve, fit, parameter, or uncertainty is fabricated, altered, falsely attributed, or materially contradicted by its underlying source?",
+     "reason": "Identify evidence that a reported quantitative value, curve, fit, parameter, or uncertainty is fabricated, altered, falsely attributed, or materially contradicted by its underlying source. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "Figure 2 uses results from a parameterization explicitly described as superseded and not reported. Its source fixes the optimal kernel's target at 0.001, giving gamma=2.83821185 independently of the cutoff. This differs from the declared final gamma=sqrt(kmax/2). The discrepancy concerns the provenance of a reported curve; the main emulator sweep's parameters do match its logs.",
+     "evidence": [
+      "proposal/attempts_log.md:54-57 states the final gamma convention and explicitly says 'no numbers reported from the superseded γ'.",
+      "proposal/code/kernel_derivation/char_scan.py:103-116 fixes eps_targets['opt_c1']=0.001 and computes gamma from that target.",
+      "proposal/code/kernel_derivation/make_figs.py:43-54 uses char_scan.json for Figure 2.",
+      "proposal/code/kernel_derivation/char_scan.json, records identified by (opt_c1,kmax=10,nk=10) and (opt_c1,kmax=20,nk=10), supplies plotted errors 0.00011441256549927005 and 0.000006091922673949798."
+     ]
+    },
+    {
+     "node_id": "number_traceability.emulator_metrics_in_logs",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For number traceability: emulator metrics in logs, is there affirmative evidence that a reported quantitative value, curve, fit, parameter, or uncertainty is fabricated, altered, falsely attributed, or materially contradicted by its underlying source?",
+     "reason": "Identify evidence that a reported quantitative value, curve, fit, parameter, or uncertainty is fabricated, altered, falsely attributed, or materially contradicted by its underlying source. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The reported total query counts mistake an evolution-time parameter for the selector degree. For example, the reported 4,978 queries are 2489 times two intervals. The saved angle sequence and executed selector instead entail 10,536 qubitization steps over those intervals, each containing additional block-encoding calls. This is a material attribution error. Recalculation does reproduce the reported normalized-state errors, success probabilities, and STMC totals.",
+     "evidence": [
+      "proposal/report.tex:191-204 calls Q_A=2489*n_repeat the 'total A-oracle query complexity (the selector QSP degree)'.",
+      "proposal/logs/emulator/opt_k8_nk10/run.log:90-99 distinguishes 'single time interval: 2489', 'number of angles: 5269', and two intervals.",
+      "proposal/logs/emulator/opt_k8_nk10/QSP_t2489p3_eps12.hdf5 stores basic/par=2489 and angles/QSP-ham with 5269 entries.",
+      "workdir_outside_proposal/code/QuCF-OPT-LCHS/src/QCircuit.cpp:3373-3378 and 3409-3455 constructs two block-encoding calls per W and 5268 W/W-dagger steps per interval.",
+      "proposal/code/kernel_derivation/final_analysis.py:47-68 reads actual emulator amplitudes and gate totals but assigns Q_A=2489*n_repeat."
+     ]
+    },
+    {
+     "node_id": "number_traceability.scaling_fits_in_logs",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For number traceability: scaling fits in logs, is there affirmative evidence that a reported quantitative value, curve, fit, parameter, or uncertainty is fabricated, altered, falsely attributed, or materially contradicted by its underlying source?",
+     "reason": "Identify evidence that a reported quantitative value, curve, fit, parameter, or uncertainty is fabricated, altered, falsely attributed, or materially contradicted by its underlying source. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The numerical coefficients reproduce: the beta exponent is 1.3851317 and the optimal-kernel affine slope is 1.7174933. However, Figure 1's beta fitted curve does not represent that regression: the plotting code applies an extra logarithm to an axis already equal to log(1/epsilon). At x=9.97424, the stated regression gives approximately 21,599 in the report's query units, while the drawn curve gives approximately 2,831. This finding concerns a concrete curve/source contradiction, not whether the scaling experiment establishes asymptotic improvement.",
+     "evidence": [
+      "proposal/report.tex:218-229 describes the beta power-law fit and reports p=1.385 and m=1.72.",
+      "proposal/code/kernel_derivation/make_figs.py:17 sets xs=log(1/relerr); lines 23-25 fit against xs but plot exp(c)*log(xf)^p instead of exp(c)*xf^p.",
+      "proposal/logs/emulator/results.json provides the eight precision-sweep observations used to reproduce the coefficients.",
+      "proposal/report.pdf, page 4, Figure 1: inspected rendering shows the beta dashed curve far below the measured beta points."
+     ]
+    },
+    {
+     "node_id": "pre_stated_method.hyperparameters_match_logs",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For pre stated method: hyperparameters match logs, is there affirmative evidence that hyperparameters quoted in the paper materially differ from the values used in the runs producing the cited results?",
+     "reason": "Identify evidence that hyperparameters quoted in the paper materially differ from the values used in the runs producing the cited results. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The main emulator configurations match the stated parameters, but the published characterization uses a different gamma/cutoff relationship from the Method section. The paper specifies kmax=2*c*gamma^2; at c=1 this requires gamma=sqrt(kmax/2). Figure 2 instead uses gamma=2.83821185 at both kmax=10 and 20, where the stated relationship requires 2.23606798 and 3.16227766. The attempts log expressly denies reporting the superseded convention.",
+     "evidence": [
+      "proposal/report.tex:117-132, particularly equation (7), specifies the gamma and cutoff relationship.",
+      "proposal/code/kernel_derivation/char_scan.py:65-66 and 103-116 uses a fixed 0.001 target while varying kmax.",
+      "proposal/code/kernel_derivation/make_figs.py:44-54 connects those characterization records to the published figure.",
+      "proposal/attempts_log.md:54-57 denies reporting numbers from the fixed-target preliminary gamma convention."
+     ]
+    },
+    {
+     "node_id": "code_paper_alignment.methodology_describes_code",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For code paper alignment: methodology describes code, is there affirmative evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence?",
+     "reason": "Identify evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The paper's description of the measured query accounting materially contradicts the implementation. It identifies 2489*n_repeat as the selector degree and total oracle-query count, while the implementation uses 2489 as simulated time and determines selector length from 5269 angles. The circuit construction itself, including direct-decomposition weights and the retained selector structure, is otherwise supported.",
+     "evidence": [
+      "proposal/report.tex:191-194 and 226-232 describes the reported query metric as measured selector degree.",
+      "proposal/code/kernel_derivation/final_analysis.py:58-68 computes time and the claimed query count from the same 2489 constant.",
+      "workdir_outside_proposal/code/QuCF-OPT-LCHS/src/QCircuit.cpp:3019-3023 labels the parameter as a time interval.",
+      "workdir_outside_proposal/code/QuCF-OPT-LCHS/src/QCircuit.cpp:3360-3361 and 3439-3455 determines circuit repetitions from the angle-array length."
+     ]
+    },
+    {
+     "node_id": "code_paper_alignment.kernel_in_code_matches_paper",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For code paper alignment: kernel in code matches paper, is there affirmative evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence?",
+     "reason": "Identify evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The optimal kernel's functional formula is correctly implemented, including the Fourier-normalization conversion. Nevertheless, the characterization path instantiates it with a different parameter relationship from the paper's stated method: fixed gamma while varying the cutoff, rather than kmax=2*c*gamma^2. This affects the kernel curves actually included in Figure 2 and is contradicted by the assertion that the superseded parameterization supplied no reported numbers.",
+     "evidence": [
+      "proposal/report.tex:114-124 defines the implemented kernel and its parameter relationship.",
+      "workdir_outside_proposal/code/QuCF-OPT-LCHS/src/QCircuit.cpp:1911-1937 correctly implements the kernel formula for emulator runs.",
+      "proposal/code/kernel_derivation/char_scan.py:103-116 implements the different characterization parameter path.",
+      "proposal/code/kernel_derivation/make_figs.py:43-54 and proposal/attempts_log.md:54-57 establish the published use and contradictory provenance statement."
+     ]
+    }
+   ],
+   "unresolved_reasons": [
+    {
+     "node_id": "integrity.precommitment_claims",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "insufficient_evidence",
+     "observed_value": "insufficient_evidence",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "Is there affirmative evidence that a method, threshold, split, hypothesis, or analysis is explicitly claimed as fixed before results but dated versions or trajectory evidence establish undisclosed post-result selection or backdating?",
+     "reason": "Essential inspection evidence is absent or inconclusive. Record what is missing without labeling it fabrication or declaring the submission verified clean.",
+     "judge_reason": "The submission explicitly claims preregistration before validation, but only the final plan version is available. Its modification time follows completed baseline outputs. That chronology does not verify preregistration, yet a last-modification time alone cannot establish when an earlier plan was created or which decisions were changed after results. Earlier dated versions or an edit history are needed to determine undisclosed post-result selection or backdating.",
+     "evidence": [
+      "proposal/code/kernel_plan.md:1-3 says 'pre-registered' and directs the reader to file mtime as its timestamp.",
+      "proposal/report.tex:184-186 explicitly calls the configurations pre-registered.",
+      "Saved filesystem mtimes in UTC: kernel_plan.md, 2026-09-05 07:59:57; beta_k40_nk6/dc_OUTPUT.hdf5, 07:20:12; beta_k8_nk10/dc_OUTPUT.hdf5, 07:45:48.",
+      "The staged submission contains no earlier kernel-plan version establishing the original commitment contents."
+     ]
+    }
+   ],
+   "assessment_status": "fail",
+   "failure_basis": [
+    "detected_violation",
+    "unresolved_integrity_check"
+   ]
+  },
+  "G2": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "deliverables.kernel_plan_present",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Does proposal/code/kernel_plan.{py,md,json} exist with the chosen axis (1/2/3), the kernel's mathematical form, and the validation sweep grid stated up front?",
+     "reason": "File absent, doesn't declare the axis/kernel/sweep grid, or modification time is after validation runs began.",
+     "judge_reason": "The plan contains the axis, kernel, benchmark, and grid, but fails the explicit modification-time requirement. Its mtime is later than two baseline validation outputs subsequently used in the results.",
+     "evidence": [
+      "proposal/code/kernel_plan.md:3–79; mtime 2026-09-05 07:59:57 UTC",
+      "proposal/logs/emulator/beta_k40_nk6/dc_OUTPUT.hdf5: mtime 2026-09-05 07:20:12 UTC",
+      "proposal/logs/emulator/beta_k8_nk10/dc_OUTPUT.hdf5: mtime 2026-09-05 07:45:48 UTC"
+     ]
+    },
+    {
+     "node_id": "deliverables.kernel_derivation_artifacts_present",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are kernel-derivation artifacts (scaling derivation, admissibility verification, discretized weights, QSVT-angle generation) present at proposal/code/kernel_derivation/?",
+     "reason": "Directory empty, contains only stubs, or kernel is asserted in the paper without reproducible derivation.",
+     "judge_reason": "Substantive kernel and discretization scripts exist, but the required QSVT phase-angle generator and validated polynomial-to-circuit construction are absent. The nominal angle-finding script only fits a real Chebyshev target and generates direct-decomposition rotation angles.",
+     "evidence": [
+      "proposal/code/kernel_derivation/qsvt_angle_finding.py:9–18,33–62",
+      "proposal/code/kernel_derivation/dirdec_angles_opt_k16.npz: phi_y, phi_z, theta arrays",
+      "task_spec.md:84–90,218"
+     ]
+    },
+    {
+     "node_id": "deliverables.baseline_reproduction_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are Novikau-Joseph beta-family baseline emulations logged at the headline configuration (n_x=6, n_k=6) and at the validation sweep configurations?",
+     "reason": "At least one baseline configuration is missing from the logs.",
+     "judge_reason": "Five baseline runs are logged, including one headline run. They do not supply the required four-target precision sweep at (6,6) or complete declared characterization-target records with all required metrics. The supplied reference outputs outside proposal do not complete that validation protocol.",
+     "evidence": [
+      "proposal/logs/emulator/results.json:3–65",
+      "proposal/code/kernel_plan.md:51–68",
+      "workdir_outside_proposal/data/ade_opt_simulations/ADE-OPT/",
+      "task_spec.md:71,219–221"
+     ]
+    },
+    {
+     "node_id": "deliverables.variant_runs_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are variant (kernel-substituted) emulations logged at the same configurations as the baseline?",
+     "reason": "At least one configuration is missing from the variant logs.",
+     "judge_reason": "The baseline includes an n_k=11 run, but no corresponding variant emulation at that resolution exists. Variant production runs cover only n_k=6 and 10; inspection of the staged outside files found no additional f2 validation runs completing the pairing.",
+     "evidence": [
+      "proposal/logs/emulator/results.json:28–39,67–130",
+      "proposal/logs/emulator/beta_k40_nk11/",
+      "workdir_outside_proposal/code/QuCF-OPT-LCHS/src/QCircuit.cpp:1909–1937"
+     ]
+    },
+    {
+     "node_id": "deliverables.characterization_sweep_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are kernel-family characterization sweep runs logged at >=3 (n_k, eps_LCHS) combinations (for all axes), or >=4 eps_LCHS targets at headline (n_x, n_k) for axis 1?",
+     "reason": "Declared sweep grid not fully covered by logged runs.",
+     "judge_reason": "The declared characterization includes n_k=8,10,11, but variant emulator records omit n_k=8 and 11. The 252-point classical scan cannot replace those emulations. The additional four-target headline sweep required for Axis 1 is also absent.",
+     "evidence": [
+      "proposal/code/kernel_plan.md:64–68",
+      "proposal/logs/emulator/results.json",
+      "proposal/code/kernel_derivation/char_scan.py:69–76,92–126",
+      "proposal/code/kernel_derivation/char_scan.json"
+     ]
+    },
+    {
+     "node_id": "deliverables.main_results_table_present",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the main results table present (tab:main_results) with columns for method, test, (n_x, n_k, t, eps), final relative error, STMC gate count, Q_A, ancillae, success prob.? (Gate complexity is reported as STMC gate count; CNOT/T/Toffoli are out of scope for this task since QuCF compiles to the STMC gate set.)",
+     "reason": "Table absent, missing rows or columns, or has placeholder cells.",
+     "judge_reason": "The labeled table exists but omits both headline rows and the complete declared characterization rows. Its epsilon column reports achieved error rather than the required target, and the listed configurations use n_k=10 or 11.",
+     "evidence": [
+      "proposal/report.tex:190–213, label tab:main_results",
+      "proposal/report.pdf, p. 3, Table 1",
+      "proposal/logs/emulator/results.json:41–52,106–117"
+     ]
+    },
+    {
+     "node_id": "deliverables.axis_specific_figure_present",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the axis-specific scaling/reduction figure present (Q_A vs log(1/eps) for axis 1; ancilla-count table or plot for axis 2; gate-count vs ||At|| or 1/eps plot for axis 3)?",
+     "reason": "Required axis-specific figure absent.",
+     "judge_reason": "Figure 1 overlays both families, but it is not the required headline-resolution precision plot. It uses n_k>=10 and fits the variant to an imposed affine-linear form instead of independently estimating its scaling exponent.",
+     "evidence": [
+      "proposal/report.tex:215–232",
+      "proposal/code/kernel_derivation/make_figs.py:16–35",
+      "task_spec.md:71,247"
+     ]
+    },
+    {
+     "node_id": "deliverables.characterization_figure_present",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the kernel-family characterization figure/plot present (which family is best at which (n_k, eps_LCHS) regime)?",
+     "reason": "No figure or table characterizes which family is best at which resolution.",
+     "judge_reason": "Figure 2 is a partial classical comparison at fixed truncation radii, not a complete comparison across the declared error-target grid. Its k_max=40 panel contains no variant curve, and the required emulator-supported regimes are incomplete.",
+     "evidence": [
+      "proposal/report.pdf, p. 4, Figure 2",
+      "proposal/code/kernel_derivation/make_figs.py:43–60",
+      "proposal/code/kernel_derivation/char_scan.json: no opt_c1 records at kmax=40",
+      "proposal/code/kernel_plan.md:67–68"
+     ]
+    },
+    {
+     "node_id": "kernel_specification.axis_committed",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Does the paper commit to exactly one of the three axes (1: Q_A, 2: ancillae, 3: gates) with the axis stated in Methodology before any results?",
+     "reason": "Paper attempts multiple axes without commitment, or axis is implicit / changes between Methodology and Results.",
+     "judge_reason": "The submission consistently pursues query complexity, and the plan explicitly names Axis 1. However, the paper's explicit objective commitment appears in the introduction rather than in Methodology; the Method section presents kernel scaling without explicitly designating the headline axis.",
+     "evidence": [
+      "proposal/code/kernel_plan.md:5–9",
+      "proposal/report.tex:80–88,90–169",
+      "rubric.json: kernel_specification.axis_committed requires explicit commitment in Methodology"
+     ]
+    },
+    {
+     "node_id": "kernel_family_characterization.sweep_complete",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the characterization sweep run completely at the declared (n_k, eps_LCHS) combinations (>=3 for all axes; >=4 eps targets for axis 1 in addition)?",
+     "reason": "At least one declared sweep point is missing from the logs.",
+     "judge_reason": "Completed emulator runs do not cover the announced (8,10^-3), (10,10^-4), and (11,10^-5) grid for both families. In particular, variant n_k=8 and 11 emulations are absent, and no four-target headline sweep exists.",
+     "evidence": [
+      "proposal/code/kernel_plan.md:51–68",
+      "proposal/logs/emulator/results.json",
+      "proposal/code/kernel_derivation/char_scan.py:83–126"
+     ]
+    },
+    {
+     "node_id": "kernel_family_characterization.figure_present",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is a substantive kernel-family characterization figure/table present, covering which family performs best at each declared n_k/error-target regime? Assess coverage and interpretability here; falsified figure data are an integrity question.",
+     "reason": "The figure/table is absent, omits declared regimes, or does not support the required characterization.",
+     "judge_reason": "The existing figure does not cover the complete declared comparison: its k_max=40 panel lacks f2, its data are classical calculations, and no complete emulator-supported winner map at the declared error targets is supplied.",
+     "evidence": [
+      "proposal/report.pdf, p. 4, Figure 2",
+      "proposal/report.tex:242–247",
+      "proposal/code/kernel_derivation/make_figs.py:43–60",
+      "proposal/code/kernel_plan.md:67–68"
+     ]
+    },
+    {
+     "node_id": "mechanism_analysis.subsection_present",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Does the paper contain an explicit mechanism subsection in the Analysis section?",
+     "reason": "Paper reports kernel and results without explaining the mechanism.",
+     "judge_reason": "An explicit Mechanism subsection exists, but it is Section 4.3 within Results. The paper has no Analysis section, so the rubric's expressly prescribed placement is not satisfied.",
+     "evidence": [
+      "proposal/report.tex:188,250–260,283",
+      "proposal/report.pdf, pp. 4–5, Section 4.3",
+      "rubric.json: mechanism_analysis.subsection_present"
+     ]
+    },
+    {
+     "node_id": "failure_analysis.subsection_present",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Does the paper contain an explicit failure-analysis subsection?",
+     "reason": "Paper does not discuss limits of the variant's improvement.",
+     "judge_reason": "Section 4.4 explicitly discusses failures, but it is located within Results and there is no Analysis section. The content is substantive, yet the positive condition's specified Analysis-section placement is unmet.",
+     "evidence": [
+      "proposal/report.tex:188,262–274,283",
+      "proposal/report.pdf, p. 5, Section 4.4",
+      "rubric.json: failure_analysis.subsection_present"
+     ]
+    },
+    {
+     "node_id": "writing_quality.main_results_table_complete",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the main results table complete with all rows and columns filled from logged data?",
+     "reason": "Missing rows or cells with placeholders.",
+     "judge_reason": "The eight populated rows omit the two available headline results and the complete declared characterization sweep. Target precision is not reported separately from achieved error, so the required configuration-and-metric coverage is incomplete.",
+     "evidence": [
+      "proposal/report.tex:190–213",
+      "proposal/logs/emulator/results.json:41–52,106–117",
+      "proposal/code/kernel_plan.md:64–68"
+     ]
+    },
+    {
+     "node_id": "contract.pre_stated_method.kernel_stated_before_validation",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Is the kernel's mathematical form recorded in proposal/code/kernel_plan.* with a timestamp predating the earliest validation simulation log?",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "The only submitted timestamped kernel plan points to its file mtime, which follows baseline runs included in the final validation results. No qualifying earlier timestamped kernel statement is supplied.",
+     "evidence": [
+      "proposal/code/kernel_plan.md:3,11–30; mtime 2026-09-05 07:59:57 UTC",
+      "proposal/logs/emulator/beta_k40_nk6/dc_OUTPUT.hdf5: mtime 2026-09-05 07:20:12 UTC",
+      "proposal/logs/emulator/beta_k8_nk10/dc_OUTPUT.hdf5: mtime 2026-09-05 07:45:48 UTC"
+     ]
+    },
+    {
+     "node_id": "contract.test_set_integrity.sweep_grid_announced_before_runs",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Was the sweep grid declared in proposal/code/kernel_plan.* before validation runs were executed?",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "A grid is documented, but the submitted plan's designated timestamp is later than validation records for configurations included in that grid. The required pre-run declaration is not established by a qualifying dated artifact.",
+     "evidence": [
+      "proposal/code/kernel_plan.md:3,44–68; mtime 2026-09-05 07:59:57 UTC",
+      "proposal/logs/emulator/beta_k8_nk10/dc.clog: mtime 2026-09-05 07:45:48 UTC",
+      "proposal/logs/emulator/beta_k40_nk6/dc.clog: mtime 2026-09-05 07:20:12 UTC"
+     ]
+    },
+    {
+     "node_id": "contract.test_set_integrity.runs_match_announced_configs",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Do completed kernel-validation runs cover the configurations declared in kernel_plan, including the required n_x, n_k, t, error targets, and kernel settings? A run omitted from the launcher remains missing even if every launched job finishes.",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "The completed runs omit declared variant resolutions n_k=8 and 11 and the required headline precision sweep. Nominal t=0.8 is also replaced in evaluation by run-dependent effective times, including 0.796794 and 0.798804. These disclosed substitutions do not complete the announced protocol.",
+     "evidence": [
+      "proposal/code/kernel_plan.md:39–68",
+      "proposal/logs/emulator/results.json",
+      "proposal/code/kernel_derivation/final_analysis.py:62–65",
+      "task_spec.md:71,100–102"
+     ]
+    },
+    {
+     "node_id": "contract.experiment_completeness.all_paper_experiments_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Does every experiment described in the paper (each baseline run, each variant run, each sweep configuration) have corresponding log entries?",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "The tabled production runs have execution records, and the classical scan has saved results. However, the paper's claimed three-resolution validation and emulator agreement for the characterization figure lack corresponding complete circuit executions and comparison records.",
+     "evidence": [
+      "proposal/report.tex:184–186,234–246",
+      "proposal/logs/emulator/results.json",
+      "proposal/code/kernel_derivation/char_scan.json",
+      "proposal/code/kernel_plan.md:67–68"
+     ]
+    },
+    {
+     "node_id": "contract.quantum_circuit_fidelity_integrity.metrics_from_emulator",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Are the required gate/query/ancilla/accuracy/success-probability measurements obtained from executed QuCF emulations, rather than supplied only as analytical estimates? Labeled estimates are not deception but do not replace the required measurements.",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "STMC counts, ancilla counts, and success probabilities trace to executed QuCF outputs. The full measurement requirement fails because Q_A uses the QSP time parameter instead of executed query counts, the characterization is classical-only over missing configurations, and the reported error normalizes both states rather than implementing the declared relative-state metric.",
+     "evidence": [
+      "proposal/logs/emulator/opt_k12_nk10/dc_OUTPUT.hdf5: basic/N_gates, basic/nq, states/output-zero-anc-amplitudes-0",
+      "proposal/code/kernel_derivation/final_analysis.py:47–68",
+      "proposal/logs/emulator/opt_k12_nk10/run.log:96–99",
+      "proposal/code/kernel_derivation/char_scan.py:69–76",
+      "proposal/code/kernel_plan.md:76–79"
+     ]
+    },
+    {
+     "node_id": "contract.effort_evidence.attempts_log_when_partial_work_claimed",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "If the paper describes any work as partial / failed / unresolved (e.g., abandoned axis, rejected kernel choice), does proposal/attempts_log.md document >=2 distinct attempts per claim with reasoning?",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "The log documents multiple approaches overall, but not two reasoned attempts for each unresolved claim, particularly the headline and success-probability failures. Seven saved amplification trials are not discussed with outcomes or selection rationale in the attempts log.",
+     "evidence": [
+      "proposal/attempts_log.md:26–58",
+      "proposal/report.tex:262–274",
+      "proposal/logs/emulator/scan_opt_k8_N0/",
+      "proposal/logs/emulator/scan_opt_k8_N3/, scan_opt_k8_N5/, scan_opt_k8_N8/, scan_opt_k8_N10/, scan_opt_k8_N12/, scan_opt_k8_N15/",
+      "rubric.json: contract.effort_evidence.attempts_log_when_partial_work_claimed"
+     ]
+    },
+    {
+     "node_id": "evidence_completeness.quantitative_sources_documented",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Are the task-required sources for quantitative claims identifiable (run/log entries for original measurements and specific citations for source-paper values), with enough information to evaluate the claims? Missing support or inaccessible artifacts are completeness weaknesses. Whether a provided source contradicts a claim is assessed only in integrity.",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "Most table values have identifiable HDF5 and JSON sources, and the fits can be reconstructed from saved data. Coverage is incomplete for claims such as characterization-to-emulator agreement at <=10^-9 and standalone weight verification: no corresponding residual records establish those stated checks across the claimed configurations.",
+     "evidence": [
+      "proposal/report.tex:157–159,245–246",
+      "proposal/logs/emulator/results.json",
+      "proposal/code/kernel_derivation/final_analysis.py",
+      "proposal/code/kernel_derivation/qsvt_angle_finding.py:48–62",
+      "proposal/code/kernel_derivation/char_scan.json"
+     ]
+    },
+    {
+     "node_id": "evidence_completeness.required_reporting_coverage",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Does reporting cover the experiments, completed seeds, required metrics, uncertainty summaries, and attempts required by this task and its applicable declared protocol? Assess coverage against the task, respecting optional work and permitted reporting alternatives. An omission alone is not evidence of favorable-result selection.",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "Reporting omits headline table rows, complete target-grid emulator comparisons, independently estimated scaling exponents with statistical support, quantitative classical-cost ratios, and documented outcomes of the amplification-selection trials. The task specifies no additional seed-count requirement, so none is imposed.",
+     "evidence": [
+      "proposal/report.tex:190–232,276–281",
+      "proposal/code/kernel_derivation/make_figs.py:20–35",
+      "proposal/attempts_log.md",
+      "proposal/logs/emulator/scan_opt_k8_N*/",
+      "task_spec.md:71,217–257"
+     ]
+    }
+   ],
+   "unresolved_reasons": []
+  },
+  "G3": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "kernel_specification.admissibility_verified",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "mostly_verified",
+     "accepted_values": [
+      "verified"
+     ],
+     "question": "Does the kernel satisfy the An-Childs-Lin admissibility conditions (decay, normalization, continuity, lower-half-plane analyticity) for exact LCHS, OR the documented approximate-LCHS conditions if an approximate kernel is used?",
+     "reason": "Most conditions verified but at least one is asserted without explicit check.",
+     "judge_reason": "The submission supplies scalar approximation checks, tail checks, a normalization formula, and numerical ADE comparisons. It does not correctly verify all analytic conditions: the Fourier weight has poles at k=±i, despite being called entire, and the needed strip/residue argument is asserted rather than demonstrated.",
+     "evidence": [
+      "proposal/report.tex:117–140",
+      "proposal/code/kernel_derivation/verify_optimal.py:93–119",
+      "proposal/code/kernel_derivation/verify_results.json",
+      "paper.md:514 describes the relevant poles and finite-strip restriction"
+     ]
+    },
+    {
+     "node_id": "kernel_specification.weight_construction_reworked",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "reworked_unverified",
+     "accepted_values": [
+      "reworked_and_verified"
+     ],
+     "question": "Was the QSVT weight construction genuinely reworked for the substituted kernel — new QSVT angles computed and verified to reproduce the new weight function, a weight-selection option added to the LCHS code, and the full LCHS run verified end to end with the new weights?",
+     "reason": "The weights are reworked for the new kernel but at least one verification step (angle precision, standalone-weight check, or end-to-end LCHS check) is missing or incomplete.",
+     "judge_reason": "The new kernel is genuinely realized through an added weight-selection profile and executed end-to-end. However, the required QSVT phase synthesis, verified complex polynomial implementation, and standalone QSVT-weight validation are incomplete; production uses direct decomposition.",
+     "evidence": [
+      "workdir_outside_proposal/code/QuCF-OPT-LCHS/src/QCircuit.cpp:1909–1937",
+      "proposal/code/kernel_derivation/qsvt_angle_finding.py:9–18,33–62",
+      "proposal/logs/emulator/opt_k12_nk10/run.log:39–63,122–126"
+     ]
+    },
+    {
+     "node_id": "implementation_framework_preserved.qsvt_weight_construction",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Does the variant use QSVT for weight construction (U_sqrt(w) operator) as in the original paper, with the QSVT polynomial adapted to the new kernel?",
+     "reason": "Variant abandons the QSVT weight-construction interface entirely (e.g., direct state preparation, a different unitary synthesis) without justification.",
+     "judge_reason": "Weights are prepared by node-specific DirDec rotations, not a QSVT polynomial adapted to the new kernel. The QSVT gate appearing in the oracle is the Hamiltonian selector. The source paper's use of direct weights does not waive this task's explicit QSVT rework requirement.",
+     "evidence": [
+      "proposal/code/kernel_derivation/oracle_gen.py:161–185,244",
+      "proposal/code/kernel_derivation/qsvt_angle_finding.py:9–18",
+      "paper.md:220–230",
+      "task_spec.md:84–90"
+     ]
+    },
+    {
+     "node_id": "implementation_framework_preserved.block_encoding_counted_faithfully",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are the block-encoding costs of A_L and A_H counted within all reported gate / query / ancilla metrics?",
+     "reason": "Block-encoding costs are excluded by treating A_L, A_H as oracles without constructing them, inflating the apparent improvement.",
+     "judge_reason": "The actual block encodings are constructed and included in STMC and ancilla totals. The all-metrics condition nevertheless fails for Q_A: it is set to 2489*n_repeat using the simulated-time parameter, rather than counting the executed qubitization and block-encoding calls. Each interval instead uses 5268 qubitization insertions, each containing block-encoding operations.",
+     "evidence": [
+      "proposal/code/kernel_derivation/final_analysis.py:62–68",
+      "proposal/logs/emulator/opt_k12_nk10/run.log:96–99",
+      "workdir_outside_proposal/code/QuCF-OPT-LCHS/src/QCircuit.cpp:3373–3378,3439–3452",
+      "workdir_outside_proposal/code/QuCF-OPT-LCHS/src/QuCF.cpp:819–827"
+     ]
+    },
+    {
+     "node_id": "baseline_verification.headline_accuracy_matched",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Does the baseline reproduction at the headline configuration (n_x=6, n_k=6) achieve end-to-end relative error consistent with the paper's reported behavior (epsilon_LCHS in 10^-3 to 10^-4 at n_k=6 with beta in [0.7, 0.8])?",
+     "reason": "Reproduced baseline diverges qualitatively from the paper's reported behavior.",
+     "judge_reason": "The headline baseline's reported state error is 0.58325 at beta=0.7, far outside an order of magnitude of the required 10^-3 to 10^-4 behavior.",
+     "evidence": [
+      "proposal/logs/emulator/results.json:41–52",
+      "proposal/logs/emulator/beta_k40_nk6/dc.oracle",
+      "proposal/attempts_log.md:44–47"
+     ]
+    },
+    {
+     "node_id": "baseline_verification.baseline_success_probability_matched",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Does the baseline reproduction's success probability at the headline configuration match the paper's reported ~0.2?",
+     "reason": "Reproduced success probability is far from 0.2, indicating a misconfigured baseline.",
+     "judge_reason": "The headline success probability is 0.283051, approximately 41.5% above 0.2 and outside the rubric's approximately 30% comparison interval of 0.14–0.26.",
+     "evidence": [
+      "proposal/logs/emulator/results.json:41–52",
+      "proposal/logs/emulator/beta_k40_nk6/dc_OUTPUT.hdf5: states/output-zero-anc-amplitudes-0; squared norm 0.2830509988232943"
+     ]
+    },
+    {
+     "node_id": "scaling_improvement.improvement_demonstrated",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "marginal_or_inconclusive",
+     "accepted_values": [
+      "strictly_better"
+     ],
+     "question": "On the chosen axis, does the variant achieve strictly better scaling than the Novikau-Joseph baseline per the axis's operationalization?",
+     "reason": "Variant shows some improvement at some configurations but does not meet the strict criterion (fewer than 3 winning configurations, fit not statistically significant, headline not improved, scaling exponent worse than baseline on axis 3, or success probability collapsed on axis 2).",
+     "judge_reason": "Higher-resolution runs show useful accuracy-versus-radius improvements, but the required headline improvement and statistically lower fitted exponent are absent. Applying the same log-power fit to saved results gives exponents 1.3851 for baseline and 1.4141 for variant; the paper instead imposes a linear variant model. The sweep also changes resolution and uses achieved errors.",
+     "evidence": [
+      "proposal/logs/emulator/results.json",
+      "proposal/code/kernel_derivation/final_analysis.py:80–91",
+      "proposal/code/kernel_derivation/make_figs.py:20–35",
+      "proposal/report.tex:224–232",
+      "task_spec.md:71"
+     ]
+    },
+    {
+     "node_id": "scaling_improvement.improvement_at_headline",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the improvement on the chosen axis confirmed at the headline configuration (n_x=6, n_k=6) at the announced eps_LCHS target?",
+     "reason": "Variant matches or worsens the baseline at the headline.",
+     "judge_reason": "Both headline circuits have ten selector intervals and the same reported Q_A=24890. The variant also worsens the saved state error from 0.58325 to 1.23089, so there is no reduction at matched accuracy.",
+     "evidence": [
+      "proposal/logs/emulator/results.json:41–52,106–117",
+      "proposal/logs/emulator/beta_k40_nk6/qsp_selector.qsvt",
+      "proposal/logs/emulator/opt_k40_nk6/qsp_selector.qsvt"
+     ]
+    },
+    {
+     "node_id": "scaling_improvement.accuracy_preserved",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the variant's end-to-end relative state-vector error no worse than the baseline's at the same (n_x, n_k, t, eps_LCHS) target?",
+     "reason": "At at least one configuration, the variant's relative error exceeds the baseline's.",
+     "judge_reason": "At the common headline configuration, the variant error is 1.230886 versus baseline 0.583246. Thus accuracy parity fails even using the submission's normalized-state metric.",
+     "evidence": [
+      "proposal/logs/emulator/results.json:41–52,106–117",
+      "proposal/code/kernel_derivation/final_analysis.py:64–68"
+     ]
+    },
+    {
+     "node_id": "scaling_improvement.success_probability_preserved",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "collapsed",
+     "accepted_values": [
+      "below_but_scale_stable_proven",
+      "preserved"
+     ],
+     "question": "How does the variant's success probability compare to the baseline's ~0.2 across all sweep configurations (including any required amplitude-amplification rounds counted in the gate metric)? On Axis 2, a success probability below baseline is acceptable if the paper proves it does not get worse with problem size.",
+     "reason": "Variant's success probability is below the baseline's with no scale-stability proof, or the additional AA cost is not disclosed in the metric.",
+     "judge_reason": "Variant success probabilities are approximately 0.071–0.092, below corresponding baseline values of approximately 0.216–0.283. The included weight-amplification rounds do not restore parity. Because the committed axis is Axis 1, the Axis 2 scale-stability exception is unavailable.",
+     "evidence": [
+      "proposal/logs/emulator/results.json",
+      "proposal/logs/emulator/opt_k12_nk10/dc.oracle: N_AA_w=15",
+      "proposal/report.tex:262–274",
+      "proposal/code/kernel_plan.md:5–9"
+     ]
+    },
+    {
+     "node_id": "kernel_family_characterization.regime_boundaries_identified",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "boundaries_partial",
+     "accepted_values": [
+      "boundaries_clear"
+     ],
+     "question": "Does the characterization identify the regime boundaries (crossover points where a different family wins) between baseline and variant?",
+     "reason": "Paper notes regime differences but does not identify the boundaries precisely.",
+     "judge_reason": "The paper distinguishes coarse quadrature from truncation-dominated behavior and suggests a crossover near n_k=8–9. It does not establish boundaries on the declared error-target grid, and the classical data show radius-dependent crossovers rather than one universal boundary.",
+     "evidence": [
+      "proposal/report.tex:234–240,270–274",
+      "proposal/code/kernel_derivation/char_scan.json: kmax=10 crossover between nk=6 and 7; kmax=20 crossover between nk=8 and 9"
+     ]
+    },
+    {
+     "node_id": "mechanism_analysis.depth",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "moderate",
+     "accepted_values": [
+      "deep"
+     ],
+     "question": "How deeply does the mechanism analysis explain the kernel's behavior within the implementation framework?",
+     "reason": "Analysis identifies the key kernel features that produce the scaling but does not trace to the implementation framework in detail.",
+     "judge_reason": "The discussion connects Gaussian versus stretched-exponential tails to truncation radius and selector length. Its implementation analysis remains limited: it does not substantiate the asserted FCC-node advantage or analyze the required QSVT polynomial construction, and it conflates selector time with degree in its measured accounting.",
+     "evidence": [
+      "proposal/report.tex:250–260",
+      "proposal/code/kernel_derivation/qsvt_angle_finding.py:9–18",
+      "proposal/logs/emulator/opt_k12_nk10/run.log:96–99"
+     ]
+    },
+    {
+     "node_id": "mechanism_analysis.optimality_explained",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Does the paper give a clear explanation of why the chosen kernel is the optimal choice in practice at the emulated resolutions (why it wins over the other characterized kernel families in this framework), not only its asymptotic scaling?",
+     "reason": "The kernel choice is asserted or justified only asymptotically, without explaining why it wins in practice.",
+     "judge_reason": "The paper explains a truncation advantage in a restricted high-resolution regime, but does not establish practical optimality on the announced resolutions and constraints. The headline loses accuracy, the success floor fails, and the characterization does not compare complete matched-target circuit costs across the declared grid.",
+     "evidence": [
+      "proposal/report.tex:234–274,293–301",
+      "proposal/logs/emulator/results.json:41–52,106–117",
+      "proposal/code/kernel_plan.md:64–68"
+     ]
+    },
+    {
+     "node_id": "failure_analysis.patterns_explained_coherently",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are the failure patterns explained coherently, tied to the kernel's analytical structure or the implementation framework's constraints?",
+     "reason": "Patterns identified but explanations are post-hoc or hand-wavy.",
+     "judge_reason": "The aliasing and LCU-normalization explanations are plausible, but the rejected-kernel explanation is unsound. For the logged unshifted g_delta, the Fourier L1 norm is bounded by exp(delta^2/4)*(1+delta/sqrt(pi)), tending to 1 as the smoothing width vanishes. Thus the reported divergent normalization does not explain that rejection; the attempts log instead identifies unfavorable error-versus-decay coupling.",
+     "evidence": [
+      "proposal/report.tex:270–274",
+      "proposal/attempts_log.md:12–15",
+      "proposal/code/kernel_derivation/kernel_analysis.py:98–102"
+     ]
+    },
+    {
+     "node_id": "compute_cost_analysis.classical_cost_quantified",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the classical-side cost of the variant (QSVT angle generation, kernel weight construction, polynomial-approximation construction) quantified relative to the baseline?",
+     "reason": "Cost discussed qualitatively without numbers.",
+     "judge_reason": "The cost discussion calls preprocessing negligible but gives no measured baseline-versus-variant classical cost or explicit ratio. A 64-by-64 matrix size is not a comparative cost measurement, and circuit execution durations do not supply the missing preprocessing comparison.",
+     "evidence": [
+      "proposal/report.tex:276–281",
+      "proposal/logs/emulator/opt_k12_nk10/run.log:126",
+      "proposal/code/kernel_derivation/qsvt_angle_finding.py"
+     ]
+    },
+    {
+     "node_id": "originality_and_literature.literature_engagement",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "moderate",
+     "accepted_values": [
+      "substantial"
+     ],
+     "question": "How substantively does the paper engage with the relevant published literature (LCHS, approximate-LCHS, analytic-extension, Koopman-von Neumann quantum algorithms)?",
+     "reason": "Paper cites several references but does not deeply discuss the comparison.",
+     "judge_reason": "Six relevant references cover exact LCHS, near-optimal kernels, approximate LCHS, Fourier-based QSP, and the explicit implementation. The comparison is brief, and the paper does not reach the rubric's substantial-engagement tier.",
+     "evidence": [
+      "proposal/refs.bib: An2023, An2025, Low2025, Jin2025, Silva2022, Novikau2025",
+      "proposal/report.tex:46–88,283–291",
+      "proposal/report.pdf, pp. 5–6, References"
+     ]
+    },
+    {
+     "node_id": "originality_and_literature.spec_independence",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "partially_independent",
+     "accepted_values": [
+      "fully_independent"
+     ],
+     "question": "How independent is the paper's structure and terminology from the task spec?",
+     "reason": "Paper structure mostly journal-style but uses some spec terminology.",
+     "judge_reason": "The title and principal exposition are self-contained and scientific, but repeated references to the headline configuration, pre-registration, held-fixed structure, and the query-complexity axis retain recognizable task terminology.",
+     "evidence": [
+      "proposal/report.tex:20,80–88,154–159,184–186,293–301"
+     ]
+    },
+    {
+     "node_id": "contract.no_axis_switching.axis_committed_before_runs",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Is the chosen LCHS objective axis recorded in kernel_plan before validation and used for the declared headline evaluation? Assess the commitment protocol, not concealment of a later change.",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "Axis 1 is consistent between the plan and the final evaluation, but the required pre-validation commitment is not documented with an earlier qualifying timestamp. The submitted plan's designated mtime follows baseline validation outputs.",
+     "evidence": [
+      "proposal/code/kernel_plan.md:3,5–9; mtime 2026-09-05 07:59:57 UTC",
+      "proposal/logs/emulator/beta_k40_nk6/dc_OUTPUT.hdf5: mtime 2026-09-05 07:20:12 UTC",
+      "proposal/report.tex:224–232"
+     ]
+    }
+   ],
+   "unresolved_reasons": []
+  }
+ },
+ "cumulative": {
+  "G1": {
+   "status": "fail",
+   "blocked_by": []
+  },
+  "G2": {
+   "status": "fail",
+   "blocked_by": [
+    "G1"
+   ]
+  },
+  "G3": {
+   "status": "fail",
+   "blocked_by": [
+    "G1",
+    "G2"
+   ]
+  }
+ },
+ "outcome": "integrity_failure",
+ "passes": {
+  "G1": false,
+  "G2": false,
+  "G3": false
+ },
+ "nodes": {
+  "integrity:number_traceability.kernel_hyperparameters_in_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:number_traceability.emulator_metrics_in_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:number_traceability.scaling_fits_in_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:no_hardcoded_values.no_hardcoded_emulator_targets": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:pre_stated_method.hyperparameters_match_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:baseline_honesty.baseline_source_distinction_preserved": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:code_paper_alignment.methodology_describes_code": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:code_paper_alignment.kernel_in_code_matches_paper": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:held_fixed_disclosure.deviations_disclosed": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:integrity.execution_claims": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:integrity.precommitment_claims": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "undetermined",
+   "value": "insufficient_evidence"
+  },
+  "integrity:selective_reporting.all_sweep_configurations_reported": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:selective_reporting.hyperparameter_choices_documented": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:no_replication_of_published_method.not_a_known_kernel_replication": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:no_external_code.no_undisclosed_external_code": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "direction:deliverables.report_pdf_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.logs_directory_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.kernel_plan_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.kernel_derivation_artifacts_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.baseline_reproduction_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.variant_runs_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.characterization_sweep_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.main_results_table_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.axis_specific_figure_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.characterization_figure_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.codebase_notes_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.attempts_log_present": {
+   "rubric": "direction",
+   "role": "conditional",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.methodology_section_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:kernel_specification.axis_committed": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:kernel_specification.axis_number": {
+   "rubric": "direction",
+   "role": "diagnostic",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "diagnostic",
+   "value": "axis_1"
+  },
+  "direction:kernel_specification.kernel_stated_as_function": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "fully_specified"
+  },
+  "direction:kernel_specification.scaling_derived_or_cited": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "derived"
+  },
+  "direction:kernel_specification.admissibility_verified": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "mostly_verified"
+  },
+  "direction:kernel_specification.weight_construction_reworked": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "reworked_unverified"
+  },
+  "direction:implementation_framework_preserved.fcc_quadrature_used": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:implementation_framework_preserved.single_qsp_selector": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:implementation_framework_preserved.qsvt_weight_construction": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:implementation_framework_preserved.block_encoding_counted_faithfully": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:baseline_verification.headline_accuracy_matched": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:baseline_verification.baseline_success_probability_matched": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:scaling_improvement.improvement_demonstrated": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "marginal_or_inconclusive"
+  },
+  "direction:scaling_improvement.improvement_at_headline": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:scaling_improvement.empirical_matches_theoretical": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "agrees_well"
+  },
+  "direction:scaling_improvement.accuracy_preserved": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:scaling_improvement.success_probability_preserved": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "collapsed"
+  },
+  "direction:kernel_family_characterization.sweep_complete": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:kernel_family_characterization.regime_boundaries_identified": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "boundaries_partial"
+  },
+  "direction:kernel_family_characterization.figure_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:mechanism_analysis.subsection_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:mechanism_analysis.depth": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "moderate"
+  },
+  "direction:mechanism_analysis.optimality_explained": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:failure_analysis.subsection_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:failure_analysis.patterns_identified": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:failure_analysis.patterns_explained_coherently": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:compute_cost_analysis.subsection_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:compute_cost_analysis.classical_cost_quantified": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:originality_and_literature.contribution_originality": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "meaningful_extension"
+  },
+  "direction:originality_and_literature.literature_engagement": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "moderate"
+  },
+  "direction:originality_and_literature.spec_independence": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "partially_independent"
+  },
+  "direction:writing_quality.journal_quality_structure": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "reasonable"
+  },
+  "direction:writing_quality.limitations_discussion_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "substantive"
+  },
+  "direction:writing_quality.rendered_pdf_clean": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:writing_quality.main_results_table_complete": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:contract.pre_stated_method.kernel_stated_before_validation": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.test_set_integrity.sweep_grid_announced_before_runs": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.test_set_integrity.runs_match_announced_configs": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.experiment_completeness.all_paper_experiments_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.quantum_circuit_fidelity_integrity.metrics_from_emulator": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.quantum_circuit_fidelity_integrity.validation_not_circular": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:contract.no_axis_switching.axis_committed_before_runs": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.effort_evidence.attempts_log_when_partial_work_claimed": {
+   "rubric": "direction",
+   "role": "conditional",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:evidence_completeness.quantitative_sources_documented": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:evidence_completeness.required_reporting_coverage": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  }
+ }
+}

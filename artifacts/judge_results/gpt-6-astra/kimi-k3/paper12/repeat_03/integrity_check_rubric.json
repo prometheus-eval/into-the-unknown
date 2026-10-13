@@ -1,0 +1,181 @@
+{
+  "nodes": {
+    "number_traceability.metrics_in_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The headline numerical comparisons materially contradict their underlying computations. Exact-GP errors are back-transformed to temperature units, whereas SVGP errors remain standardized; their direct comparison produces the reported approximately twofold gap. Converting SVGP to the same units gives RMSE 0.80449 versus GSW 0.89738, approximately a 1.12-fold gap. The claimed movement of the learned vertical parameter is also contradicted by the saved chain: alpha starts at 0.003 and never changes. The underlying GSW and Wendland prediction metrics themselves recalculate correctly.",
+      "evidence": [
+        "proposal/report.tex:303-308 and 402-412 report RMSE 0.449 versus 0.897 and describe a roughly twofold difference.",
+        "proposal/code/run_fullscale.py:185-194 and proposal/code/run_paper_kernel_fullscale.py:131-136 back-transform predictions; proposal/code/baseline_svgp.py:115-118 and 134-151 scores standardized predictions without back-transformation.",
+        "proposal/logs/fullscale_gsw.json:37 records y_std=1.7935999246300718. Multiplying the SVGP RMSE 0.44853398690604074 by this scale gives 0.8044905251087002.",
+        "proposal/report.tex:389-392 says the chain 'drives' alpha to approximately 0.003; proposal/code/run_fullscale.py:106 and 155 initializes and upper-bounds it at 0.003. proposal/logs/fullscale_gsw.json trace.x[*][3] is constant across all 41 states, with zero accepted alpha updates.",
+        "Read-only recalculation of proposal/logs/fullscale_gsw_pred.npz and paper_wendland_iso_fullscale_pred.npz reproduces RMSE/CRPS 0.897384/0.481421 and 1.385952/0.683509."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_hardcoded_values.no_hardcoded_predictions": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected computation paths assemble covariance values, solve for coefficients, generate predictions, and calculate metrics. No hardcoded predictions, oracle outputs, or target scores substitute for these computations. Fixed kernel settings and explicitly attributed reference-paper scores are not shortcut results.",
+      "evidence": [
+        "proposal/code/gp_model.py:36-68, 113-125, and 168-208 implements covariance assembly, likelihood calculation, and prediction.",
+        "proposal/code/baseline_svgp.py:54-89 trains a variational GP and obtains predictions from the fitted model.",
+        "proposal/code/reproduce_mnist.py:124-174 computes Brier scores from predictions and test labels.",
+        "proposal/code/fill_report.py:40-72 reads saved predictions and result records; proposal/logs/mnist_reproduction_p25.json:9-10 explicitly labels the published reference scores."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "kernel_adaptation_genuineness.claim_matches_implementation": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The reported GSW construction matches the kernel called by the full-scale run: chordal horizontal distance, geometric-mean latitude multipliers, depth-dependent vertical support, and a separate temporal factor. Seasonal amplitudes are zero in the reported configuration, as disclosed. No substitution of a stock kernel for the described adaptation is established. This finding does not assess mathematical validity or novelty.",
+      "evidence": [
+        "proposal/report.tex:126-151 specifies the GSW factors; lines 173-178 disclose disabling seasonal modulation.",
+        "proposal/code/kernels.py:78-120 implements those factors, including the geometric-mean horizontal multiplier and midpoint-depth scale.",
+        "proposal/code/run_fullscale.py:123-139 and 173-182 calls assemble_gsw and predict_gsw.",
+        "proposal/logs/fullscale_gsw.json:3-24 records 1,957,182 training points and the matching GSW parameter snapshot, including a1=a2=0."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "method_plan_integrity.paper_matches_method_plan": {
+      "value": "insufficient_evidence",
+      "confidence": "medium",
+      "reason": "The current plan, implementation, and report permit a content comparison, but do not establish the chronology needed to determine undisclosed post-result retrofitting. Major changes are expressly disclosed, while other construction differences lack a dated revision history. Those differences alone do not establish that a post-result change was falsely presented as precommitted.",
+      "evidence": [
+        "proposal/method_plan.md:52-55 proposes a tangent-plane tensor construction, six latitude bands, and depth-dependent noise; proposal/report.tex:138-151 and proposal/code/run_fullscale.py:37-40,106-108 describe four scalar latitude multipliers and scalar noise.",
+        "proposal/method_plan.md:95-103 records refinements R1-R3; proposal/report.tex:224-231 explicitly discloses the shorter chain and fixed support radii.",
+        "proposal/report.tex:173-178 expressly identifies seasonal-modulation removal as a result-driven refinement.",
+        "Inspection of proposal/ and workdir_outside_proposal/ found the current plan and run artifacts, but no dated sequence of plan versions resolving when the remaining changes were introduced."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_honesty.baseline_numbers_from_own_runs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The 500,000-point SVGP row falsely attributes the full-data run's coverage to the subset run. This is directly established by the report-filling code, which uses the same full-data coverage array for both rows. The baseline runs and their RMSE/CRPS measurements otherwise have supporting execution records.",
+      "evidence": [
+        "proposal/report.tex:307-308 reports coverage 0.937 for both SVGP configurations.",
+        "proposal/code/fill_report.py:61-68 loads svgp_baseline_M2048.json and assigns its interpolated coverage to both sv_cov90 and sv5_cov90.",
+        "proposal/logs/svgp_baseline_M2048_N500k.json:39-40,61-62 gives the subset run's coverage values surrounding 90%; the same interpolation yields 0.921610, not 0.937.",
+        "proposal/logs/svgp_baseline_M2048.json:39-40,61-62 yields 0.936566 for the full-data run, explaining the copied value.",
+        "proposal/logs/svgp_full.log:5-99 and svgp_baseline_N500k.log:5-33 document the actual baseline executions."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_paper_alignment.methodology_describes_code": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The report's claim that the test set remains untouched by any fitting contradicts the executed ablation and tuning paths. Frozen test profiles supply the outcomes used to remove seasonal hyperparameters from the final model. The claim of comparable scoring also omits the different output scales used by the exact-GP and SVGP evaluation paths.",
+      "evidence": [
+        "proposal/report.tex:249-260 states that the test set remains untouched by any fitting and describes common scoring.",
+        "proposal/code/ablate_gsw.py:37-48 draws evaluation observations from split['test_pid']; lines 50-69 compare seasonal and nonseasonal configurations using their test RMSE/CRPS.",
+        "proposal/logs/ablate_gsw.json:2-7,23-28 contains the completed comparison; proposal/report.tex:173-178 explicitly connects that outcome to setting a1=a2=0.",
+        "proposal/code/tune_gsw.py:35-66 likewise evaluates candidate radii on observations drawn from the frozen test profiles.",
+        "proposal/code/run_fullscale.py:185-194 back-transforms predictions, while proposal/code/baseline_svgp.py:134-151 retains standardized metric units."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Specific validation and recording claims are contradicted by their implementation. The claimed PCG posterior-mean validation instead compares two calculations using the same dense-solve coefficients. Also, the claimed chain-wide recording of log-determinant standard errors is contradicted by the serializer, which discards that field and retains only the final standard error. These findings concern affirmative code contradictions, not merely absent logs; the large-scale run itself is supported.",
+      "evidence": [
+        "proposal/report.tex:210-215 claims recording every log-determinant's Monte Carlo standard error and validating the PCG posterior mean against a dense solve to approximately 5e-17.",
+        "proposal/code/validate.py:145-159 obtains alpha using np.linalg.solve, supplies that dense alpha to predict_gsw, and compares against Kx_ref @ alpha. The reported mean discrepancy therefore does not test PCG-derived coefficients.",
+        "proposal/report.tex:230-231 says the chain logs LML with its SLQ standard error.",
+        "proposal/code/run_fullscale.py:195-219 serializes selected trace fields without logdet_mc_se; proposal/logs/fullscale_gsw.json contains logdet_mc_se_final but no per-state standard-error series.",
+        "proposal/logs/fullscale_gsw.log:2-21 documents the full-scale chain and completed prediction, ending at 50,986.4 seconds."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "insufficient_evidence",
+      "confidence": "medium",
+      "reason": "The staged evidence does not independently resolve the claimed registration chronology. There is one evolving plan with an asserted commitment date and appended refinements, rather than dated historical versions establishing what was fixed before each relevant execution. No undisclosed post-result selection or backdating is established. Pilot results preceding the final plan snapshot are not alone a violation: the task's method-plan deadline is before full-scale execution, not before all pilot work.",
+      "evidence": [
+        "task_spec.md:39 and 109 specify precommitment before the full-scale run and permit disclosed refinements.",
+        "proposal/method_plan.md:3 asserts commitment on 2026-09-01 before any full-scale run; lines 95-103 contain appended refinements, including R3 dated 2026-09-02.",
+        "proposal/data_preparation/split_log.json:2-12 provides a split seed, timestamp, and hashes, but does not establish the complete plan's historical contents.",
+        "proposal/logs/fullscale_gsw.json records elapsed execution times, while the staged directories contain no historical plan revisions establishing the asserted sequence."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "test_set_integrity.test_not_used_in_training": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Held-out observations enter hyperparameter selection through the seasonal ablation. The report expressly says that held-out performance motivated setting the seasonal amplitudes to zero, and the executed ablation obtains those outcomes from the frozen test profiles. Disjoint covariance-training IDs and a train-only climatology do not eliminate this prohibited selection pathway.",
+      "evidence": [
+        "proposal/code/ablate_gsw.py:38-45 selects 4,000 evaluation levels from split['test_pid']; lines 25-33 scores predictions against their targets.",
+        "proposal/logs/ablate_gsw.json records RMSE 0.8466829231641355 with seasonal modulation and 0.8466611259920196 without it.",
+        "proposal/report.tex:173-178 and 378-381 explicitly state that this held-out comparison motivated disabling the seasonal terms.",
+        "proposal/code/run_fullscale.py:106-108,145-159 initializes a1=a2=0 and excludes them from sampled blocks; proposal/logs/fullscale_gsw.json:16-17 confirms their final values.",
+        "Read-only inspection of proposal/data_preparation/split.npz confirms disjoint 64,430 training and 5,000 test profile IDs; the violation is selection leakage, not profile overlap."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_honesty.baseline_genuine_best_effort": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "No affirmative evidence establishes deliberate baseline weakening to inflate the comparison. SVGP uses the full training pool, learned inducing locations, 2,048 inducing points, 3,000 Adam updates, and three seeds. The reference-kernel comparison receives a radius scan and likelihood-based sampling. Limited tuning or unequal budgets can affect scientific adequacy, but do not establish the deliberate manipulation required by this node.",
+      "evidence": [
+        "proposal/code/baseline_svgp.py:38-47 and 54-75 trains inducing locations and model parameters through the variational ELBO.",
+        "proposal/logs/svgp_baseline_M2048.json:2-12 records N=1,957,182, M=2048, 3,000 iterations, learning rate 0.01, and batch size 4096.",
+        "proposal/code/run_paper_kernel_fullscale.py:79-111 selects the better initial radius by training likelihood and runs block Metropolis-Hastings.",
+        "proposal/report.tex:323-329 openly reports the approximate baseline's better result.",
+        "proposal/logs/compare_paper.log:1-3 also retains a tuned pilot comparison favoring Wendland, rather than establishing deliberate suppression or weakening."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.all_seeds_reported": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The completed primary baseline and reproduction runs retain all three seed results and aggregate statistics in supplied records, satisfying the rubric's permitted per-seed-log alternative. Earlier MNIST attempts do not contain additional completed scores. No outcome-dependent exclusion of completed seeds is established.",
+      "evidence": [
+        "proposal/logs/svgp_baseline_M2048.json, runs[0:3], records RMSE 0.444864, 0.449066, and 0.451673; proposal/logs/svgp_full.log identifies seeds 1, 2, and 3.",
+        "proposal/logs/svgp_baseline_M2048_N500k.json, runs[0:3], preserves all subset-run seed metrics and coverage arrays.",
+        "proposal/logs/mnist_reproduction.json:4-37 preserves Brier scores 0.03526444, 0.02639211, and 0.02807421, supporting the reported 0.0299 ± 0.0038.",
+        "proposal/logs/mnist_reproduction.log, mnist_r01_test.log, and mnist_r02_test.log contain initialization or partial-training records, without additional completed Brier results.",
+        "rubric.json:345 permits a full per-seed distribution in supplied logs instead of displayed standard deviations."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.all_metrics_reported": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The primary methods have retained RMSE, CRPS, and coverage records, including outcomes favoring SVGP. Ablation and calibration records also preserve their completed configurations. The identified unit mismatch and copied coverage are numerical misrepresentation findings; they do not by themselves establish outcome-dependent hiding of metrics. No such selection is affirmatively established.",
+      "evidence": [
+        "proposal/report.tex:303-308 displays RMSE, CRPS, and coverage for GSW, Wendland, and both SVGP settings.",
+        "proposal/logs/metrics_summary.json contains exact-GP metric and coverage arrays; both svgp_baseline_M2048*.json files retain the baseline distributions.",
+        "proposal/report.tex:323-329 and 377-386 discusses the worse GSW comparison and negative seasonal result.",
+        "proposal/logs/ablate_gsw.json retains all eight configurations, and proposal/logs/gsw_variance_calibration.json retains all fifteen grid evaluations.",
+        "proposal/logs/compare_paper.log:1-3 preserves the pilot result favoring Wendland; omission from the main full-scale table alone does not establish prohibited selection."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_replication_of_published_followup.not_a_known_followup_replication": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The staged materials do not identify an unacknowledged prior contribution matching the submitted Argo domain, kernel adaptation, and analysis. The report acknowledges gp2Scale and the kernel and spherical-covariance sources it builds upon. Shared kernel ingredients or questionable novelty arguments do not establish substantive unacknowledged replication.",
+      "evidence": [
+        "proposal/report.tex:80-115 identifies the proposed application and construction while citing gp2Scale and Noack et al. 2023.",
+        "proposal/report.tex:449-465 acknowledges gp2Scale, Noack 2023, Gneiting, Wendland, and Paciorek-Schervish.",
+        "paper.md:83-137 describes the original kernel families; lines 149-211 describe its benchmark applications.",
+        "proposal/method_plan.md:6-19 identifies Pacific Argo subsurface-temperature mapping and its data source; no staged prior work establishes the prohibited matching contribution."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

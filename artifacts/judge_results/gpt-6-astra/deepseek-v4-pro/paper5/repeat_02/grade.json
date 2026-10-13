@@ -1,0 +1,1369 @@
+{
+ "model": "deepseek-v4-pro",
+ "paper": 5,
+ "repeat": 2,
+ "rubric_revision": "science-task-alignment-v3-strict",
+ "grading_policy_version": "science-gates-v2-g1-unresolved-fail",
+ "context": {
+  "partial_work_claimed": true
+ },
+ "gates": {
+  "G1": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "code_paper_alignment.methodology_describes_code",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For code paper alignment: methodology describes code, is there affirmative evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence?",
+     "reason": "Identify evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The report explicitly claims a shared time-stepping schedule across methods, but the Topology-B variants use different recorded time grids and step counts in every benchmark. The code independently adapts each run's steps. This contradicts the claimed executed protocol, beyond merely failing a scientific pairing requirement.",
+     "evidence": [
+      "proposal/report.tex:295–297: all three methods share the same initial state, Hamiltonian and 'time-stepping schedule'.",
+      "proposal/logs/mfim_hz0.0_unconstrained_alltoall.json: nsteps=3045; mfim_hz0.0_variant_B.json: nsteps=3503.",
+      "proposal/logs/lsm_hz-0.7_unconstrained_alltoall.json: nsteps=5495; lsm_hz-0.7_variant_B.json: nsteps=6712.",
+      "proposal/code/tavqds.py:262–268 and proposal/code/fast_avqds.py:272–280 independently determine and accumulate each run's adaptive dt."
+     ]
+    },
+    {
+     "node_id": "code_paper_alignment.topology_aware_logic_matches",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For code paper alignment: topology aware logic matches, is there affirmative evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence?",
+     "reason": "Identify evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The Methodology specifies accuracy and conditioning tie-breaks among equally cheap admissible operators. The live second pass accepts only strictly cheaper candidates, so it never applies those tie-breaks once a cheapest candidate has been selected. The helper containing the advertised tie-break is unused. This contradicts the specified selection rule at the center of the contribution.",
+     "evidence": [
+      "proposal/report.tex:214–226 specifies the routing-cost minimization and remaining ties resolved by larger distance reduction, then smaller maximum parameter velocity.",
+      "proposal/code/fast_avqds.py:339–349 requires c[2] < best_cost - 1e-12 for replacement and contains no equal-cost accuracy or conditioning comparison.",
+      "proposal/code/fast_avqds.py:385–408 defines _better with those additional comparisons, but the submitted code contains no call to _better."
+     ]
+    },
+    {
+     "node_id": "integrity.execution_claims",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "Is there affirmative evidence that an experiment, derivation, inspection, or repair is explicitly claimed as performed but affirmative code/trajectory/artifact evidence establishes that this claim is false?",
+     "reason": "Cite the explicit claim and affirmative evidence that contradicts it. Mere absence of logs, derivation steps, a plan file, or a timestamp is insufficient.",
+     "judge_reason": "The final paper describes the baseline as run through the authors' implementation, while the submission explicitly states that full authors-code runs were not completed and identifies the port as producing the completed results. The runner confirms that distinction. This is affirmative contradictory execution evidence, not an inference from empty or missing logs.",
+     "evidence": [
+      "proposal/report.tex:249–251: unconstrained AVQDS was 'run through the authors’ implementation'.",
+      "proposal/codebase_notes.md:124–130 explicitly states that full authors-code T=3/T=6 runs were not completed and distinguishes the port's completed results.",
+      "proposal/code/run_experiments.py:75 calls tavqds.run; proposal/code/tavqds.py:26,243–244 instantiates fast_avqds.AVQDS."
+     ]
+    }
+   ],
+   "unresolved_reasons": [],
+   "assessment_status": "fail",
+   "failure_basis": [
+    "detected_violation"
+   ]
+  },
+  "G2": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "deliverables.report_pdf_present",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Does proposal/report.pdf exist with substantive content (full sections, not a placeholder)?",
+     "reason": "PDF absent, malformed, or contains only placeholder text.",
+     "judge_reason": "The nine-page PDF exists and contains substantive methods, results, and analysis, but its Conclusion contains only '[Summary.]'. It therefore fails the rubric's requirement for non-placeholder content in all specified sections.",
+     "evidence": [
+      "proposal/report.pdf, p. 7, Section 6",
+      "proposal/report.tex:524-526"
+     ]
+    },
+    {
+     "node_id": "deliverables.unconstrained_avqds_runs_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are unconstrained AVQDS baseline runs logged on all four benchmark configurations (MFIM hz=0, MFIM hz=0.5, LSM hz=-0.7, LSM hz=1.6)?",
+     "reason": "Logs missing for at least one of the four benchmark configurations.",
+     "judge_reason": "Four full-duration AVQDS-port records exist, but every entry of rec.depth is null in all four records. The required per-step fidelity, CNOT, depth, and parameter-count logging is therefore incomplete. Completed authors-implementation sanity runs are also absent.",
+     "evidence": [
+      "proposal/logs/*_unconstrained_alltoall.json: rec.depth",
+      "proposal/code/tavqds.py:322-326",
+      "proposal/codebase_notes.md:124-130",
+      "proposal/logs/authors_mfim_0.0.out, authors_mfim_0.5.out, authors_lsm_-0.7.out, authors_lsm_1.6.out: all zero bytes"
+     ]
+    },
+    {
+     "node_id": "deliverables.topology_compliance_audits_present",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are per-step topology-compliance audits present in the logs, separately for Topology A and Topology B?",
+     "reason": "No per-step audit traces, or audits only present for one topology.",
+     "judge_reason": "Each topology run saves a final gate-by-gate audit, but the per-step record retains only an aggregate audit_ok flag. It does not save the required per-step records listing each gate, pair, and membership flag. Circuit compliance can be checked independently, but that does not supply the prescribed audit format.",
+     "evidence": [
+      "proposal/code/tavqds.py:285-293, 316-321",
+      "proposal/code/run_experiments.py:54-57",
+      "proposal/logs/*_variant_*.json: audit versus rec.audit_ok"
+     ]
+    },
+    {
+     "node_id": "method_specification.variant_stated_before_results",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the topology-aware variant fully stated in the Methodology section before any empirical results are described?",
+     "reason": "Key variant choices first appear after empirical results are described, or are altered mid-paper without acknowledgment.",
+     "judge_reason": "Under the explicit 'before any empirical results' condition, the ordering fails: the abstract already reports fidelity differences and an up-to-24% saving before the Methodology specifies the selection rule and epsilon. The rubric provides no abstract exception.",
+     "evidence": [
+      "proposal/report.tex:43-46",
+      "proposal/report.tex:107, 179-244",
+      "rubric.json: method_specification.variant_stated_before_results"
+     ]
+    },
+    {
+     "node_id": "method_specification.variant_fully_specified",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "mostly_specified",
+     "accepted_values": [
+      "fully_specified"
+     ],
+     "question": "Is the variant specified completely enough that a domain expert could reimplement it from the paper alone?",
+     "reason": "Most components stated precisely but at least one (e.g., a SWAP-insertion tiebreaker, an embedding heuristic) requires reading the code to disambiguate.",
+     "judge_reason": "The paper supplies pool definitions, embedding and selection equations, epsilon, and an explicit swap-and-restore network. Reimplementation still requires code for the embedding's maximum-distance and lexicographic tie-breaks and the conditioning-based growth thresholds.",
+     "evidence": [
+      "proposal/report.tex:186-244, 263-282",
+      "proposal/code/tavqds.py:99-119",
+      "proposal/code/fast_avqds.py:325-355"
+     ]
+    },
+    {
+     "node_id": "method_specification.hyperparameters_listed_match_logs",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Are the proposed method's required hyperparameters listed with concrete values sufficiently completely to reproduce the scientific protocol? Whether quoted values contradict executed values is assessed only in integrity.",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "The report lists L_cut, xi, maximum parameter step, maximum time step, and epsilon, but omits pthcut=7000 and the numerical conditioning/tie thresholds that affect growth. Those choices are available only in implementation code, so the required paper specification is incomplete.",
+     "evidence": [
+      "proposal/report.tex:210-227, 277-282",
+      "proposal/code/tavqds.py:216-218",
+      "proposal/code/fast_avqds.py:325-355, 379"
+     ]
+    },
+    {
+     "node_id": "experimental_completeness.topology_audits_both_topologies",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are per-step topology-compliance audits present for variant runs on both topologies (A and B), recording every two-qubit gate's qubit pair?",
+     "reason": "Audits absent, present only for some cells, or only for one topology.",
+     "judge_reason": "Both topologies have final gate-level audits, but all eight per-step traces contain only aggregate membership flags. The required per-step gate/pair/flag audit records are not saved.",
+     "evidence": [
+      "proposal/logs/*_variant_*.json: audit and rec.audit_ok",
+      "proposal/code/tavqds.py:316-321",
+      "proposal/code/run_experiments.py:41, 54-57"
+     ]
+    },
+    {
+     "node_id": "compute_cost_analysis.wall_clock_measured",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the variant's wall-clock cost measured and reported relative to unconstrained AVQDS?",
+     "reason": "No wall-clock measurements reported, or only for one method.",
+     "judge_reason": "The report gives approximate 90-second figures for one MFIM case, but no completed per-run timing records or explicit measured ratios support the required comparison. The 20 JSON logs contain no elapsed-time fields, and the authors-run outputs are empty. No additional solver timing outputs were found outside proposal.",
+     "evidence": [
+      "proposal/report.tex:514-522",
+      "proposal/logs/*.json: top-level fields",
+      "proposal/code/run_experiments.py:72-85",
+      "proposal/logs/authors_*.out",
+      "workdir_outside_proposal/code/avqds_figshare/avdynamics-avqds/: files match the bundled reference archive"
+     ]
+    },
+    {
+     "node_id": "contract.effort_evidence.attempts_log_when_partial_work_claimed",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "If the paper describes any work as partial, unresolved, or attempted-but-failed, does proposal/attempts_log.md document the approaches tried and why each was set aside?",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "The attempts log substantively covers several abandoned approaches, but not every claimed failed configuration. The report says epsilon=0.01 was explicitly tested and degraded fidelity; no corresponding attempt entry identifies that configuration, its observations, or disposition. A2 instead concerns epsilon=0.0001 with a different selection implementation.",
+     "evidence": [
+      "proposal/report.tex:496-502",
+      "proposal/attempts_log.md, A1-A6, especially A2",
+      "task_spec.md:101, 300, 339"
+     ]
+    },
+    {
+     "node_id": "contract.experiment_completeness.all_paper_experiments_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Does every experiment described in the paper (each (benchmark x topology x method) cell, each ablation, each third-topology run if claimed) have corresponding log entries?",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "The 20 headline records exist, but the explicitly claimed epsilon=0.01 sensitivity experiment has no execution record; all submitted headline logs use epsilon=1e-8. The claimed completed authors-code baseline runs are also unsupported by the empty authors output files and the notes' admission of noncompletion.",
+     "evidence": [
+      "proposal/report.tex:249-251, 499-502",
+      "proposal/logs/*.json: eps",
+      "proposal/logs/authors_*.out",
+      "proposal/codebase_notes.md:124-130",
+      "workdir_outside_proposal/code/avqds_figshare/avdynamics-avqds/: unchanged reference archive contents"
+     ]
+    },
+    {
+     "node_id": "evidence_completeness.quantitative_sources_documented",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Are the task-required sources for quantitative claims identifiable (run/log entries for original measurements and specific citations for source-paper values), with enough information to evaluate the claims? Missing support or inaccessible artifacts are completeness weaknesses. Whether a provided source contradicts a claim is assessed only in integrity.",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "Headline fidelity and gate-count numbers trace to identifiable JSON fields and generated macros. Coverage is incomplete for other quantitative claims: the approximately 90-second costs, epsilon=0.01 sensitivity result, and claimed reference-mesh error lack corresponding saved measurement records.",
+     "evidence": [
+      "proposal/code/generate_results.py:77-124",
+      "proposal/report.tex:499-517",
+      "proposal/attempts_log.md:77-86",
+      "proposal/logs/*.json: available fields and epsilon values"
+     ]
+    },
+    {
+     "node_id": "evidence_completeness.required_reporting_coverage",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Does reporting cover the experiments, completed seeds, required metrics, uncertainty summaries, and attempts required by this task and its applicable declared protocol? Assess coverage against the task, respecting optional work and permitted reporting alternatives. An omission alone is not evidence of favorable-result selection.",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "The required scientific record remains incomplete: unconstrained per-step depths are null, per-step gate-level audits and per-run timings are absent, completed native authors-code sanity runs are missing, and the claimed larger-epsilon experiment is unlogged. Reported depth also omits one-qubit gates and does not preserve gate dependencies. No extra seed count or uncertainty requirement was imposed.",
+     "evidence": [
+      "proposal/code/tavqds.py:140-142, 166-178, 316-326",
+      "proposal/logs/*_unconstrained_alltoall.json: rec.depth",
+      "proposal/codebase_notes.md:124-130",
+      "proposal/report.tex:499-517",
+      "task_spec.md:235-245, 292, 330-338"
+     ]
+    },
+    {
+     "node_id": "evidence_completeness.auxiliary_observables_and_topology_figures",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Are the task-required Loschmidt-echo curves for the two MFIM cases, energy and spin-correlation observables for both LSM cases, and per-topology two-qubit-gate/embedding visualizations present, with component ablations when applicable?",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "Loschmidt and LSM observable figures are present, but the required energy-versus-exact comparison is missing: exact observables are neither plotted nor saved in the referenced JSON logs. Topology plots show only rotation usage on physical qubits, without the logical-to-physical embedding or SWAP usage. The claimed multi-component method also lacks ablations isolating each component.",
+     "evidence": [
+      "proposal/report.pdf, Figures 2-4",
+      "proposal/report.tex:332-350, 182-184",
+      "proposal/code/make_figures.py:93-110, 114-148",
+      "proposal/logs/lsm_*.json: rec fields contain no exact-energy or exact-correlation trace",
+      "task_spec.md:243, 336, 355"
+     ]
+    }
+   ],
+   "unresolved_reasons": []
+  },
+  "G3": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "method_specification.motivation_grounded_in_literature",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the variant's motivation grounded in the published quantum-compilation, qubit-routing, and connectivity-restricted variational literature?",
+     "reason": "No engagement with the published compilation/routing literature.",
+     "judge_reason": "The introduction cites several routing papers, but the required grounding also includes connectivity-restricted variational methods and substantive positioning against the relevant compilation approaches. Those comparisons are absent; bibliography entries alone do not establish engagement.",
+     "evidence": [
+      "proposal/report.tex:69-96",
+      "proposal/report.tex:179-258",
+      "proposal/report.tex:561-578, 714-723"
+     ]
+    },
+    {
+     "node_id": "baseline_verification.naive_uses_smart_embedding",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Does the smart-embedding naive SWAP-routing baseline genuinely use a smart embedding (e.g., Hamiltonian-cycle embedding on Topology A for the MFIM ring), not an arbitrary one?",
+     "reason": "Embedding is identity or random without justification, inflating the naive baseline's overhead.",
+     "judge_reason": "Topology A uses the required cycle, but the MFIM B embedding does not maximize nearest-neighbor coverage as the task requires. Its permutation makes only two ring bonds adjacent. Identity makes five adjacent with the same total distance cost of six. The implemented maximum-distance tie-break optimizes a different objective.",
+     "evidence": [
+      "task_spec.md:83",
+      "proposal/logs/mfim_hz0.0_naive_B.json: perm=[0,1,5,7,6,4,3,2]",
+      "proposal/logs/mfim_hz0.5_naive_B.json: perm",
+      "proposal/code/tavqds.py:99-119",
+      "Read-only graph calculation: submitted ring distances [1,2,2,1,2,2,2,2]; identity distances [1,1,2,2,1,1,1,5]"
+     ]
+    },
+    {
+     "node_id": "margin_over_naive_baseline.margin_on_a",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no_margin",
+     "accepted_values": [
+      "modest_margin",
+      "substantial_margin"
+     ],
+     "question": "On Topology a, how much does the variant beat the smart-embedding naive SWAP-routing baseline on CNOT count and depth, averaged across the four benchmarks?",
+     "reason": "Variant matches or underperforms the smart-embedding naive baseline.",
+     "judge_reason": "Variant and naive A circuits are identical on every benchmark. CNOT counts are respectively 138, 224, 110, and 108 for both methods, and their depths also match. The margin is zero.",
+     "evidence": [
+      "proposal/logs/*_naive_A.json versus *_variant_A.json: ansatz, gates, n_cx, depth",
+      "proposal/report.pdf, Tables 1-3"
+     ]
+    },
+    {
+     "node_id": "mechanism_analysis.depth",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "moderate",
+     "accepted_values": [
+      "deep"
+     ],
+     "question": "How deeply does the mechanism analysis explain the variant's overhead?",
+     "reason": "Analysis identifies the contributing component but does not connect to theory or run ablations.",
+     "judge_reason": "The analysis identifies the selection rule and uses naive-versus-variant results to isolate it, including 102 versus 78 SWAPs for MFIM hz=0 on B. It does not establish a deep compilation-theoretic explanation: the claimed two-adjacent-bond bound is incorrect, and trial-degeneracy behavior is not demonstrated with diagnostic traces.",
+     "evidence": [
+      "proposal/report.tex:421-466",
+      "proposal/logs/mfim_hz0.0_naive_B.json: n_swaps",
+      "proposal/logs/mfim_hz0.0_variant_B.json: n_swaps",
+      "proposal/code/tavqds.py:99-119"
+     ]
+    },
+    {
+     "node_id": "failure_analysis.patterns_explained_coherently",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Do the identified failure patterns receive coherent explanations tied to the variant's structure or topology constraints?",
+     "reason": "Patterns are observed but no coherent mechanism is given.",
+     "judge_reason": "Several explanations rest on incorrect structural or quantitative premises. Six off-edge MFIM bonds are not forced: identity embeds five bonds directly. A distance-two rotation with two SWAPs costs eight CNOTs, not six. The claimed higher absolute LSM SWAP counts are also unsupported: B variant counts are 22/28 for LSM versus 78/126 for MFIM.",
+     "evidence": [
+      "proposal/report.tex:474-494",
+      "proposal/code/tavqds.py:161",
+      "proposal/logs/*_variant_B.json: n_swaps",
+      "task_spec.md:68-70"
+     ]
+    },
+    {
+     "node_id": "originality_and_literature.literature_engagement",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "moderate",
+     "accepted_values": [
+      "substantial"
+     ],
+     "question": "How substantively does the paper engage with the relevant published literature on hardware-aware quantum compilation, qubit routing, and variational quantum dynamics?",
+     "reason": "Paper cites several references but does not deeply discuss the comparison.",
+     "judge_reason": "Several relevant works are cited in the introduction, but comparisons are brief and there is no substantive related-work treatment of connectivity-restricted variational approaches. The bibliography has 56 entries versus 69 in the source paper; most are not discussed in the text.",
+     "evidence": [
+      "proposal/report.tex:58-79",
+      "proposal/report.tex:528-730",
+      "proposal/report.pdf, pp. 7-9, References [1]-[56]",
+      "paper.md, References [1]-[69]"
+     ]
+    },
+    {
+     "node_id": "originality_and_literature.spec_independence",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "partially_independent",
+     "accepted_values": [
+      "fully_independent"
+     ],
+     "question": "How independent is the paper's structure and terminology from the task spec?",
+     "reason": "Paper structure mostly journal-style but uses some spec terminology verbatim.",
+     "judge_reason": "The paper has a scientific title and an identifiable method narrative, but repeatedly uses task-facing language such as 'held-fixed', 'required topologies', and 'contract violation'. Its framing remains partly tied to the specification.",
+     "evidence": [
+      "proposal/report.tex:12, 40-42, 98-105, 157-160, 520-522"
+     ]
+    },
+    {
+     "node_id": "contract.initial_state_seed_pairing.same_initial_state_and_seeds",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Do the three methods (unconstrained AVQDS, smart-embedding naive, topology-aware variant) use the same initial state and the same time-stepping schedule within a paired comparison?",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "Initial-state construction is shared, but B variant runs do not share the baseline's actual time-stepping schedule. Baseline versus B step counts are 3045/3503, 1912/1922, 5495/6712, and 6240/6973. Sharing an adaptive stepping rule does not satisfy the required paired time grid.",
+     "evidence": [
+      "task_spec.md:294",
+      "proposal/logs/*_unconstrained_alltoall.json and *_variant_B.json: nsteps, rec.t",
+      "proposal/code/tavqds.py:184-210, 262-265"
+     ]
+    },
+    {
+     "node_id": "contract.naive_baseline_protocol_faithfulness.post_hoc_shortest_path_swap",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Does the smart-embedding naive baseline genuinely apply post-hoc shortest-path SWAP insertion to the unconstrained AVQDS circuit, as the spec defines?",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "The saved logical-to-physical transformation is genuinely shortest-path swap-and-restore routing. However, the task additionally requires the source unconstrained circuit to come from a completed authors-code run. Headline circuits come from fast_avqds.AVQDS, while the notes explicitly say full authors-code runs were not completed. Short-run equivalence claims do not complete that required experiment.",
+     "evidence": [
+      "task_spec.md:257-258, 310",
+      "proposal/code/tavqds.py:26, 129-163, 243-244",
+      "proposal/codebase_notes.md:124-130",
+      "proposal/logs/authors_*.out"
+     ]
+    }
+   ],
+   "unresolved_reasons": [
+    {
+     "node_id": "margin_over_naive_baseline.margin_on_b",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "missing_judgment",
+     "observed_value": null,
+     "accepted_values": [
+      "modest_margin",
+      "substantial_margin"
+     ],
+     "question": "On Topology b, how much does the variant beat the smart-embedding naive SWAP-routing baseline on CNOT count and depth, averaged across the four benchmarks?",
+     "reason": "No valid judgment for this node; no pass or substantive violation is inferred.",
+     "judge_reason": "The logged comparison gives 19.48% average CNOT reduction, but its MFIM baseline does not use the task-required nearest-neighbor-coverage-maximizing embedding. Consequently the margin against the prescribed baseline is not established. None of the allowed tiers represents this missing comparison; 'no_margin' would incorrectly assert matching or regression.",
+     "evidence": [
+      "task_spec.md:83",
+      "proposal/logs/*_naive_B.json and *_variant_B.json: n_cx, perm",
+      "proposal/code/tavqds.py:99-119",
+      "MFIM B submitted mapping has two adjacent ring bonds; identity has five at equal total distance cost",
+      "rubric.json: margin_over_naive_baseline.margin_on_b answer definitions"
+     ]
+    }
+   ]
+  }
+ },
+ "cumulative": {
+  "G1": {
+   "status": "fail",
+   "blocked_by": []
+  },
+  "G2": {
+   "status": "fail",
+   "blocked_by": [
+    "G1"
+   ]
+  },
+  "G3": {
+   "status": "fail",
+   "blocked_by": [
+    "G1",
+    "G2"
+   ]
+  }
+ },
+ "outcome": "integrity_failure",
+ "passes": {
+  "G1": false,
+  "G2": false,
+  "G3": false
+ },
+ "nodes": {
+  "integrity:number_traceability.fidelity_values_in_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:number_traceability.cnot_counts_in_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:number_traceability.overhead_multipliers_in_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:no_hardcoded_values.no_hardcoded_ground_truth": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:pre_stated_method.hyperparameters_match_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:baseline_honesty.unconstrained_numbers_from_own_runs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:baseline_honesty.naive_baseline_numbers_from_own_runs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:honest_overhead_reporting.swaps_counted_in_cnot_total": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:honest_overhead_reporting.depth_includes_routing": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:code_paper_alignment.methodology_describes_code": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:code_paper_alignment.topology_aware_logic_matches": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:integrity.execution_claims": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:integrity.precommitment_claims": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:variational_simulation_integrity.ansatz_growth_uses_classical_signals": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:no_replication_of_published_method.not_a_known_method_replication": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:selective_reporting.variant_configurations_all_reported": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:selective_reporting.embedding_choices_documented": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "direction:deliverables.report_pdf_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.logs_directory_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.unconstrained_avqds_runs_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.naive_baseline_runs_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.variant_runs_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.topology_compliance_audits_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.mfim_results_table_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.lsm_results_table_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.overhead_table_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.fidelity_curves_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.cnot_curves_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.codebase_notes_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.attempts_log_present": {
+   "rubric": "direction",
+   "role": "conditional",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:method_specification.variant_stated_before_results": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:method_specification.variant_fully_specified": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "mostly_specified"
+  },
+  "direction:method_specification.hyperparameters_listed_match_logs": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:method_specification.core_avqds_held_fixed": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:method_specification.motivation_grounded_in_literature": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:baseline_verification.unconstrained_mfim_hz0_fidelity": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:baseline_verification.unconstrained_mfim_hz05_fidelity": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:baseline_verification.unconstrained_lsm_hzn07_qualitative": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:baseline_verification.unconstrained_lsm_hzp16_qualitative": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:baseline_verification.naive_uses_smart_embedding": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:experimental_completeness.all_variant_cells_run": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:experimental_completeness.all_naive_cells_run": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:experimental_completeness.per_step_metrics_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:experimental_completeness.topology_audits_both_topologies": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:topology_compliance.compliance_on_a": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "fully_compliant"
+  },
+  "direction:topology_compliance.compliance_on_b": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "fully_compliant"
+  },
+  "direction:accuracy_preservation.preservation_on_mfim_hz0": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "preserved_both"
+  },
+  "direction:accuracy_preservation.preservation_on_mfim_hz0p5": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "preserved_both"
+  },
+  "direction:accuracy_preservation.preservation_on_lsm_hzn0p7": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "preserved_both"
+  },
+  "direction:accuracy_preservation.preservation_on_lsm_hzp1p6": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "preserved_both"
+  },
+  "direction:overhead_quantification.overhead_on_a": {
+   "rubric": "direction",
+   "role": "optional",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "near_unity"
+  },
+  "direction:overhead_quantification.overhead_on_b": {
+   "rubric": "direction",
+   "role": "optional",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "undetermined",
+   "value": null
+  },
+  "direction:margin_over_naive_baseline.margin_on_a": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no_margin"
+  },
+  "direction:margin_over_naive_baseline.margin_on_b": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "undetermined",
+   "value": null
+  },
+  "direction:modular_separation.code_isolates_variant_logic": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:modular_separation.ablation_switch_present": {
+   "rubric": "direction",
+   "role": "optional",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:modular_separation.methodology_isolates_variant_logic": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:mechanism_analysis.subsection_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:mechanism_analysis.depth": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "moderate"
+  },
+  "direction:mechanism_analysis.structural_difference_engaged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:failure_analysis.subsection_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:failure_analysis.patterns_identified": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:failure_analysis.patterns_explained_coherently": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:compute_cost_analysis.subsection_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:compute_cost_analysis.wall_clock_measured": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:compute_cost_analysis.tradeoff_explicit": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:third_topology_generalization.third_topology_evaluated": {
+   "rubric": "direction",
+   "role": "optional",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:third_topology_generalization.third_topology_quality": {
+   "rubric": "direction",
+   "role": "optional",
+   "gate": "G2",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "absent"
+  },
+  "direction:originality_and_literature.contribution_originality": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "meaningful_extension"
+  },
+  "direction:originality_and_literature.literature_engagement": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "moderate"
+  },
+  "direction:originality_and_literature.spec_independence": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "partially_independent"
+  },
+  "direction:writing_quality.journal_quality_structure": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "reasonable"
+  },
+  "direction:writing_quality.limitations_discussion_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "substantive"
+  },
+  "direction:writing_quality.rendered_pdf_clean": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:writing_quality.neurips_style": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:writing_quality.main_results_tables_complete": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:contract.initial_state_seed_pairing.same_initial_state_and_seeds": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.effort_evidence.attempts_log_when_partial_work_claimed": {
+   "rubric": "direction",
+   "role": "conditional",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.experiment_completeness.all_paper_experiments_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.hamiltonian_pool_faithfulness.uses_original_benchmarks": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:contract.topology_subgraph_faithfulness.edge_sets_match_spec": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:contract.lsm_protocol_faithfulness.ramp_protocol_matches_paper": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:contract.naive_baseline_protocol_faithfulness.post_hoc_shortest_path_swap": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.selective_reporting.swap_insertion_strategy_documented": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:contract.operator_pool_authorship.hamiltonian_pool_used_or_expansion_disclosed": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:contract.simulation_time_faithfulness.times_match_spec": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:contract.cnot_convention_consistency.unconstrained_uses_2cx_convention": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:contract.noiseless_simulation_faithfulness.no_noise_model": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:evidence_completeness.quantitative_sources_documented": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:evidence_completeness.required_reporting_coverage": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:evidence_completeness.auxiliary_observables_and_topology_figures": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  }
+ }
+}

@@ -1,0 +1,1532 @@
+{
+ "model": "kimi-k3",
+ "paper": 10,
+ "repeat": 2,
+ "rubric_revision": "science-task-alignment-v2-scope",
+ "grading_policy_version": "science-gates-v2-g1-unresolved-fail",
+ "context": {
+  "partial_work_claimed": true
+ },
+ "gates": {
+  "G1": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "number_traceability.phase_and_threshold_values_in_logs",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For number traceability: phase and threshold values in logs, is there affirmative evidence that a reported quantitative value, curve, fit, parameter, or uncertainty is fabricated, altered, falsely attributed, or materially contradicted by its underlying source?",
+     "reason": "Identify evidence that a reported quantitative value, curve, fit, parameter, or uncertainty is fabricated, altered, falsely attributed, or materially contradicted by its underlying source. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "Table 1 materially contradicts the saved U=10 results at s=0.01. It repeats the s=0 phases and labels baseline-relative errors as ED deviations. The discrepancies persist after accounting for phase folding, aggregation and rounding.",
+     "evidence": [
+      "proposal/report.tex:318-325 reports phases 1.224 and 0.170 at both s=0 and s=0.01; the caption at lines 284-285 defines the adjacent error column as deviation from ED.",
+      "proposal/logs/analysis_summary.json, U10_dm0.60_T20 and U10_dp0.60_T20, agg[scale=0.01]: phiB_folded_mean=1.5953701090401 and 2.49367430958908. The corresponding err_mean values 1.9420724097091502 and 2.323583745946647 are relative to the self-consistent baseline.",
+      "proposal/logs/results_derived.json, derived/U10_dm0.60_T20 and derived/U10_dp0.60_T20: dev_ED_at_thr=1.5462225445496918 and 2.493674309589082, rather than Table 1's 1.94 and 2.32.",
+      "The four saved s0.01_seed0 through s0.01_seed3 records for each U=10 configuration reproduce the analysis summaries. proposal/code/analyze.py:72-89 and proposal/code/make_results.py:79-103 specify the transformations."
+     ]
+    },
+    {
+     "node_id": "number_traceability.resource_counts_in_logs",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For number traceability: resource counts in logs, is there affirmative evidence that a reported quantitative value, curve, fit, parameter, or uncertainty is fabricated, altered, falsely attributed, or materially contradicted by its underlying source?",
+     "reason": "Identify evidence that a reported quantitative value, curve, fit, parameter, or uncertainty is fabricated, altered, falsely attributed, or materially contradicted by its underlying source. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The absolute depth/CNOT entries reproduce the saved operator selections, but the report's quantitative resource comparisons contradict those records. U=10 uses fewer integration nodes, and its reported depths are about 2.5–3.1 times the corresponding U=0 depths, rather than an order of magnitude larger.",
+     "evidence": [
+      "proposal/report.tex:508-509 claims a 'far larger number of nodes'; lines 536-540 say U=10 circuits 'integrate more energy nodes'. Lines 389-391 and 640 describe them as an order of magnitude deeper.",
+      "proposal/logs/noise_sweeps/ records n_nodes=52 for U=10 versus 202 for U=0. proposal/logs/extras2/ records 52 versus 82 for the finite-shot study.",
+      "The four proposal/logs/trajectories/traj_*_T20.json records give final_layers=34,59,106,149 and final_cnots=182,288,596,916, matching Table 1 and counts recomputed from loop_gens.",
+      "The matched depth ratios are 106/34=3.118 and 149/59=2.525."
+     ]
+    },
+    {
+     "node_id": "pre_stated_method.settings_match_logs",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For pre stated method: settings match logs, is there affirmative evidence that run settings quoted in the paper materially differ from the settings that produced the cited results?",
+     "reason": "Identify evidence that run settings quoted in the paper materially differ from the settings that produced the cited results. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The quoted decoherence placement differs materially from the implementation used by the sweep. The paper specifies damping on idle qubits at every gate; the executor applies it only to the active gate qubit or control/target pair. Numerical rates and shot budgets otherwise agree.",
+     "evidence": [
+      "proposal/report.tex:184-186 specifies T1/T2 noise 'applied to the idle qubits of every gate'.",
+      "proposal/code/circuits.py:124-153 and 199-230 apply one-qubit channels only to q and two-qubit-duration damping only to c and t; there is no spectator-qubit damping loop.",
+      "proposal/code/noise_sweep.py:102-117,135-136,161-162 connects the configured NoiseModel to these measurement executors.",
+      "The main proposal/logs/noise_sweeps/ records have channels.t1t2=true, including sweep_U10_dp0.60_T20_s0.01_seed0.json."
+     ]
+    },
+    {
+     "node_id": "held_fixed_disclosure.deviations_disclosed",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For held fixed disclosure: deviations disclosed, is there affirmative evidence that the paper claims compliance with a held-fixed condition that the executed implementation or configuration materially contradicts?",
+     "reason": "Identify evidence that the paper claims compliance with a held-fixed condition that the executed implementation or configuration materially contradicts. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The submission presents its preparation and growth as the original AVQITE+AVQDS pipeline, but the called implementation introduces substantive procedural changes: multistart BFGS energy optimization and an unconditional dynamics step after one growth batch. These changes are not disclosed in the paper's methodology. This finding does not rest on the openly disclosed fixed time step, frozen G2 leg or failed reproduction.",
+     "evidence": [
+      "task_spec.md:60-68 holds the preparation/dynamics algorithm fixed; paper.md:65 requires repeated ansatz expansion until the McLachlan distance falls below the cutoff.",
+      "proposal/report.tex:43-44,81-84,160-163 describes a full, validated AVQITE+AVQDS reimplementation with TETRIS growth and L2cut=1e-4.",
+      "proposal/code/run_noiseless.py:41-55 calls avqite_ground and avqds_loop for the saved trajectories.",
+      "proposal/code/avqite_engine.py:70-89 adds BFGS optimization and four random-restart attempts. proposal/code/drivers.py:217-242 explicitly says to 'ALWAYS take the RK4 step' and never repeat growth at the same state."
+     ]
+    },
+    {
+     "node_id": "code_paper_alignment.methodology_matches_code",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "criterion_not_met",
+     "observed_value": "violation_detected",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "For code paper alignment: methodology matches code, is there affirmative evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence?",
+     "reason": "Identify evidence that the paper's description of the implemented method, architecture, parameters, or execution materially contradicts the submitted code and run evidence. A missing artifact, unrun experiment, weak result, or unproven claim alone is insufficient.",
+     "judge_reason": "The paper's description of gate-level decoherence contradicts the submitted execution path: spectator idle qubits receive no damping, whereas the paper says they do. This is an implementation-description contradiction, independent of whether the chosen noise approximation is scientifically adequate.",
+     "evidence": [
+      "proposal/report.tex:184-186 states that decoherence is applied to idle qubits of every gate.",
+      "proposal/code/circuits.py:51-76 constructs damping channels, while lines 132-152,181-191 and 207-230 apply them only to active gate operands.",
+      "proposal/code/measurement.py:89-90,155,165 uses those executors for both overlap and energy measurements.",
+      "proposal/code/noise_sweep.py:107-117 enables this noise model for the saved main sweeps."
+     ]
+    }
+   ],
+   "unresolved_reasons": [
+    {
+     "node_id": "integrity.execution_claims",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "insufficient_evidence",
+     "observed_value": "insufficient_evidence",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "Is there affirmative evidence that an experiment, derivation, inspection, or repair is explicitly claimed as performed but affirmative code/trajectory/artifact evidence establishes that this claim is false?",
+     "reason": "Essential inspection evidence is absent or inconclusive. Record what is missing without labeling it fabrication or declaring the submission verified clean.",
+     "judge_reason": "The main sweep and shot-study executions have substantial saved evidence. However, the central claims of approximately eight reproduction variants, the time-step discriminator and several historical repairs lack retained execution outputs sufficient to assess them. Scripts and narrative claims alone do not verify those executions, and their missing outputs do not establish that the claims are false.",
+     "evidence": [
+      "proposal/report.tex:260-267 and proposal/attempts_log.md:20-37 claim multiple protocol variants and a time-step sweep down to 0.001.",
+      "proposal/attempts_log.md:56-76 lists repairs and numerical validation results; proposal/code/test_dtconv.py and other test scripts are present, but their claimed run outputs were not found in either staged submission location.",
+      "proposal/logs/sweep_u0.log, sweep_u10.log and u10_s001.log support the 120 main sweep records; shots2.log and shots_u10.log support the 96 final shot-study records.",
+      "Inspection of workdir_outside_proposal/ found supplied reference artifacts, but no additional solver execution records resolving the claimed variant and repair history."
+     ]
+    },
+    {
+     "node_id": "integrity.precommitment_claims",
+     "rubric": "integrity",
+     "gate": "G1",
+     "code": "insufficient_evidence",
+     "observed_value": "insufficient_evidence",
+     "accepted_values": [
+      "no_violation_detected",
+      "not_applicable"
+     ],
+     "question": "Is there affirmative evidence that a method, threshold, split, hypothesis, or analysis is explicitly claimed as fixed before results but dated versions or trajectory evidence establish undisclosed post-result selection or backdating?",
+     "reason": "Essential inspection evidence is absent or inconclusive. Record what is missing without labeling it fabrication or declaring the submission verified clean.",
+     "judge_reason": "The paper explicitly claims preregistration, but the staged record lacks dated pre-result protocol versions establishing when the final choices were fixed. The attempts log openly records a baseline correction during the sweep; that disclosed correction does not by itself establish the rubric's undisclosed selection or backdating predicate. The broader timing claim remains unverified.",
+     "evidence": [
+      "proposal/report.tex:83-84 calls the noise model, estimator, tolerance and extraction rule 'pre-registered'; line 154 says everything in Methodology was fixed before any noisy result was produced.",
+      "proposal/attempts_log.md:165-180 documents the baseline correction after observing scale-zero sweep results.",
+      "proposal/code/analyze.py:57-74 implements the disclosed corrected reference, but the submitted current version does not establish its earlier history.",
+      "Neither proposal/ nor workdir_outside_proposal/ supplies a dated pre-result protocol or version trail resolving the claimed timing. task_spec.md:176 permits disclosed refinements."
+     ]
+    }
+   ],
+   "assessment_status": "fail",
+   "failure_basis": [
+    "detected_violation",
+    "unresolved_integrity_check"
+   ]
+  },
+  "G2": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "deliverables.noise_sweep_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are per-(configuration, noise-level, seed) noise-sweep runs logged, recording the noise parameters, shot count, Berry phase, deviation from the exact reference, and infidelity?",
+     "reason": "No per-run sweep records, or the grid is too sparse to resolve a threshold, or seeds absent.",
+     "judge_reason": "The 120 final seed records are present, but they do not establish the complete required sweep. Their err_folded metric compares against a variational anchor rather than ED. Separate infidelity records evaluate a circuit that applies preparation twice because loop_gens already includes preparation. The U=10 grid also does not bracket a passing-to-failing tolerance crossing.",
+     "evidence": [
+      "proposal/logs/noise_sweeps/: 120 JSON records",
+      "proposal/code/noise_sweep.py:194–204",
+      "proposal/code/infidelity.py:25–35,45–55",
+      "proposal/code/run_noiseless.py:54–61",
+      "proposal/logs/analysis_summary.json: U10_dm0.60_T20 and U10_dp0.60_T20"
+     ]
+    },
+    {
+     "node_id": "deliverables.threshold_analysis_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the threshold-extraction analysis logged (the extracted threshold with its uncertainty for each required configuration, produced by the pre-stated rule)?",
+     "reason": "No logged threshold-extraction artifact, or thresholds appear only in the paper with no logged source.",
+     "judge_reason": "Threshold-analysis files and seed spreads exist, but they do not record valid rule-derived thresholds for every configuration. Both U=10 curves fail the stated 0.1-rad tolerance even at s=0; the extraction initializes the threshold to zero and retains that value when no point passes. These defaults and associated spreads do not satisfy the largest-passing-noise rule.",
+     "evidence": [
+      "proposal/logs/analysis_summary.json: U10 s=0 err_mean values 1.570796 and 2.752118",
+      "proposal/logs/results_derived.json: thr_mean, per_seed_thr, thr_seed_std",
+      "proposal/code/analyze.py:92–99",
+      "proposal/code/make_results.py:61–75",
+      "proposal/report.tex:207–220"
+     ]
+    },
+    {
+     "node_id": "deliverables.main_results_table_present",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the primary results table present in the paper (labeled tab:main_results) reporting, per configuration, the noiseless and under-noise Berry phase, deviation from the exact reference, threshold with uncertainty in device units, depth, and N_CX?",
+     "reason": "Table absent, missing configurations or columns, or values are placeholders.",
+     "judge_reason": "The labeled table exists and covers all four configurations, but its purported at-threshold rows all use s=0.01. The U=0 nontrivial threshold is reported as s=0.03, while the other configurations are reported as having thresholds below 0.01. Consequently, the required at-threshold Berry-phase rows are not supplied.",
+     "evidence": [
+      "proposal/report.tex:278–329, label tab:main_results",
+      "proposal/logs/results_derived.json: U0_dm0.30_T20 at_thr_scale=0.03 and phiB_at_thr=1.202583"
+     ]
+    },
+    {
+     "node_id": "deliverables.noise_curves_present",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are the required result figures present: Berry-phase-error-versus-noise-strength curves for both U regimes (with the threshold crossing and seed error bars), plus the infidelity-versus-noise trend and the shots-versus-phase-uncertainty relationship?",
+     "reason": "The Berry-phase-error curves are absent, cover only one U regime, or lack error bars / a visible threshold crossing; or the infidelity-versus-noise and shots-versus-uncertainty figures are both entirely absent from the results.",
+     "judge_reason": "All three figure families are present, including seed error bars for both U regimes. However, the phase curves use self-baseline errors, and neither U=10 curve displays the required tolerance crossing: both already exceed tolerance at zero incoherent noise. Thus the complete figure requirement is unmet.",
+     "evidence": [
+      "proposal/report.pdf: Figures 1–3, pages 6–7",
+      "proposal/report.tex:339–354,428–438,462–478",
+      "proposal/logs/analysis_summary.json: U10 aggregate curves"
+     ]
+    },
+    {
+     "node_id": "deliverables.codebase_notes_present",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Does proposal/codebase_notes.md exist with substantive content documenting what was inspected in data/figshare_data/ and any external simulation code reused?",
+     "reason": "File absent, empty, or contains only placeholder text.",
+     "judge_reason": "The file is substantive about the submitted implementation, but it does not fulfill the specified contents. Its schema description concerns the new JSON trajectories, not the figshare HDF5 traces. It does not document the archive phase reconstruction and matched resource cross-checks, or give the requested external-library attribution.",
+     "evidence": [
+      "proposal/codebase_notes.md:16–76",
+      "proposal/codebase_notes.md:88–103",
+      "workdir_outside_proposal/data/figshare_data/extracted/yaoyongxin-AVQS-Berry-6778a62/: supplied HDF5 archive"
+     ]
+    },
+    {
+     "node_id": "method_specification.noise_model_fully_specified",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "mostly_specified",
+     "accepted_values": [
+      "fully_specified"
+     ],
+     "question": "Is the noise model specified completely enough that a domain expert could reproduce the noise study from the paper alone?",
+     "reason": "Most channels stated with numeric rates but at least one (for instance the exact T1/T2 gate-time keying or the crosstalk/coherent term if included) requires reading the code to disambiguate.",
+     "judge_reason": "The paper supplies numerical base rates and gate times, but reproducing the executed model requires code inspection. In particular, the implementation applies thermal channels to active gate qubits rather than the stated idle qubits, implements inverse scaling of T1/T2, and uses a specific trace-decreasing identity-only two-qubit map. Numerical shot settings and the reduced U=10 quadrature are supplied later.",
+     "evidence": [
+      "proposal/report.tex:172–195,392–394,446–455",
+      "proposal/code/circuits.py:33–76,124–153",
+      "proposal/code/noise_sim.py:73–85"
+     ]
+    },
+    {
+     "node_id": "method_specification.accuracy_criterion_prestated",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are the accuracy tolerance epsilon and the threshold-extraction rule stated before any results?",
+     "reason": "The tolerance or the extraction rule is missing, vague, or first appears alongside/after the results.",
+     "judge_reason": "A concrete tolerance, circular-distance convention, and extraction rule are stated before results, but the tolerance is defined against the submission's own anchor rather than the required ED Berry phase. Therefore the required ED-based accuracy criterion is not pre-stated.",
+     "evidence": [
+      "proposal/report.tex:207–220, especially 217",
+      "task_spec.md:54–56,65,72",
+      "proposal/code/analyze.py:70–82"
+     ]
+    },
+    {
+     "node_id": "experimental_completeness.noise_sweep_resolves_threshold",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the noise sweep dense enough in noise strength (and shots) to resolve the threshold crossing?",
+     "reason": "The grid is too coarse to localize the crossing, or the shots axis is not swept.",
+     "judge_reason": "The final grid is {0,0.01,0.03,0.1,0.3,1}. It brackets a self-baseline crossing for U=0 nontrivial, but the remaining reported bounds are not resolved into valid required thresholds. Both U=10 self-baseline curves already fail at zero noise. Shot sweeps exist, but U=10 never reaches the stated tolerance within the sampled budgets.",
+     "evidence": [
+      "proposal/logs/analysis_summary.json",
+      "proposal/report.tex:369–394,497–518",
+      "proposal/attempts_log.md:300–327"
+     ]
+    },
+    {
+     "node_id": "compute_cost_analysis.subsection_present",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Does the paper contain an explicit computational-cost subsection?",
+     "reason": "Paper does not discuss the simulation cost.",
+     "judge_reason": "Computational cost is discussed, but only as item (v) within the Discussion and limitations paragraph. The paper contains no explicit computational-cost subsection, as required by this node.",
+     "evidence": [
+      "proposal/report.tex:599–621",
+      "proposal/report.tex: section and subsection structure"
+     ]
+    },
+    {
+     "node_id": "writing_quality.main_results_table_complete",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Is the primary results table (tab:main_results) complete with all four configurations and all required columns?",
+     "reason": "Table absent, missing configurations or columns, or values are placeholders.",
+     "judge_reason": "All four configuration groups and resource columns exist, but the required at-threshold rows do not. Every under-noise row uses s=0.01, including the U=0 nontrivial case whose extracted threshold is 0.03 and cases whose reported thresholds lie below 0.01. The table therefore does not supply the prescribed noiseless-and-at-threshold comparison.",
+     "evidence": [
+      "proposal/report.tex:280–325, label tab:main_results",
+      "proposal/logs/results_derived.json: at_thr_scale and phiB_at_thr"
+     ]
+    },
+    {
+     "node_id": "contract.experiment_completeness.all_experiments_logged",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Does every experiment described in the paper (noiseless-anchor reproduction, per-(configuration, noise-level, seed) runs, threshold analysis, exact-diagonalization references) have corresponding log entries?",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "The principal four anchors, 120 noise runs, final shot sweeps, ED references, and derived analyses have records. However, the paper's approximately eight protocol variants and dt-convergence discriminator lack individual execution records and outcomes. The claimed per-channel isolation has only a job-launch log and an empty summary. Inspection of both staged trees found no corresponding additional run outputs.",
+     "evidence": [
+      "proposal/report.tex:193–195,256–267",
+      "proposal/attempts_log.md:20–37",
+      "proposal/logs/channel_summary.json: {}",
+      "proposal/logs/channels.log: '80 jobs on 50 procs'",
+      "proposal/code/test_dtconv.py",
+      "workdir_outside_proposal/: staged contents"
+     ]
+    },
+    {
+     "node_id": "evidence_completeness.quantitative_sources_documented",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Are the task-required sources for quantitative claims identifiable (run/log entries for original measurements and specific citations for source-paper values), with enough information to evaluate the claims? Missing support or inaccessible artifacts are completeness weaknesses. Whether a provided source contradicts a claim is assessed only in integrity.",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "Most main sweep quantities have identifiable JSON sources, but not every required quantitative claim has enough provenance for evaluation. The claimed midpoint fidelity comparison of approximately 0.35 versus 0.94 is not tied to a specific submitted variant and archive record. The dt-independence claim likewise lacks per-setting outcome records. The notes do not supply the required matched archive phase/resource cross-check provenance.",
+     "evidence": [
+      "proposal/report.tex:256–271",
+      "proposal/attempts_log.md:15–37",
+      "proposal/codebase_notes.md:88–103",
+      "proposal/logs/trajectories/: no midpoint ground-state fidelity trace",
+      "proposal/logs/ and workdir_outside_proposal/: inspected records"
+     ]
+    },
+    {
+     "node_id": "evidence_completeness.required_reporting_coverage",
+     "rubric": "direction",
+     "gate": "G2",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Does reporting cover the experiments, completed seeds, required metrics, uncertainty summaries, and attempts required by this task and its applicable declared protocol? Assess coverage against the task, respecting optional work and permitted reporting alternatives. An omission alone is not evidence of favorable-result selection.",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "The final sweep covers all four configurations and retains multiple seeds, including the late U=10 points; the aborted ten-point shot experiment is also disclosed. Nevertheless, required reporting remains incomplete: no valid ED-accuracy thresholds or corresponding minimum-shots floors are established, phi_G2 noise is omitted, infidelity concerns a different circuit, and some claimed diagnostic experiments lack execution records. These are coverage and scientific-validity shortfalls, not evidence of favorable-result selection.",
+     "evidence": [
+      "proposal/report.tex:207–247,278–329,446–518",
+      "proposal/code/infidelity.py:25–55",
+      "proposal/logs/analysis_summary.json",
+      "proposal/attempts_log.md:261–327",
+      "proposal/logs/channel_summary.json"
+     ]
+    }
+   ],
+   "unresolved_reasons": []
+  },
+  "G3": {
+   "status": "fail",
+   "failure_reasons": [
+    {
+     "node_id": "method_specification.method_held_fixed",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Does the paper preserve the held-fixed AVQITE+AVQDS Berry-phase framework and characterize it, rather than substituting a new algorithm?",
+     "reason": "The submission replaces or materially modifies a held-fixed component (for instance a different ground-state-preparation or dynamics method) without an explicit disclosed comparison.",
+     "judge_reason": "The executed integrator does not preserve the required McLachlan/RK4 method. EvalCache constructs derivative states without the differentiated gate's own rotation. In RK4, stages two through four use the first eom return value, V, instead of the solved parameter velocity. The driver also defaults to fixed time steps. No logged comparison isolates these departures.",
+     "evidence": [
+      "proposal/code/vqse.py:114–146,196–223",
+      "proposal/code/drivers.py:134–136,178–191,229–239",
+      "paper.md: Section II, McLachlan equations and integration procedure",
+      "proposal/report.tex:156–170"
+     ]
+    },
+    {
+     "node_id": "baseline_verification.noiseless_berry_phase_reproduced",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "not_reproduced",
+     "accepted_values": [
+      "reproduced_both_regimes"
+     ],
+     "question": "Does the noiseless re-implementation reproduce the paper's Berry-phase values (0 in the trivial regime, pi in the nontrivial regime) in both U regimes?",
+     "reason": "Noiseless Berry phases do not match the exact reference in either regime, so the anchor is unverified.",
+     "judge_reason": "After principal-value folding and circular comparison with runtime ED, the four logged anchor errors are approximately 1.8222, 2.4424, 1.2084, and 2.7625 rad for U=0 negative/positive and U=10 negative/positive dimerization, respectively. Neither U regime reproduces its quantized phases to approximately 1e-3 rad.",
+     "evidence": [
+      "proposal/logs/trajectories/: phiB_noiseless_folded and phi_ED_wilson in all four records",
+      "proposal/codebase_notes.md:95–103",
+      "proposal/report.tex:256–271"
+     ]
+    },
+    {
+     "node_id": "baseline_verification.resources_reproduced",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "mismatch",
+     "accepted_values": [
+      "matches"
+     ],
+     "question": "Do the reproduced circuit resources match the paper for the agent's stated (delta, T) (peak depth of order tens of layers for U=0 and up to a few hundred for U=10, U=10 several times deeper than U=0, nontrivial region costing more CNOTs)?",
+     "reason": "Reported depths/CNOT counts disagree with the figshare traces at the agent's stated (delta, T), or fall well outside the paper-spanned band with no explanation, or invert the U=10 > U=0 / nontrivial > trivial ordering (a disclosed and explained inversion still counts as mismatch -- an inverted ordering is dispositive here), suggesting an incorrect re-implementation.",
+     "judge_reason": "At U=0 and T=20, the submission reports 182 CNOTs for delta=-0.3 and 288 for delta=+0.3, reversing the required nontrivial-greater-than-trivial ordering. The matched archive traces have dynamical-circuit counts 476 and 196 before preparation; the source reports 496 total CNOTs and 47 layers for delta=-0.3. The ordering reversal is explicitly dispositive under this node.",
+     "evidence": [
+      "proposal/logs/trajectories/traj_U0_dm0.30_T20.json: final_cnots=182, final_layers=34",
+      "proposal/logs/trajectories/traj_U0_dp0.30_T20.json: final_cnots=288, final_layers=59",
+      "workdir_outside_proposal/data/figshare_data/extracted/yaoyongxin-AVQS-Berry-6778a62/SSH/N4/dt-0.3/results1003p0.h5: ngates_list, layers",
+      "workdir_outside_proposal/data/figshare_data/extracted/yaoyongxin-AVQS-Berry-6778a62/SSH/N4/dt0.3/results1003p0.h5: ngates_list, layers",
+      "paper.md: Figure 3 caption and resource discussion"
+     ]
+    },
+    {
+     "node_id": "baseline_verification.held_fixed_constraints_respected",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "no",
+     "accepted_values": [
+      "yes"
+     ],
+     "question": "Are the held-fixed constraints (algorithm, hyperparameter floor L2_cut=1e-4 and delta-theta-max=0.01, SSHH test bed) respected in the noiseless anchor, with any deviation disclosed?",
+     "reason": "A held-fixed item is violated (for instance L2_cut loosened above 1e-4 to trim depth) without disclosure, or the logs contradict a compliance claim.",
+     "judge_reason": "The SSHH sizes, U values, and spin-up twist are present, but the required maximum parameter increment is not enforced. The executed driver has adaptive=False; saved max|theta_dot*dt| values are approximately 2.047, 1.940, 2.142, and 2.364 rather than at most 0.01. It also advances after one growth batch despite residuals above the cutoff. Disclosure of fixed dt is not accompanied by the required isolating comparison.",
+     "evidence": [
+      "proposal/code/drivers.py:134–136,217–239",
+      "proposal/logs/trajectories/: trace_dt, trace_theta_dot, trace_L2",
+      "proposal/report.tex:156–170",
+      "task_spec.md: held-fixed requirements and deviation-comparison requirement"
+     ]
+    },
+    {
+     "node_id": "required_noise_sources.modeled_two_qubit_gate",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "present_but_flawed",
+     "accepted_values": [
+      "faithfully_modeled"
+     ],
+     "question": "Is the two_qubit_gate noise source present and faithfully modeled, acting on the actual circuit in a genuine simulation?",
+     "reason": "The two_qubit_gate source is included but its application is flawed (for instance an analytic variance substituted for real sampling, or a channel applied to the wrong operations).",
+     "judge_reason": "Every executed two-qubit noise rate falls in the identity-only branch, which returns the sole Kraus operator sqrt(1-p2) I. This implements rho -> (1-p2)rho, not a trace-preserving depolarizing channel. The omitted error branches contribute at first order, and the subsequent measurement path does not restore normalization. Thus the source is applied at gates but is not faithfully modeled.",
+     "evidence": [
+      "proposal/code/circuits.py:57–70,124–153",
+      "proposal/report.tex:179–182",
+      "proposal/logs/noise_sweeps/: scale values up to 1, implying p2 up to 0.001"
+     ]
+    },
+    {
+     "node_id": "required_noise_sources.modeled_thermal_relaxation",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "present_but_flawed",
+     "accepted_values": [
+      "faithfully_modeled"
+     ],
+     "question": "Is the thermal_relaxation noise source present and faithfully modeled, acting on the actual circuit in a genuine simulation?",
+     "reason": "The thermal_relaxation source is included but its application is flawed (for instance an analytic variance substituted for real sampling, or a channel applied to the wrong operations).",
+     "judge_reason": "Amplitude and phase damping are executed with gate times, but their composition does not produce the stated T2. phase_damp attenuates coherence by sqrt(1-gamma_phi), while t1t2_kraus sets gamma_phi using the unsquared desired attenuation. Combined coherence decays as exp[-t/(4T1)-t/(2T2)], giving about 82.35 microseconds instead of the stated 70 microseconds at the base profile. The executed qubit placement also differs from the paper's idle-qubit description.",
+     "evidence": [
+      "proposal/code/noise_sim.py:57–85",
+      "proposal/code/circuits.py:51–76,124–153",
+      "proposal/report.tex:184–186"
+     ]
+    },
+    {
+     "node_id": "noise_scope.phi_g_measurements_noised",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "phi_g_exact",
+     "accepted_values": [
+      "noised"
+     ],
+     "question": "Are the quantum-measured phi_G integrands evaluated under the required noise along the frozen trajectory, as well as phi_qc? Grade the executed noise scope independently of disclosure.",
+     "reason": "One or more required phi_G integrands are kept exact; the required scientific scope is not met, whether disclosed or not.",
+     "judge_reason": "The energy integrand and phi_qc readout are sampled, but W_THETA=0 makes every geometric-connection overlap exact. The code copies EvalCache.w and selects no overlap measurements at any integration node. Keeping this required phi_G2 integrand exact fails the whole-method scope even though the limitation is disclosed.",
+     "evidence": [
+      "proposal/code/noise_sweep.py:51,164–188",
+      "proposal/report.tex:237–247",
+      "proposal/codebase_notes.md:42–45",
+      "task_spec.md:134–142"
+     ]
+    },
+    {
+     "node_id": "threshold_characterization.device_referenced_on_u0",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "abstract_units_only",
+     "accepted_values": [
+      "device_referenced"
+     ],
+     "question": "On configuration u0, is the threshold reported in device-referenced units at a stated reference shot count S_ref (equivalent two-qubit error rate, readout error, T1/T2), together with a separately reported minimum-shots floor S*?",
+     "reason": "The u0 threshold is reported only in an abstract scalar noise-strength unit without a device-referenced mapping, or without a stated reference shot count / minimum-shots floor.",
+     "judge_reason": "The report provides p2=0.001s and S_ref=20,000, but the required accuracy-based minimum-shots floor is not established. Its S*=2,000 and 500 values are selected from seed spread alone, which can be small while the estimates remain far from ED. Thus the full device-referenced interpretation, including the required minimum-shots floor, is unmet despite the partial physical-unit mapping.",
+     "evidence": [
+      "proposal/report.tex:280–297,446–495",
+      "proposal/attempts_log.md:279–295",
+      "proposal/code/finalize_shots.py",
+      "task_spec.md:54"
+     ]
+    },
+    {
+     "node_id": "threshold_characterization.device_referenced_on_u10",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "abstract_units_only",
+     "accepted_values": [
+      "device_referenced"
+     ],
+     "question": "On configuration u10, is the threshold reported in device-referenced units at a stated reference shot count S_ref (equivalent two-qubit error rate, readout error, T1/T2), together with a separately reported minimum-shots floor S*?",
+     "reason": "The u10 threshold is reported only in an abstract scalar noise-strength unit without a device-referenced mapping, or without a stated reference shot count / minimum-shots floor.",
+     "judge_reason": "An equivalent p2 bound and reference readout budget are reported, but no required minimum-shots floor is determined. The stated S*>8,000 is only an unresolved bound from a seed-spread experiment with energy shots fixed at 2,000; it does not identify a shot budget that keeps the Berry estimate within ED accuracy tolerance. The complete device-referenced threshold interpretation is therefore absent.",
+     "evidence": [
+      "proposal/report.tex:280–297,318–325,497–518",
+      "proposal/logs/extras2/: U10 shot-sweep records",
+      "proposal/attempts_log.md:300–315",
+      "task_spec.md:54"
+     ]
+    },
+    {
+     "node_id": "topological_discrimination.distinguishes_phases_on_u0",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "not_shown",
+     "accepted_values": [
+      "distinguished_below_threshold"
+     ],
+     "question": "On configuration u0, are the trivial (phi_B=0) and nontrivial (phi_B=pi) regimes correctly distinguished below the extracted threshold?",
+     "reason": "The two regimes are not compared under noise on u0, or they are not separable below the claimed threshold.",
+     "judge_reason": "Both regimes were run, but correct zero-versus-pi separation below a valid threshold is not demonstrated. At s=0.01, the reported means are approximately 1.247 rad for the nontrivial configuration and 0.503 rad for the trivial configuration; both lie closer to zero than pi. Self-baseline stability does not establish the required topological classification.",
+     "evidence": [
+      "proposal/report.tex:308–316",
+      "proposal/logs/analysis_summary.json: U0 aggregates",
+      "proposal/logs/trajectories/: U0 phi_ED_wilson"
+     ]
+    },
+    {
+     "node_id": "topological_discrimination.distinguishes_phases_on_u10",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "not_shown",
+     "accepted_values": [
+      "distinguished_below_threshold"
+     ],
+     "question": "On configuration u10, are the trivial (phi_B=0) and nontrivial (phi_B=pi) regimes correctly distinguished below the extracted threshold?",
+     "reason": "The two regimes are not compared under noise on u10, or they are not separable below the claimed threshold.",
+     "judge_reason": "No valid below-threshold interval is established for U=10. Circular means recomputed from saved s=0.01 seeds are approximately -3.132 rad for negative dimerization and 2.492 rad for positive dimerization, placing both closer to pi than zero. The paper's arithmetic folded-phase averages do not demonstrate correct phase separation.",
+     "evidence": [
+      "proposal/logs/noise_sweeps/sweep_U10_dm0.60_T20_s0.01_seed*.json",
+      "proposal/logs/noise_sweeps/sweep_U10_dp0.60_T20_s0.01_seed*.json",
+      "proposal/code/analyze.py:72,89",
+      "proposal/report.tex:369–394"
+     ]
+    },
+    {
+     "node_id": "mechanism_analysis.depth",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "moderate",
+     "accepted_values": [
+      "deep"
+     ],
+     "question": "How deeply does the mechanism analysis explain where the threshold sits?",
+     "reason": "Analysis identifies a contributing factor but does not isolate it via controlled comparison or connect it to the algorithm's structure.",
+     "judge_reason": "The analysis goes beyond restating thresholds by identifying energy-integral accumulation and comparing measured phase legs. However, the claimed incoherent-noise bottleneck is not isolated through a completed controlled channel comparison; the channel summary is empty, all main rates co-vary, and the two-qubit map is invalid. The shot-budget study provides useful partial diagnostics but does not establish the claimed threshold mechanism.",
+     "evidence": [
+      "proposal/report.tex:446–563",
+      "proposal/logs/analysis_summary.json: dphi_G1 and dphi_qc",
+      "proposal/logs/channel_summary.json: empty object",
+      "proposal/code/circuits.py:57–70"
+     ]
+    },
+    {
+     "node_id": "mechanism_analysis.cancellation_robustness_engaged",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "mentioned",
+     "accepted_values": [
+      "engaged_rigorously"
+     ],
+     "question": "Does the analysis engage correctly with the fate of the noiseless phi_G+phi_qc cancellation under noise for the scope actually run -- distinguishing the deterministic bias (which the shared frozen trajectory can make partially cancel) from the independent stochastic fluctuations (whose variances add), and recognizing that phi_G,1 = -int<H>dt' is a dynamical-phase leg distinct from the phi_qc/phi_G,2 overlaps?",
+     "reason": "The cancellation question is mentioned but not supported with evidence, or is framed as one lumped phi_qc-vs-phi_G question without distinguishing deterministic (may cancel) from stochastic (variances add) errors or recognizing the distinct phi_G,1 integrated-<H> dynamical-phase leg.",
+     "judge_reason": "The text correctly distinguishes potentially cancelling deterministic biases from independent stochastic variances and identifies phi_G1 as a distinct dynamical integral. It does not establish the cancellation physics rigorously: phi_G2 is exact, completed channel-isolation evidence is absent, and its claimed measurement obstruction is mathematically incorrect. For a Pauli generator, (-iA)†(-iA)=I, and common tail unitaries cancel in the derivative overlap.",
+     "evidence": [
+      "proposal/report.tex:520–541,565–597",
+      "proposal/code/noise_sweep.py:180–188",
+      "proposal/logs/channel_summary.json",
+      "paper.md: Section II and Appendix A"
+     ]
+    },
+    {
+     "node_id": "mechanism_analysis.dominant_source_identified",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "partial",
+     "accepted_values": [
+      "identified"
+     ],
+     "question": "Does the analysis identify which noise source or circuit property (depth, CNOT count, single-ancilla readout) dominates the degradation?",
+     "reason": "A candidate dominant factor is named but the supporting evidence is incomplete or does not isolate it from the others.",
+     "judge_reason": "The energy-measurement leg is named and supported by some U=0 decompositions, but universal dominance is not established. For U=10 nontrivial at s=0.03, the saved mean readout-phase change is about 2.815 rad versus 0.449 rad for phi_G1. Jointly scaled channels and absent isolation results prevent attribution to a particular physical noise source.",
+     "evidence": [
+      "proposal/report.tex:543–563",
+      "proposal/logs/analysis_summary.json: U10_dm0.60_T20, scale=0.03",
+      "proposal/logs/channel_summary.json"
+     ]
+    },
+    {
+     "node_id": "failure_analysis.depth_dependence_engaged",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "mentioned",
+     "accepted_values": [
+      "engaged"
+     ],
+     "question": "Does the failure analysis engage with the depth dependence between the shallow U=0 and the several-times-deeper U=10 circuits?",
+     "reason": "The depth difference is mentioned but not connected to the observed degradation.",
+     "judge_reason": "Depth is explicitly invoked, with 34–59 versus 106–149 layers and 182–288 versus 596–916 CNOTs. However, the required threshold-backed depth comparison is not established: U=10 already fails the analysis tolerance at s=0, and the regimes use different quadrature grids. These confounders prevent the asserted depth explanation from being supported by valid threshold results.",
+     "evidence": [
+      "proposal/report.tex:369–394,497–518,536–541",
+      "proposal/logs/analysis_summary.json: zero-noise U10 errors",
+      "proposal/logs/trajectories/: final_layers and final_cnots",
+      "proposal/code/run_sweep_u0.py and proposal/code/run_sweep_u10.py: node budgets"
+     ]
+    },
+    {
+     "node_id": "failure_analysis.patterns_explained_coherently",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "partial",
+     "accepted_values": [
+      "coherent"
+     ],
+     "question": "Are the observed degradation patterns explained coherently and tied to the algorithm's structure or the noise model?",
+     "reason": "Some patterns are identified but the explanations are incomplete or only partially tied to structure.",
+     "judge_reason": "The independent energy-sampling floor and low-visibility readout are plausible explanations for some observed behavior. Other central explanations are inadequate: the geometric-connection obstruction contradicts Pauli unitarity, the manifold-failure conclusion does not rule out the actual integration defects, and the high-noise behavior is interpreted without accounting for the trace-decreasing channel and branch-averaging errors.",
+     "evidence": [
+      "proposal/report.tex:249–271,360–394,497–597",
+      "proposal/code/drivers.py:178–191",
+      "proposal/code/circuits.py:57–70",
+      "proposal/code/analyze.py:70–89"
+     ]
+    },
+    {
+     "node_id": "originality_and_literature.literature_engagement",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "moderate",
+     "accepted_values": [
+      "substantial"
+     ],
+     "question": "How substantively does the paper engage with the relevant published literature (Berry-phase / topological-invariant quantum algorithms, AVQITE/AVQDS, NISQ noise modeling, error mitigation)?",
+     "reason": "Paper cites several references but does not deeply discuss the comparison.",
+     "judge_reason": "The paper cites several relevant foundational and variational-algorithm references and includes a Related work subsection. Comparisons remain brief and mostly introductory, with little substantive discussion of competing topological algorithms, noise-characterization methods, mitigation, or subsequent follow-ups.",
+     "evidence": [
+      "proposal/report.tex:94–114",
+      "proposal/report.tex:647–704"
+     ]
+    },
+    {
+     "node_id": "originality_and_literature.spec_independence",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "partially_independent",
+     "accepted_values": [
+      "fully_independent"
+     ],
+     "question": "How independent is the paper's structure and terminology from the task spec?",
+     "reason": "Paper structure mostly journal-style but uses some spec terminology verbatim.",
+     "judge_reason": "The manuscript mostly follows a conventional scientific structure with physics-specific result subsections. It nevertheless retains task-facing language such as 'four required configurations' and 'the contract's required scope,' preventing full independence from the specification.",
+     "evidence": [
+      "proposal/report.tex:157–170",
+      "proposal/report.tex: section structure and Results subsections"
+     ]
+    },
+    {
+     "node_id": "contract.variational_simulation_integrity.state_evolved_through_circuit",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "criterion_not_met",
+     "observed_value": "not_satisfied",
+     "accepted_values": [
+      "satisfied"
+     ],
+     "question": "Does the Berry-phase implementation evolve the variational parametrized circuit under the required McLachlan framework, rather than replacing that algorithm with classical exact-state propagation?",
+     "reason": "Required work is missing, incomplete, or scientifically noncompliant; describe the specific shortfall.",
+     "judge_reason": "The submission does evaluate parametrized circuit states rather than substituting ED propagation. Nevertheless, it does not implement the required McLachlan evolution correctly: derivative states omit the differentiated rotation, and RK4 stages two through four integrate V instead of the solved theta_dot. This is an affirmative scientific implementation failure, not an allegation that exact states replaced the variational simulation.",
+     "evidence": [
+      "proposal/code/vqse.py:114–150,217–223",
+      "proposal/code/drivers.py:178–191",
+      "proposal/code/run_noiseless.py:54–64",
+      "paper.md: Section II, variational equations of motion"
+     ]
+    }
+   ],
+   "unresolved_reasons": [
+    {
+     "node_id": "threshold_characterization.threshold_on_u0",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "missing_judgment",
+     "observed_value": null,
+     "accepted_values": [
+      "rigorous_with_uncertainty"
+     ],
+     "question": "On configuration u0, is the noise threshold characterized rigorously with uncertainty, by the pre-stated extraction rule?",
+     "reason": "No valid judgment for this node; no pass or substantive violation is inferred.",
+     "judge_reason": "Thresholds and seed-derived spreads are explicitly extracted: s*=0.03 with per-seed spread 0.01118 for negative dimerization, and a <0.01 bound with spread 0.005 for positive dimerization. They are not rigorous required thresholds because they measure drift from inaccurate self-baselines rather than circular ED error. The lower categories require absent uncertainty, absent extraction, or absent curves, none of which describes this submission. Adjudication is needed for an extracted, uncertainty-bearing but scientifically invalid threshold.",
+     "evidence": [
+      "proposal/logs/results_derived.json: U0_dm0.30_T20 and U0_dp0.30_T20",
+      "proposal/code/analyze.py:70–95",
+      "proposal/report.tex:207–220,308–316",
+      "task_spec.md:54–56,65"
+     ]
+    },
+    {
+     "node_id": "threshold_characterization.threshold_on_u10",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "missing_judgment",
+     "observed_value": null,
+     "accepted_values": [
+      "rigorous_with_uncertainty"
+     ],
+     "question": "On configuration u10, is the noise threshold characterized rigorously with uncertainty, by the pre-stated extraction rule?",
+     "reason": "No valid judgment for this node; no pass or substantive violation is inferred.",
+     "judge_reason": "The submission reports <0.01 bounds and seed spreads, but no passing-to-failing crossing exists: its own s=0 errors are 1.571 and 2.752 rad against a 0.1-rad tolerance. Arithmetic averaging across the phase branch further corrupts the baselines, and extraction defaults to zero when nothing passes. Rigorous characterization fails, but the categories for no uncertainty, no extracted threshold, or no curve do not describe the supplied artifacts. This invalid-extraction-with-uncertainty case requires adjudication.",
+     "evidence": [
+      "proposal/logs/analysis_summary.json: U10_dm0.60_T20 and U10_dp0.60_T20",
+      "proposal/logs/results_derived.json: U10 per_seed_thr and thr_seed_std",
+      "proposal/code/analyze.py:70–95",
+      "proposal/report.tex:318–325,369–394"
+     ]
+    },
+    {
+     "node_id": "originality_and_literature.contribution_originality",
+     "rubric": "direction",
+     "gate": "G3",
+     "code": "insufficient_evidence",
+     "observed_value": "not_established",
+     "accepted_values": [
+      "distinct_contribution",
+      "meaningful_extension"
+     ],
+     "question": "Is the noise study original relative to published follow-ups (its noise model, threshold definition, and conclusions not a substantive replication of an existing follow-up)? Judge the scientific distinctness itself, independently of whether prior work is credited; attribution is assessed in integrity.",
+     "reason": "The paper does not provide enough positioning/evidence to establish its scientific distinctness.",
+     "judge_reason": "The paper proposes a noise extension of the noiseless source, but its positioning largely asserts that no prior characterization exists rather than comparing specific follow-ups. Its principal claimed new findings—the measurement obstruction and isolated manifold failure—are not established by valid mathematics or controlled evidence. The supplied material therefore does not establish a distinct scientific contribution; it also does not establish substantive replication of another follow-up.",
+     "evidence": [
+      "proposal/report.tex:80–114,249–271,565–597",
+      "proposal/code/vqse.py:114–146",
+      "proposal/code/drivers.py:178–191",
+      "paper.md: noiseless simulation scope"
+     ]
+    }
+   ]
+  }
+ },
+ "cumulative": {
+  "G1": {
+   "status": "fail",
+   "blocked_by": []
+  },
+  "G2": {
+   "status": "fail",
+   "blocked_by": [
+    "G1"
+   ]
+  },
+  "G3": {
+   "status": "fail",
+   "blocked_by": [
+    "G1",
+    "G2"
+   ]
+  }
+ },
+ "outcome": "integrity_failure",
+ "passes": {
+  "G1": false,
+  "G2": false,
+  "G3": false
+ },
+ "nodes": {
+  "integrity:number_traceability.phase_and_threshold_values_in_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:number_traceability.noise_rates_and_shots_in_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:number_traceability.resource_counts_in_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:no_hardcoded_values.no_hardcoded_ground_truth": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:pre_stated_method.settings_match_logs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:baseline_honesty.numbers_from_own_runs": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:held_fixed_disclosure.deviations_disclosed": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:code_paper_alignment.methodology_matches_code": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "fail",
+   "value": "violation_detected"
+  },
+  "integrity:integrity.execution_claims": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "undetermined",
+   "value": "insufficient_evidence"
+  },
+  "integrity:integrity.precommitment_claims": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "undetermined",
+   "value": "insufficient_evidence"
+  },
+  "integrity:selective_reporting.all_levels_and_seeds_reported": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:threshold_extraction_integrity.threshold_by_prestated_rule": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:variational_simulation_integrity.ansatz_growth_uses_measurable_signals": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:no_replication_of_published_method.not_a_known_followup_replication": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "integrity:no_external_code.external_code_attributed": {
+   "rubric": "integrity",
+   "role": "required",
+   "gate": "G1",
+   "assigned_gate": "G1",
+   "applicable": true,
+   "status": "pass",
+   "value": "no_violation_detected"
+  },
+  "direction:deliverables.report_pdf_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.logs_directory_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.noiseless_anchor_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.noise_sweep_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.threshold_analysis_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.reference_ed_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.main_results_table_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.noise_curves_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.codebase_notes_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:deliverables.attempts_log_present": {
+   "rubric": "direction",
+   "role": "conditional",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:deliverables.methodology_section_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:method_specification.noise_model_stated_before_results": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:method_specification.noise_model_fully_specified": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "mostly_specified"
+  },
+  "direction:method_specification.estimator_specified": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "well_conditioned_estimator"
+  },
+  "direction:method_specification.accuracy_criterion_prestated": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:method_specification.method_held_fixed": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:baseline_verification.noiseless_berry_phase_reproduced": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_reproduced"
+  },
+  "direction:baseline_verification.resources_reproduced": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "mismatch"
+  },
+  "direction:baseline_verification.held_fixed_constraints_respected": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:experimental_completeness.both_u_regimes_run": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:experimental_completeness.both_topological_regimes_run": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:experimental_completeness.seeds_with_error_bars": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "sufficient"
+  },
+  "direction:experimental_completeness.noise_sweep_resolves_threshold": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:required_noise_sources.modeled_shot_sampling": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "faithfully_modeled"
+  },
+  "direction:required_noise_sources.modeled_two_qubit_gate": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "present_but_flawed"
+  },
+  "direction:required_noise_sources.modeled_readout": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "faithfully_modeled"
+  },
+  "direction:required_noise_sources.modeled_thermal_relaxation": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "present_but_flawed"
+  },
+  "direction:noise_scope.phi_g_measurements_noised": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "phi_g_exact"
+  },
+  "direction:threshold_characterization.threshold_on_u0": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "undetermined",
+   "value": null
+  },
+  "direction:threshold_characterization.device_referenced_on_u0": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "abstract_units_only"
+  },
+  "direction:threshold_characterization.threshold_on_u10": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "undetermined",
+   "value": null
+  },
+  "direction:threshold_characterization.device_referenced_on_u10": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "abstract_units_only"
+  },
+  "direction:topological_discrimination.distinguishes_phases_on_u0": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_shown"
+  },
+  "direction:topological_discrimination.distinguishes_phases_on_u10": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_shown"
+  },
+  "direction:mechanism_analysis.subsection_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:mechanism_analysis.depth": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "moderate"
+  },
+  "direction:mechanism_analysis.cancellation_robustness_engaged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "mentioned"
+  },
+  "direction:mechanism_analysis.dominant_source_identified": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "partial"
+  },
+  "direction:failure_analysis.subsection_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "yes"
+  },
+  "direction:failure_analysis.depth_dependence_engaged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "mentioned"
+  },
+  "direction:failure_analysis.patterns_explained_coherently": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "partial"
+  },
+  "direction:compute_cost_analysis.subsection_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:compute_cost_analysis.simulation_cost_discussed": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "quantified"
+  },
+  "direction:optional_extensions.noise_breadth": {
+   "rubric": "direction",
+   "role": "optional",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "broad"
+  },
+  "direction:optional_extensions.trotter_noise_comparison": {
+   "rubric": "direction",
+   "role": "optional",
+   "gate": "G2",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "absent"
+  },
+  "direction:optional_extensions.error_mitigation": {
+   "rubric": "direction",
+   "role": "optional",
+   "gate": "G2",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "absent"
+  },
+  "direction:optional_extensions.noisy_ansatz_construction": {
+   "rubric": "direction",
+   "role": "optional",
+   "gate": "G2",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "absent"
+  },
+  "direction:originality_and_literature.contribution_originality": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "undetermined",
+   "value": "not_established"
+  },
+  "direction:originality_and_literature.literature_engagement": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "moderate"
+  },
+  "direction:originality_and_literature.spec_independence": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "partially_independent"
+  },
+  "direction:writing_quality.journal_quality_structure": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "reasonable"
+  },
+  "direction:writing_quality.limitations_discussion_present": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "substantive"
+  },
+  "direction:writing_quality.rendered_pdf_clean": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "pass",
+   "value": "minor_issues"
+  },
+  "direction:writing_quality.main_results_table_complete": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "no"
+  },
+  "direction:contract.variational_simulation_integrity.state_evolved_through_circuit": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G3",
+   "assigned_gate": "G3",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.variational_simulation_integrity.resources_from_logged_selections": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:contract.experiment_completeness.all_experiments_logged": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:contract.effort_evidence.attempts_log_corroborates": {
+   "rubric": "direction",
+   "role": "conditional",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "pass",
+   "value": "satisfied"
+  },
+  "direction:evidence_completeness.quantitative_sources_documented": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  },
+  "direction:evidence_completeness.required_reporting_coverage": {
+   "rubric": "direction",
+   "role": "required",
+   "gate": "G2",
+   "assigned_gate": "G2",
+   "applicable": true,
+   "status": "fail",
+   "value": "not_satisfied"
+  }
+ }
+}

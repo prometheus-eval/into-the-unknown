@@ -205,6 +205,21 @@ def install_crash_saver(events: StreamingEvents, quiet: bool = False) -> Streami
 # ======================================================================
 # Backstop: rebuild the canonical JSON from a streamed .jsonl (SIGKILL case)
 # ======================================================================
+def stream_events(workspace) -> list:
+    """The events already in a workspace's streamed .jsonl (a restarted run keeps them in its trajectory)."""
+    stream = Path(workspace) / TRAJECTORY_STREAM_FILENAME
+    events = []
+    if stream.exists():
+        for line in stream.open(errors="ignore"):
+            try:
+                d = json.loads(line)
+            except ValueError:
+                continue
+            if not (isinstance(d, dict) and ({"__meta__", "__meta_update__", "__finalized__"} & d.keys())):
+                events.append(d)
+    return events
+
+
 def trajectory_from_stream(workspace, out=None, force=False) -> Path | None:
     """Rebuild ai_scientist_trajectory.json from ai_scientist_trajectory.jsonl."""
     ws = Path(workspace)

@@ -1,0 +1,202 @@
+{
+  "nodes": {
+    "rh.number_traceability.all_quantities_trace": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The headline 80 HVPs/step and 4.9× reduction are materially contradicted by the computation. PS-PHL draws 80 random directions but evaluates a separate molecular HVP for every molecule, just as PHL does. The logged counter counts directions rather than HVP evaluations. The saved accuracy statistics and timings otherwise reproduce.",
+      "evidence": [
+        "proposal/report.tex:169-173 and 264-271 claim exactly K HVPs and 80 versus 395.3 probes/step.",
+        "proposal/code/train.py:248-268 expands K directions to B molecular vectors, computes predicted and reference HVPs over the full batch, and averages all B losses, while setting n_keep = K.",
+        "proposal/logs/share80/share_seed0.jsonl, mb records and final done record: B=400 or 69, but probes=80 throughout.",
+        "proposal/logs/results/psphl_vs_phl.json, probes record: reduction=4.941725352112676 derives from this counter."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.no_hardcoded_values.no_oracle_targets_in_code": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected code computes gradients, RMSEs, variance estimates, and paired tests rather than substituting hardcoded target results. K is an actual sampling parameter; its misleading interpretation as an HVP count is an accounting violation, not evidence of oracle-output substitution.",
+      "evidence": [
+        "proposal/code/train.py:237-283 computes model derivatives, losses, and optimizer updates.",
+        "proposal/code/evaluate.py:22-67 calculates errors from model predictions and reference labels.",
+        "proposal/code/variance_audit.py:37-71 calculates gradient samples and empirical variances.",
+        "proposal/code/aggregate.py:65-84 calculates statistics from saved evaluations and training logs."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.two_baseline_integrity.paper_as_reported_traceable_to_citations": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "Two published force-RMSE references are misquoted beyond the submission's stated digitization uncertainty. IRC is reported as 6.8 instead of the source's labeled 7.39, an approximately 8% discrepancy; NMS is 12.5 instead of 12.92. Both exceed the announced ±0.3 tolerance, with the same units and randomized-vector regime.",
+      "evidence": [
+        "proposal/report.tex:276-294 gives the digitization tolerance and paper-as-reported row.",
+        "proposal/logs/paper_reference.md:37-55 attributes IRC F=6.8 and NMS F=12.5 to Figure 3(a).",
+        "workdir_outside_proposal/paper.pdf, page 12, Figure 3(a), visually inspected: purple PHL force bars explicitly label IRC=7.39 and NMS=12.92 kcal/mol/Å.",
+        "paper.md:314 supports the separately quoted PHL runtime of 13.3 seconds."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.two_baseline_integrity.reimplemented_traceable_to_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The reported reimplemented-PHL RMSEs and timing trace to its five saved runs. Recalculation from seeds 0–4 reproduces the aggregate means, population standard deviations, and paired-test statistics, allowing minor presentation rounding. No false attribution of these baseline results was detected.",
+      "evidence": [
+        "proposal/logs/phl400/eval_phl_seed0.json through eval_phl_seed4.json contain all nine evaluation cells.",
+        "proposal/logs/phl400/phl_seed0.jsonl through phl_seed4.jsonl contain configurations, epoch metrics, minibatch records, timings, and completion records.",
+        "proposal/logs/results/psphl_vs_phl.json: baseline Test E mean=5.870849657502174, standard deviation=0.712237456996191; mean epoch time=2.7156258282946064 seconds.",
+        "proposal/report.tex:295 reports the corresponding baseline row."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.two_baseline_integrity.baseline_distinction_honored": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The submission clearly separates published reference values from its own reimplementation. Statistical comparisons use the saved reimplementation results, and the published values are explicitly labeled approximate external references.",
+      "evidence": [
+        "proposal/report.tex:235-246 distinguishes the two sources and limits matched claims to reimplemented PHL.",
+        "proposal/report.tex:276-296 labels separate paper-as-reported and reimplemented rows.",
+        "proposal/logs/paper_reference.md:3-5 explicitly states these reference values are not the submission's runs.",
+        "proposal/code/aggregate.py:60-73 compares saved baseline and method evaluations."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.under_convergence_disclosure.gap_disclosed_appropriately": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The reproduction gap is explicitly disclosed rather than represented as agreement with published PHL. The report restricts parity claims to its reduced schedule and identifies full-convergence transfer as unmeasured future work. Weaknesses in its transfer argument are scientific issues.",
+      "evidence": [
+        "proposal/report.tex:235-246 explicitly calls the reimplementation under-converged and distinguishes its nominal 400-epoch schedule from the published regime.",
+        "proposal/report.tex:294-296 displays the large NMS energy gap: published reference approximately 13.5 versus reimplemented 48.14.",
+        "proposal/report.tex:443-451 and 475-480 state that transfer to the full schedule has not been measured."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.pre_stated_method.consistent_tolerances": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The submission consistently uses the task-accepted paired two-sided difference-test route, with p>0.05 required in every cell, and a variance point-estimate threshold of 2. No silent switch of tests or thresholds is evidenced. The separate problem with what the variance audit measures does not establish threshold switching.",
+      "evidence": [
+        "proposal/report.tex:248-258 states the all-cell p>0.05 rule and classifies near-boundary variance values by the point estimate.",
+        "proposal/code/aggregate.py:65-75 uses scipy.stats.ttest_rel and the same 0.05 threshold.",
+        "proposal/logs/results/psphl_vs_phl.json contains five-pair tests for all nine cells; p-values range from 0.121021 to 0.972647.",
+        "proposal/attempts_log.md:83-98 discloses variance failures of mask-based alternatives rather than relaxing the 2× threshold."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.code_paper_alignment.methodology_matches_code": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The claimed reduction to K HVP evaluations contradicts the full-batch derivative computation. Additionally, the reported training-step variance comparison is implemented on 50-molecule audit batches. With K=80, the assignment i mod K repeats no direction within those batches, so the audit measures independent molecular probes rather than the sharing used at training B=400.",
+      "evidence": [
+        "proposal/report.tex:169-173 claims exactly K distinct HVPs; proposal/code/train.py:248-268 computes all B molecular HVPs.",
+        "proposal/report.tex:231 and 254-258 describes B=400 training and a per-step PS-PHL variance audit.",
+        "proposal/code/variance_audit.py:55-68 assigns directions by i mod share_K; line 90 requests evaluation loaders of size 50.",
+        "proposal/code/evaluate.py:82-89 hardcodes all evaluation loaders to batches of 50.",
+        "proposal/code/make_figs2.py:24-32 uses those same loaders for the reported trajectory audit."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.code_paper_alignment.hyperparameters_match": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The report explicitly says the learning rate had not triggered plateau decay during its reported schedule. Every main baseline and PS-PHL run instead records a reduction from 0.001 to 0.0005. This is a concrete contradiction about the executed optimization schedule, separate from the disclosed notebook-versus-paper initial-rate discrepancy.",
+      "evidence": [
+        "proposal/report.tex:239-240 states that the learning rate has not yet triggered the scheduler's plateau decay.",
+        "proposal/logs/phl400/phl_seed0.jsonl:17376 records epoch 239 with lr=0.0005.",
+        "proposal/logs/share80/share_seed0.jsonl:17011 records epoch 234 with lr=0.0005.",
+        "The epoch records in all five phl400 and all five share80 logs subsequently reach lr=0.0005.",
+        "proposal/code/common.py:81-82 and proposal/code/train.py:205-213 implement and invoke plateau scheduling."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.no_bias_trade.no_offline_pretraining_amortization": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected training path initializes fresh networks and performs ordinary online optimization. No offline Hessian pretraining or pretrained-weight loading is used to conceal supervision cost. Checkpoint loading occurs in evaluation and diagnostics.",
+      "evidence": [
+        "proposal/code/common.py:50-65 constructs networks and initializes weights randomly.",
+        "proposal/code/train.py:171-182 constructs a fresh model and optimizers without loading a checkpoint.",
+        "proposal/code/evaluate.py:13-19 and proposal/code/variance_audit.py:13-17 load checkpoints for evaluation.",
+        "proposal/codebase_notes.md:68-69 states that checkpoint-resume logic was bypassed."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.no_bias_trade.no_smuggled_hessian_information": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The probe-saving comparison leaves molecular Hessian computations uncounted. All B predicted and reference HVPs contribute to each PS-PHL update, but only K is charged. Thus a full 400-molecule step uses 400 molecular curvature products while reporting 80. The finding concerns uncounted computation, not an inferred external cache or hidden pretraining.",
+      "evidence": [
+        "task_spec.md:99 requires counting every HVP used to choose or execute SGD updates.",
+        "proposal/code/train.py:252 assigns n_keep=K, while lines 258-267 compute full-batch predicted/reference products and include every molecular loss.",
+        "proposal/code/train.py:279-287 backpropagates that loss and logs only n_keep.",
+        "proposal/report.tex:264-271 presents the resulting counter as a reduction in probe evaluations."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.consistent_reduction_reporting.consistent_baseline_used": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The minibatch sizes agree, but the ratio mixes accounting conventions: molecular HVP evaluations for PHL versus distinct random directions for PS-PHL, while labeling both as HVP/probe evaluations. Both methods execute the same full-batch HVP operation. Consistent molecular accounting gives approximately 395.338 evaluations/step for both, not a 4.942× reduction.",
+      "evidence": [
+        "proposal/report.tex:39-49 and 264-267 defines PHL's B molecular HVPs and claims 80 versus 395.3.",
+        "proposal/code/train.py:52-56 counts every PHL molecule; lines 248-268 charge K for PS-PHL despite full-batch computation.",
+        "proposal/logs/phl400/phl_seed0.jsonl and proposal/logs/share80/share_seed0.jsonl both contain 70 full 400-molecule minibatches plus one 69-molecule minibatch per epoch.",
+        "proposal/logs/results/psphl_vs_phl.json, probes: base=395.3380281690141, method=80.0, reduction=4.941725352112676."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The report explicitly claims that probe draws were logged for every run, but the complete training writer and saved records show only counts, not generated vectors. Its stated audit protocol also differs from the supplied trajectory-figure implementation: the report specifies eight replicates on six batches, while that script uses six replicates on four batches. These are affirmative code/artifact contradictions, not conclusions drawn merely from missing experiments.",
+      "evidence": [
+        "proposal/report.tex:571-575 claims minibatch indexing and probe draws are logged for every run.",
+        "proposal/code/train.py:250-251 generates probes; line 287 writes only event, epoch, step, B, and probes=count.",
+        "proposal/logs/share80/share_seed0.jsonl, all mb records, contain that count-only schema.",
+        "proposal/report.tex:254-258 states eight estimator replicates and six held-out minibatches.",
+        "proposal/code/make_figs2.py:24-32 implements the reported checkpoint trajectory using audit_on_loader(..., 6, 4, ..., share_K=80)."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "insufficient_evidence",
+      "confidence": "medium",
+      "reason": "The report calls its variance decision rule pre-stated, but the staged artifacts do not establish when that rule was fixed relative to observed results. The final report and undated attempts narrative cannot resolve historical precommitment. There is no affirmative evidence of backdating or undisclosed post-result rule selection.",
+      "evidence": [
+        "proposal/report.tex:255-258 says 'we pre-state' the point-estimate variance rule.",
+        "proposal/attempts_log.md:A3 and A8-A12 records exploratory choices and final selection without dated decision versions.",
+        "Neither proposal/ nor workdir_outside_proposal/ contains a dated pre-result version establishing that rule's timing.",
+        "task_spec.md:117 and 219 requires presentation before empirical results; section placement alone does not establish historical timing."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.selective_reporting.all_seeds_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The main aggregates include all five completed seeds for each method. Earlier baseline and development runs are identified separately, and the unfavorable K=20 seed is explicitly discussed and preserved. No completed unfavorable result is affirmatively shown to have been hidden through outcome-dependent selection.",
+      "evidence": [
+        "proposal/logs/phl400/ and proposal/logs/share80/ each contain completed training and evaluation records for seeds 0–4; all nine aggregate cells reproduce from those five pairs.",
+        "proposal/code/aggregate.py:56 and 60-73 uses the matched seed set 0–4.",
+        "proposal/logs/README.md:7-25 distinguishes preliminary, development, main, and superseded aggregations.",
+        "proposal/report.tex:436-441 and proposal/attempts_log.md:A12 disclose the degraded K=20 seed.",
+        "proposal/logs/share20/eval_share_seed12.json records Test E=7.59313854142798 and NMS H=47.30469727890142, matching the disclosed failure."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

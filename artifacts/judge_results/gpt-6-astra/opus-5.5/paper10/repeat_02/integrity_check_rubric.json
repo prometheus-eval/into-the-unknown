@@ -1,0 +1,195 @@
+{
+  "nodes": {
+    "number_traceability.phase_and_threshold_values_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The reported phases and thresholds trace to saved estimates and analysis code. Independent arithmetic on the saved data reproduces the circular deviations, RMSEs, and four primary thresholds; branch conventions and rounding explain the presentation differences.",
+      "evidence": [
+        "proposal/logs/table_main.tex:12-34 reports thresholds 0.309, 0.0859, 0.00762, and 0.00974. Recalculation from the saved per-seed deviations gives 0.308946047996, 0.085943945031, 0.007624882304, and 0.009742983495, matching proposal/logs/thresholds.json.",
+        "Across all 123 proposal/logs/noisy/*.json records, saved component sums reproduce phiB, and independently calculated circular deviations and RMSEs agree within 4.5e-16.",
+        "proposal/code/analyze_lib.py:39-75 implements the reported crossing and 2000-resample uncertainty calculation; proposal/logs/results_macros.tex:182-205 carries the resulting thresholds and intervals into the report."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "number_traceability.noise_rates_and_shots_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Reported noise probabilities, coherence times, shot counts, and sampling-realization counts agree with the executed profiles and saved records. The sampler performs finite multinomial/binomial sampling, with infinite-shot results separately labeled.",
+      "evidence": [
+        "proposal/sections/noise_methods.tex:43-78 specifies p2=0.001, p1=0.000025, e0=0.001, e1=0.003, T1=10 s, T2=0.5 s, scalar scaling, and 32 sampling realizations. All 123 noisy JSON profiles agree with these settings and their declared channel subsets.",
+        "proposal/code/noisy_eval.py:289-338 samples prefix and Hamiltonian measurements multinomially and Hadamard outcomes binomially at the configured S.",
+        "Saved Hadamard samples in the inspected near-threshold chunk records lie on the integer-count lattice for their declared shot counts; every noisy record retains 32 estimates per configured shot count."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "number_traceability.resource_counts_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The reported circuit resources follow from the submission's saved operator selections and compilation bookkeeping. Independent counting reproduces the primary CNOT counts and depths; the reported computational cost is consistent with the saved timing aggregate.",
+      "evidence": [
+        "The res.ops records in proposal/data/noiseless_{U0_triv,U0_nontriv,U10_triv,U10_nontriv}.pkl reproduce ansatz CNOT counts 108, 240, 694, 670 and support-scheduled depths 12, 23, 70, 69, as reported in proposal/logs/table_main.tex:12-30.",
+        "proposal/code/run_noiseless.py:81-104 derives resources from logged operators. Adding two controlled-rotation CNOTs per parameter gives Hadamard counts 148, 302, 1010, 974, also supported by proposal/logs/circuit_resources.json.",
+        "proposal/logs/cost_summary.json records 138.56274 aggregate CPU-hours, consistent with the rounded 139-hour macro in proposal/logs/results_macros.tex:425 and its use in proposal/sections/failure_cost.tex:35-40."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_hardcoded_values.no_hardcoded_ground_truth": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected pipeline constructs its Hamiltonian, computes ED references, grows its ansatz, and estimates phases rather than substituting target answers. The auxiliary single-quadrature estimator's noiseless sign branch is explicitly disclosed and does not replace the primary estimator.",
+      "evidence": [
+        "proposal/code/sshh.py:69-152 constructs the Jordan-Wigner Hamiltonian and operator pools; proposal/code/ed_reference.py:26-73 computes sector eigenstates and the Wilson-loop reference.",
+        "proposal/code/run_noiseless.py:65-78 invokes model construction, a 2000-point ED calculation, AVQITE, and AVQDS before assembling the phase from its three computed components.",
+        "proposal/sections/noise_methods.tex:67-71 and proposal/logs/analysis_plan.json:49-50 distinguish primary atan2 readout from the explicitly labeled oracle-branch comparison.",
+        "Archive inputs are confined to validation in proposal/code/crosscheck_archive.py, rather than supplying the main pipeline's Hamiltonian, selected operators, or parameters."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "pre_stated_method.settings_match_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The quoted primary run settings agree with the result-generating code and saved configurations. Tighter-cutoff, longer-loop, channel-isolation, and mitigation runs are identified as separate variants rather than silently substituted for the primary settings.",
+      "evidence": [
+        "proposal/logs/analysis_plan.json:4-28 specifies four N=4 configurations, T=20, AVQDS cutoff 1e-4, dtheta_max=0.01, and AVQITE cutoff 0.01; corresponding proposal/logs/noiseless_*.json records carry those settings.",
+        "proposal/code/run_noiseless.py:47-88 passes and records the integration settings; the four primary saved traces remain below the declared 1e-4 McLachlan cutoff.",
+        "proposal/sections/noise_methods.tex:80-95 matches proposal/code/analyze_lib.py:11-14,39-75 on epsilon=0.1*pi, S_ref=10000, circular RMSE, and first-crossing extraction.",
+        "proposal/sections/anchor.tex:23-27 explicitly separates the 1e-5 controls from the primary 1e-4 study."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_honesty.numbers_from_own_runs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The report distinguishes cited archive quantities from its own noiseless and Trotter results. Saved baseline records support the reported quantities, including comparisons unfavorable to AVQDS; no fabricated baseline or false source attribution was established.",
+      "evidence": [
+        "proposal/sections/anchor.tex:4-27 and proposal/logs/crosscheck_archive.json distinguish archive and submission results, explaining energy offsets, phase branches, and differing resources.",
+        "The supplied workdir_outside_proposal/data/figshare_data/AVQS-Berry.zip contains the cited reference material. Its Fig2.py:96-144,308 supports the disclosed separate AVQITE contribution in the archive's resource plotting.",
+        "All 180 proposal/logs/trotter/*.json records contain 32 sampling realizations. Independently recomputed circular deviations and RMSEs agree with their stored values within 4.5e-16.",
+        "proposal/sections/trotter.tex:16-26 reports coarse-step Trotter thresholds exceeding AVQDS; proposal/logs/table_trotter.tex explicitly marks the unavailable fine-step U=0 trivial result with a dash."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "held_fixed_disclosure.deviations_disclosed": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The claimed held-fixed core is supported by the implementation and primary records. Reference-state selection, AVQITE cutoff choices, archive differences, and the frozen-trajectory scope are disclosed; no material contradiction to a claimed held-fixed condition was established.",
+      "evidence": [
+        "proposal/sections/protocol.tex:54-71 describes McLachlan evolution, Tikhonov regularization, RK4, dtheta_max=0.01, cutoff 1e-4, and disjoint-support growth; proposal/code/avq.py:115-150,170-211 implements these operations.",
+        "proposal/sections/protocol.tex:73-83 discloses the AVQITE cutoff and energy-based reference-state choice, implemented in proposal/code/run_noiseless.py:25-43.",
+        "proposal/sections/anchor.tex:23-27 discloses the archive's different U=0 cutoff and the submission's tighter-cutoff controls.",
+        "proposal/sections/noise_methods.tex:9-18 explicitly states that trajectories and velocities remain frozen during the required noisy evaluation."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_paper_alignment.methodology_matches_code": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The implemented primary method agrees with the report: compiled circuit noise affects the readout and both integrated phase legs, followed by genuine finite sampling. Prefix reuse and extrapolation of integrated linear quantities are equivalent computations, not evidence of a substituted method.",
+      "evidence": [
+        "proposal/sections/noise_methods.tex:9-38 corresponds to proposal/code/noisy_eval.py:147-184,212-319: prefix measurements, grouped Hamiltonian measurements, a controlled Hadamard test, and all four frozen RK4 stages.",
+        "proposal/code/dmsim.py implements the reported compiled gates, depolarizing channels, relaxation, scheduling, and readout channel; proposal/code/noisy_eval.py:289-338 implements the stated shot model.",
+        "For four inspected near-threshold runs, saved chunks cover their complete integration-step ranges; summed sampled G1/G2 contributions reproduce the reduced JSON values within 7.2e-14.",
+        "proposal/sections/mitigation.tex:10-22 explicitly describes grid-emulated pulse stretching and separately executed CNOT folding, consistent with proposal/code/zne.py."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "Saved trajectories, noisy chunks, baseline records, and test output support the principal execution claims. The report accurately describes the guarded noisy-construction runs as incomplete; no inspected artifact affirmatively establishes a falsely claimed execution or repair.",
+      "evidence": [
+        "proposal/logs/run_stdout/sweep_batch1.out:1-157 records chunk completion and reduced noisy results; corresponding files exist under proposal/data/chunks/ and proposal/logs/noisy/.",
+        "proposal/logs/unit_tests.txt records compiled-state, prefix, Hadamard-overlap, and channel checks corresponding to proposal/code/test_dmsim.py.",
+        "All four proposal/logs/noisy_construction/*.json records have ok=false, 4001 evaluation calls including the guard-triggering call, 393-833 operators, and tau_max=0.07816-9.3. proposal/sections/construction.tex:13-18 accurately reports these guarded failures.",
+        "proposal/attempts_log.md:78-106 discloses interrupted exploratory runs, relaunches, and rejected negative-perturbation commands rather than presenting them as completed experiments."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The dated plan and staged output chronology are consistent with fixing the primary analysis before noisy results. Later sweep extensions and mitigation choices are expressly disclosed. No dated artifact establishes undisclosed post-result selection or backdating.",
+      "evidence": [
+        "proposal/sections/noise_methods.tex:4-7 claims advance fixation of the primary methodology and explicitly identifies mitigation as post-result work.",
+        "proposal/logs/analysis_plan.json:2-3 records 2026-10-05T01:37:53.821369Z; its staged modification time agrees. The earliest saved noisy chunks, including proposal/data/chunks/U10_triv__s0.1__all__f1__k0/c11_1808_1960.pkl, have modification time 01:49:10Z.",
+        "proposal/sections/noise_methods.tex:60-62 discloses later extrapolation levels; proposal/sections/trotter.tex:21-22 discloses later Trotter step choices.",
+        "proposal/attempts_log.md:48-68 records the extrapolation repair and expanded control brackets. These changes are not represented as untouched preregistered choices."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.all_levels_and_seeds_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected completed-run inventory agrees with the report's tables and saved per-seed records. Unfavorable high-noise behavior, stronger baselines, and failed construction attempts remain visible. No outcome-dependent concealment of completed results was established.",
+      "evidence": [
+        "The 123 noisy JSON records comprise 50 primary runs, 53 other runs, 16 coherent controls, and four additional shot-grid runs. proposal/logs/table_all_levels.tex contains 50 primary data rows and proposal/logs/table_other_runs.tex contains 53 other-run rows; coherent controls appear in table_coherent.tex.",
+        "Every noisy JSON retains 32 estimates at each configured shot count. proposal/code/analyze_lib.py:21-35 loads matching runs without filtering by outcomes or favorable seeds.",
+        "proposal/sections/failure_cost.tex:4-20 reports nonmonotonic high-noise failures and construction problems; proposal/sections/trotter.tex:16-26 reports the stronger coarse-step baseline.",
+        "Inspection of proposal/figures/fig_thresholds.png and fig_trotter.png confirms that high-noise failures and unfavorable baseline comparisons are displayed."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "threshold_extraction_integrity.threshold_by_prestated_rule": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The primary thresholds follow the stated first-upward-crossing rule using all saved sampling realizations. Independent reconstruction matches the reported thresholds; later favorable returns below tolerance are not used to inflate robustness.",
+      "evidence": [
+        "proposal/logs/analysis_plan.json:80-88 specifies 32 realizations, epsilon=0.1*pi, circular RMSE, first upward crossing, log interpolation, bootstrap uncertainty, and the minimum across regimes.",
+        "proposal/code/analyze_lib.py:39-75 implements that rule. Applying it to saved primary data reproduces thresholds 0.308946047996, 0.085943945031, 0.007624882304, and 0.009742983495.",
+        "proposal/logs/noisy/U10_triv__s0.177828__all__f1__k0.json records a later return below tolerance, while proposal/logs/thresholds.json retains the earlier threshold 0.007624882304.",
+        "proposal/sections/noise_methods.tex:60-62 and proposal/attempts_log.md:63-68 disclose grid extensions; unbracketed control thresholds are reported as bounds."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "variational_simulation_integrity.ansatz_growth_uses_measurable_signals": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected growth decisions depend on circuit-derived McLachlan quantities and energy variance. ED states and fidelities enter diagnostic calculations without feeding operator selection or integration decisions; no prohibited oracle information flow was found.",
+      "evidence": [
+        "proposal/code/avq.py:115-150 evaluates M, V, and variance, ranks candidate McLachlan reductions, and chooses disjoint-support operators.",
+        "proposal/code/variational.py:75-135 constructs the projected system and candidate scores from the variational state and its derivatives.",
+        "proposal/code/avq.py:170-184 performs growth before recording ED fidelity diagnostics; lines 186-218 evolve the variational parameters and the separate exact diagnostic state.",
+        "proposal/code/run_noiseless.py:31-43 selects the reference using converged AVQITE energy and circuit cost, not ED fidelity. The optional noisy-construction implementation likewise grows from sampled McLachlan quantities."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_replication_of_published_method.not_a_known_followup_replication": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "Within the supplied evidence, the inherited Berry-phase algorithm and standard mitigation methods are acknowledged. The claimed contribution is the noise characterization and mechanism analysis; no identifiable prior contribution was established as substantively reproduced and falsely presented as new.",
+      "evidence": [
+        "paper.md, Sections II-IV, supplies the AVQITE/AVQDS Berry-phase method. proposal/sections/intro.tex:10-13,24-29 expressly attributes that method to Mootz and Yao and describes the present work as its reimplementation and noise study.",
+        "proposal/sections/related.tex:4-27 acknowledges Murta's loop, AVQDS, TETRIS, and prior variational-noise and topological-invariant approaches.",
+        "proposal/sections/related.tex:29-44 credits geometric-phase, phase-estimation, zero-noise-extrapolation, readout-mitigation, and Trotter-error literature."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_external_code.external_code_attributed": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The submitted methodology code and its dependencies are inspectable, and the archive's validation role and standard libraries are attributed. No nontrivial prohibited code reuse or unattributed external methodology implementation was identified.",
+      "evidence": [
+        "proposal/codebase_notes.md:5-14,91-120 identifies the supplied archive, standard libraries, project-written modules, and literature-derived algorithmic conventions.",
+        "The simulation modules import local implementations and disclosed NumPy/SciPy functionality. Archive-reading dependencies occur in proposal/code/crosscheck_archive.py for reference comparison.",
+        "proposal/code/sshh.py, variational.py, avq.py, and dmsim.py contain the model, growth, integration, compilation, and noise implementations rather than delegating them to an uncredited external quantum-method package.",
+        "The supplied workdir_outside_proposal/data/figshare_data/AVQS-Berry.zip was inspected; its figure scripts and AVQITE driver are identified as reference material in proposal/codebase_notes.md:16-32,115-118."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

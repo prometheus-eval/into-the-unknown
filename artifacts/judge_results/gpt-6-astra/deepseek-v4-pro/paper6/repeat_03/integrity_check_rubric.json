@@ -1,0 +1,244 @@
+{
+  "nodes": {
+    "rh.code_paper_alignment.scheme": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The ray-tracing medium differs materially from the reported medium. The paper specifies a Gaussian plasma frequency, but the implementation applies that Gaussian to density. The saved density therefore implies a cutoff of approximately -46.405, rather than the reported -32.813. This is an affirmative implementation–description mismatch.",
+      "evidence": [
+        "proposal/report.tex:250–252 specifies omega_p(x)=0.7 exp(-x^2/(2 sigma^2)), with sigma=40.",
+        "proposal/code/run_scope2.py:27–28 initializes n(x)=(omega_p0^2 m/q^2) exp(-x^2/(2 sigma^2)); consequently omega_p(x)=0.7 exp(-x^2/(4 sigma^2)).",
+        "proposal/logs/scope2_traj.npz, x and n0: at x=40, n0=3.3022224806576705, implying omega_p=0.5451605481; the reported profile gives 0.4245714618.",
+        "proposal/logs/scope2_summary.json, x_c_wkb=-32.813277147945485."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.code_paper_alignment.gauge": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The temporal-gauge description agrees with the executable field updates. The paper explicitly discloses that the non-compact modification relaxes local gauge invariance while retaining global charge symmetry. No contradictory gauge-condition claim is established.",
+      "evidence": [
+        "proposal/report.tex:122–152 and 236–237 specifies temporal gauge a^0=0.",
+        "proposal/code/lattice.py:140–180 implements updates without temporal-link phases.",
+        "proposal/report.tex:387–396 discloses the non-compact modification's loss of exact local gauge invariance.",
+        "proposal/code/noncompact.py:46–68 implements the linear midpoint coupling."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.code_paper_alignment.integration": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The temporal integration follows the referenced explicit, two-level KG/Maxwell advance. The fixed-background and externally driven boundary tests advance the scalar field as described. No separate contradiction concerning the temporal integration algorithm is established.",
+      "evidence": [
+        "proposal/report.tex:147–154 references the source paper's equations and Appendix B for the advance.",
+        "paper.md:304–318 describes the explicit scalar and spatial-gauge advances.",
+        "proposal/code/lattice.py:140–180 and 183–220 implements the two-level updates.",
+        "proposal/code/run_boundary1.py:27–41 and run_boundary2.py:36–58 implements frozen-background and externally driven KG evolution."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.code_paper_alignment.ensemble_and_resolution": {
+      "value": "violation_detected",
+      "confidence": "medium",
+      "reason": "The blanket claim that convergence studies hold physical domains fixed with N proportional to 1/dx contradicts the compact-gauge scan drivers. They retain N=64 at all three spacings, giving domain lengths 2.56, 1.28, and 0.64. This exception is not disclosed. The principal reproduction ensemble counts themselves match the saved arrays.",
+      "evidence": [
+        "proposal/report.tex:253–258 states the three compact-gauge resolutions and the fixed-physical-domain convergence protocol.",
+        "proposal/code/run_boundary1.py:27 and 80–83 uses the default N=64 for every spacing.",
+        "proposal/code/fix_boundary1.py:22 and 49–51 likewise retains N=64 across spacings.",
+        "proposal/logs/boundary1_dx0.04_summary.json, boundary1_dx0.02_summary.json, and boundary1_dx0.01_summary.json confirms the three spacings.",
+        "proposal/logs/iii1_ensemble.npz has Q shape (100,1025); iii2_a1.npz and iii2_a16.npz have Q shape (200,40001)."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.pre_stated_method.tolerances_consistent_throughout": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "No undisclosed numerical tolerance change is established. The frequency-bin tolerances agree with the observation lengths, and the Airy-length value remains consistent. Methodology already allows penetration within a few Airy lengths. Unmet or inadequately justified scientific targets do not independently establish this predicate.",
+      "evidence": [
+        "proposal/report.tex:181–186 states the frequency-bin criterion; lines 196–199 gives ell approximately 4.6 and 'within a few Airy lengths'.",
+        "proposal/report.tex:305–308 and 315–327 uses frequency bins 0.31 and 0.038 and reports penetration approximately 2.5 Airy lengths.",
+        "proposal/logs/scope1_ridge.json, frequency_bin=0.03834483893067.",
+        "proposal/logs/scope2_summary.json, airy_length=4.602920322302877 and leading_edge_airy_units=2.4621927720607073."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The attempts log claims that the cyclic-to-angular-frequency conversion was repaired in both named measurement files. The submitted measure_dispersion.py still returns cyclic frequency without multiplying by 2π, and its callers return that value unchanged. The repair is present in run_boundary1.py, but the broader repair claim is false.",
+      "evidence": [
+        "proposal/attempts_log.md:96–99 names measure_dispersion.py and run_boundary1.py and says the missing 2π factor was 'caught and fixed'.",
+        "proposal/code/measure_dispersion.py:75–87 obtains np.fft.fftfreq and returns w[j] or its interpolated value without 2π.",
+        "proposal/code/measure_dispersion.py:37–38 and 66–67 returns the helper's result unchanged.",
+        "proposal/code/run_boundary1.py:45–56 does include the 2π conversion."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "insufficient_evidence",
+      "confidence": "high",
+      "reason": "The paper explicitly claims that failure criteria were stated before running. The final manuscript establishes their placement before Results, but the staged records do not establish when they were fixed relative to execution. No dated pre-run version or affirmative backdating evidence is available.",
+      "evidence": [
+        "proposal/report.tex:515 says 'we state the failure criterion before running'.",
+        "proposal/report.tex:203–232 places the criteria before Experimental Results.",
+        "proposal/attempts_log.md:9–92 contains an approach history without dated pre-run criteria.",
+        "The inspected proposal/ and workdir_outside_proposal/ inventories contain no separate preregistration or version history."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.number_traceability.main_results_table_cells_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The principal numerical table cells trace to saved summaries or conservation arrays, allowing for rounding and the stated measurement conventions. No fabricated or altered table value is established. This does not validate the physical interpretation or adequacy of the associated tests.",
+      "evidence": [
+        "proposal/report.tex:293–310 contains the main table.",
+        "proposal/logs/iii1_summary.json records charge drift 9.22045987222953e-16 and energy drift 9.637673130263856e-7.",
+        "proposal/logs/iii2_analysis.json records positron charge 0.49289721518950536 and energy drifts 5.482889787158915e-5 and 1.3890162518686417e-4.",
+        "proposal/logs/scope1_ridge.json records mean ridge error 0.006002449464020249; scope2_summary.json records transmission 0.0026845629676733145.",
+        "Read-only calculations from proposal/logs/conservation_traces.npz reproduce scope2 energy drift 4.1778502377862025e-7, compact-control energy drift 1.6835074729827657e-7, and Wigner charge drift 4.998646598174344e-14."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.number_traceability.outcome_column_claims_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The quantitative outcome statements have corresponding saved computations: ridge errors, positron charge, transmission, folding, monotonic repaired dispersion, and finite vacuum response. The paper also discloses partial branch identification and qualitative-only vacuum verification. Whether these support the claimed scientific successes is separate from result fabrication.",
+      "evidence": [
+        "proposal/report.tex:305–310 contains the outcome column; lines 320–327 discloses 41% branch identification and 2.5-Airy-length penetration.",
+        "proposal/logs/scope1_ridge.json records 52/128 branch hits and longitudinal_k_fraction=1.0.",
+        "proposal/logs/boundary1_dx0.04_summary.json records a measured frequency maximum 52.37154114982122 and return near 1 at the fold period.",
+        "proposal/logs/fix_boundary1_summary.json records monotonic=true for all three spacings.",
+        "proposal/logs/boundary2_summary.json records Wigner pair_excess=150.42406930392463; report.tex:537–541 explicitly limits the verification to qualitative signatures."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.number_traceability.figures_regenerable_from_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The spectrum figures materially misassign the saved powers to wavevectors. Both plotting scripts display unshifted FFT columns over a monotonically increasing negative-to-positive k extent. Consequently the actual k=0 column is placed near -78.39, while the Nyquist column is placed near zero. The numerical spectra therefore contradict their labeled coordinates.",
+      "evidence": [
+        "proposal/report.tex:439–463 includes the inspected iii1_spectrum.png and scope1_spectrum.png as numerical spectra overlaid with predictions.",
+        "proposal/code/run_iii1.py:50–55 and run_scope1.py:58–63 saves unshifted FFT2 powers.",
+        "proposal/code/analyze_iii1.py:27–30 and 79–95 displays these arrays without shifting or sorting their spatial columns.",
+        "proposal/code/analyze_scope1.py:130–150 repeats the same coordinate reassignment.",
+        "Saved spectra have 512 spatial columns at dx=0.04: column 0 represents k=0, while column 256 represents k=-78.53981633974483. Direct inspection of both PNGs confirms the resulting misplaced spectral backgrounds."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.number_traceability.intext_quantitative_claims_in_logs": {
+      "value": "violation_detected",
+      "confidence": "medium",
+      "reason": "The reported extent of the coherent-density sweep is overstated. The paper claims a fitted slope over three decades, whereas the executed sweep and plotted data contain densities 1, 0.1, and 0.01, spanning two decades. The fitted slope itself and the principal response magnitudes do trace to the records.",
+      "evidence": [
+        "proposal/report.tex:401–404 claims 'fitted slope 1.000 over three decades'.",
+        "proposal/code/run_boundary2.py:86–91 explicitly sweeps [1.0,0.1,0.01].",
+        "proposal/logs/boundary2_summary.json, coherent, contains exactly those three densities; log10(1/0.01)=2.",
+        "proposal/logs/boundary2_figure.png shows the density range 10^-2 through 10^0.",
+        "proposal/code/run_boundary2.py:95–98 explains the pulse-minus-free subtraction underlying the otherwise traceable response values."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_hardcoded_values.no_hardcoded_predictions_in_sim_loop": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The simulation paths evolve fields and calculate observables from their states. Analytic predictions are evaluated separately for comparison or used to construct physical initial conditions. No hardcoded target or oracle output substitutes for the claimed time evolution.",
+      "evidence": [
+        "proposal/code/lattice.py:140–220 implements scalar and gauge recurrences.",
+        "proposal/code/run_boundary1.py:34–56 measures frequency from an evolved signal.",
+        "proposal/code/fix_boundary1.py:22–40 independently evolves the repaired scheme before measuring frequency.",
+        "proposal/code/run_boundary2.py:36–58 evolves the scalar field and measures matter energy.",
+        "proposal/code/dispersions.py:18–104 computes reference dispersions from formulas."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.citations_and_derivations.resolve_to_real_sources": {
+      "value": "insufficient_evidence",
+      "confidence": "medium",
+      "reason": "Many bibliography entries are corroborated by the supplied original paper. However, additional references lack independent bibliographic records in either staged directory, and external lookup is prohibited. The complete citation list cannot be resolved from this record; no affirmative citation fabrication is established.",
+      "evidence": [
+        "proposal/report.tex:595–707 contains numerous entries matching paper.md:324–386.",
+        "proposal/report.tex:712, 740–741, and 755–756 adds references not corroborated by the supplied original bibliography.",
+        "The inspected workdir_outside_proposal/ contains the original paper and its figures, but no additional reference-paper corpus."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.citations_and_derivations.contain_attributed_results": {
+      "value": "insufficient_evidence",
+      "confidence": "medium",
+      "reason": "The principal discretization and plasma-dispersion attributions agree with the supplied source paper. The more specific vacuum-sampling attribution to Aarts–Smit and Hebenstreit–Berges–Gelfand cannot be checked because their source texts are absent. This gap does not establish false attribution.",
+      "evidence": [
+        "proposal/report.tex:122–154 and 169–176 corresponds to paper.md:63–120 and 136–146.",
+        "proposal/report.tex:418–428 attributes the vacuum-sampling prescription to aarts1999 and hebenstreit2013.",
+        "proposal/report.tex:636–645 identifies those references; paper.md:353 and 357 supplies bibliography entries but not their contents.",
+        "Neither staged directory includes those reference texts."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_external_code.external_code_disclosed_or_absent": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The inspected methodology consists of submitted Python implementations using standard scientific libraries. The underlying paper is acknowledged, and no identifiable external solver implementation or undisclosed copied methodology code is established.",
+      "evidence": [
+        "task_spec.md:111 permits standard scientific Python libraries and requires acknowledgment of external methodology implementations.",
+        "proposal/code/lattice.py:1–76 acknowledges Shi et al. and documents the implemented reduction.",
+        "proposal/code/dispersions.py:74 uses scipy.optimize.brentq; the simulation modules otherwise use NumPy and local modules.",
+        "proposal/attempts_log.md:11–19 documents development of the core solver."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_replication_of_published_method.no_substantive_replication_of_existing_followup": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The inspected artifacts do not establish an identifiable prior follow-up whose combined tests, failures, and fixes were reproduced without acknowledgment. The original scheme and the pre-existing vacuum-sampling prescription are acknowledged. This is not an exhaustive novelty determination.",
+      "evidence": [
+        "proposal/report.tex:70–107 acknowledges the original scheme and distinguishes the proposed investigation.",
+        "proposal/report.tex:418–420 attributes Wigner vacuum sampling to prior work.",
+        "paper.md:130–185 describes the original two demonstrations, which the submission explicitly labels as reproductions.",
+        "No matching prior follow-up contribution is identified in the staged reference material."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.log_paper_consistency.substantive_runs_in_paper": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The principal completed run families are represented in the report. Failed implementation variants and measurement revisions are disclosed in the attempts log, while incomplete branch coverage and limited vacuum verification are admitted in the paper. No affirmative outcome-dependent concealment of completed results is established.",
+      "evidence": [
+        "proposal/report.tex:268–437 discusses both reproductions, both scope tests, and both boundary tests and fixes.",
+        "proposal/report.tex:320–323 reports only 41% branch identification; lines 537–541 limits vacuum verification.",
+        "proposal/attempts_log.md:65–73 discloses the failed truncated-Wilson-line fix, consistent with the nearly constant E_nc_meas arrays in boundary1 summaries.",
+        "proposal/attempts_log.md:44–52 and 87–92 discloses trajectory-measurement and convergence-protocol revisions."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "rh.log_paper_consistency.no_undisclosed_test_swaps": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The identifiable changes to measurement and test implementation are disclosed. The record documents switching from centroid-based assessment to leading-edge measurements, enlarging boxes, replacing a failed non-compact implementation, and revising convergence setup. These do not establish concealed outcome-dependent replacements.",
+      "evidence": [
+        "proposal/attempts_log.md:29–33 discloses enlargement of the laser-plasma box.",
+        "proposal/attempts_log.md:46–52 describes centroid and leading-edge alternatives and reports both leading-edge measurements.",
+        "proposal/attempts_log.md:65–73 explains replacement of the failed truncated derivative.",
+        "proposal/attempts_log.md:89–92 explains the revised convergence setup.",
+        "proposal/report.tex:325–327 reports the less favorable every-step penetration of approximately 2.5 Airy lengths."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}

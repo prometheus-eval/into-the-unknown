@@ -1,0 +1,217 @@
+{
+  "nodes": {
+    "number_traceability.metric_values_in_logs": {
+      "value": "violation_detected",
+      "confidence": "high",
+      "reason": "The report falsely attributes the intensity correlation statistics to ion magnetization. It reports rho=0.45 and Holm-adjusted p=0.0015 for Omega_ci/omega_r, but those values belong to intensity I. The saved magnetization result is rho=0.429773, with Holm-adjusted p=0.0028395. This is a demonstrable attribution error, not a rounding or units difference.",
+      "evidence": [
+        "proposal/sections/results.tex:94-102 assigns AssocBestRho and AssocBestPholm to Omega_ci/omega_r.",
+        "proposal/logs/results_macros.tex:8-10 defines AssocBestRho=0.45, AssocBestPholm=0.0015, and AssocBestVar=I.",
+        "proposal/code/analysis/make_macros.py:160-174 selects the variable with the largest absolute correlation.",
+        "proposal/logs/boundary_results.json, compactness.one: I has rho=0.44937348191891846 and raw p=0.00013637016725692036; Wci_over_wr has rho=0.429773372727591 and raw p=0.0002839535110897296. Applying the stated Holm calculation to the 11 saved p-values gives 0.00150007184 and 0.00283953511, respectively."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "number_traceability.boundary_threshold_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The primary threshold of 0.30 agrees across the original frozen plan, current plan, report, and classification code. The 0.20 and 0.40 thresholds are explicitly descriptive sensitivity checks. No fabricated, altered, or falsely attributed boundary threshold was detected.",
+      "evidence": [
+        "proposal/code/sweep_plan_v0_frozen.json and proposal/code/sweep_plan.json, classification.threshold_tau: 0.3.",
+        "proposal/sections/method.tex:23-33 defines holds as |Delta|<=0.30 and identifies 0.20/0.40 as sensitivity checks.",
+        "proposal/code/analysis/boundary_analysis.py:21-26 reads the threshold from the plan.",
+        "proposal/logs/boundary_results.json, tau_sensitivity: all three thresholds produce 66 holds and one break."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "number_traceability.pic_gain_values_in_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The archived gains match their saved source data, and the new gains match the logged energy-ratio computation. Read-only checks found zero discrepancy for all 70 archived Fourier-integral curves and for all 36 new Fourier-integral mean gains. The gain-extraction correction and exploratory scattered-light corrections are disclosed rather than substituted silently.",
+      "evidence": [
+        "workdir_outside_proposal/data/pic_simulations/PIC_processed_data.zip and proposal/logs/boundary_results.json: all 70 source Fourier-integral curves are represented with identical raw gain values.",
+        "proposal/logs/pic_new/*.json, FI.U and FI.g: recomputing mean(log(U[1:]/U[0])) for 36 records gives maximum discrepancy 0.",
+        "proposal/code/pic/gain_pipeline.py, gain_fourier_integral; proposal/code/pic/process_new_runs.py.",
+        "proposal/sections/simulations.tex:74-87 and proposal/sections/results.tex:231-264 distinguish the reported extraction, its QC fallback, and post-hoc corrections."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_hardcoded_values.no_hardcoded_gains_or_thresholds": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The inspected code computes theory responses, extracts PIC gains, and calculates calibrated residuals. No hardcoded target or oracle result was found replacing these computations. The configured 0.30 threshold, physical constants, and explicitly fitted calibration constants are legitimate inputs or calculations under this criterion.",
+      "evidence": [
+        "proposal/code/vlasov/magcbet.py:369-459 computes coupled-mode and first-order gains.",
+        "proposal/code/vlasov/evaluate_vlasov.py:162-191 computes and saves theory integrals.",
+        "proposal/code/pic/gain_pipeline.py, gain_fourier_integral, computes gains from saved fields.",
+        "proposal/code/analysis/boundary_analysis.py:170-225 computes transfers, calibration uncertainty, and Delta; lines 21-26 load the declared threshold."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "pre_stated_method.metric_definition_matches_logs": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The executed primary metric uses the reported inverse energy-to-envelope transformation, integrated transfer, family calibration, and same-intensity unmagnetized denominator. Independent arithmetic on saved records reproduced the transfers and residuals to floating-point precision. The first-order theory amendment is expressly disclosed.",
+      "evidence": [
+        "proposal/sections/theory.tex:119-133 defines T and the distinct PIC and first-order theory transformations.",
+        "proposal/sections/method.tex:14-33 defines calibration and Delta.",
+        "proposal/code/analysis/boundary_analysis.py:170-208 implements the shared offset, sampled-window integration, calibration, and denominator.",
+        "proposal/logs/boundary_results.json, results: read-only recomputation across 79 records gave maximum transfer discrepancy approximately 1.45e-13 and Delta discrepancy approximately 5.89e-14.",
+        "proposal/sections/method.tex:4-12 and proposal/code/sweep_plan.md:109 disclose the first-order amendment."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "baseline_honesty.vlasov_from_own_reconstruction": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The baseline values have corresponding reconstruction code and per-cell numerical records. The report acknowledges the published theory, its own approximations, calibration, normalization limitation, and imperfect reproduction. No affirmative evidence shows published numerical results being passed off as executed baseline predictions.",
+      "evidence": [
+        "proposal/sections/theory.tex:34-82 identifies the reconstruction and its electrostatic response and cold laser-mode approximations.",
+        "proposal/code/vlasov/magcbet.py and proposal/code/vlasov/evaluate_vlasov.py implement the reconstruction and evaluations.",
+        "proposal/logs/vlasov/C-paper_B0_phina_zz_I0.5.json records T_V0=1.4479660608946363; proposal/logs/boundary_results.json records the corresponding calibration C=2.038092415585428.",
+        "proposal/sections/limitations.tex:11-19 discloses calibration, unexplained absolute disagreement, normalization differences, and omitted finite-size blurring."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "code_paper_alignment.methodology_describes_code": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The described computational method agrees with the inspected reconstruction, gain extraction, bootstrap, classification, and mechanism-analysis implementations. The primary analysis uses 20,000 bootstrap draws and Holm correction over 43 evaluable cell tests, while exploratory corrections remain separately identified. No material contradiction in the claimed implemented methodology was established.",
+      "evidence": [
+        "proposal/sections/method.tex:35-88 describes uncertainty, mechanism tests, compactness, and exploratory analyses.",
+        "proposal/code/analysis/boundary_analysis.py:21-26, 170-225, and 242-295 implements the stated bootstrap and classification.",
+        "proposal/code/analysis/run_all.py:98-137 retains the validation role, executes mechanism tests, and saves primary and sensitivity outputs separately.",
+        "proposal/logs/boundary_results.json: n_tested=43, offset_sigma_mode=plan, and the documented mechanism_tests records.",
+        "proposal/sections/simulations.tex:74-87 and proposal/code/pic/gain_pipeline.py:163-169 describe and implement the QC fallback."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "held_fixed_disclosure.deviations_disclosed": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The submission discloses the reduced resolution and particle count, RNG patch, analysis fallback, partial reconstruction, changed execution order, and continuation after failed magnetized validation. The two finer-resolution diagnostic runs are separately identified. These departures are not presented as full compliance with the original validation plan.",
+      "evidence": [
+        "proposal/sections/simulations.tex:22-42 specifies 12 rather than 20 cells per wavelength, 10 rather than 20 particles per cell, and the RNG change.",
+        "proposal/sections/method.tex:4-12 discloses amendments and subsequent departures.",
+        "proposal/sections/results.tex:163-170 explicitly states that the fallback ladder was not completed and the unmagnetized extension uses V1 only.",
+        "proposal/sections/cost.tex:3-5 separately counts 34 runs at resolution 12 and two at resolution 14.",
+        "proposal/pic_runs/campaign/*/run_config.json and input.deck agree with these configuration distinctions."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.execution_claims": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The claimed campaign is supported by run records, configurations, EPOCH output, SDF files, and processed results. The 38 ledger entries represent 36 simulations because two simulations each use two restart segments. Failed validation and unexecuted planned simulations are acknowledged; no affirmative evidence establishes a falsely claimed completed experiment.",
+      "evidence": [
+        "proposal/logs/pic_run_log.tsv:2-39 records the campaign executions and restart segments.",
+        "proposal/pic_runs/campaign/ contains 36 completed run directories with configurations, EPOCH output, and SDF dumps; proposal/logs/pic_new/ contains 36 processed records.",
+        "proposal/sections/cost.tex:3-5 and proposal/logs/results_macros.tex report 34 resolution-12 runs, two resolution-14 runs, and 52.2 wall-clock hours.",
+        "proposal/logs/pipeline_unit_tests.txt, proposal/logs/vlasov_unit_tests.txt, and proposal/logs/determinism_check.txt support the described checks.",
+        "proposal/attempts_log.md, sections S, AD, and final completion accounting, identifies failed validation and omitted work."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "integrity.precommitment_claims": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The frozen version and current plan have matching recorded hashes and differ only in the appended amendments. The report distinguishes amendments made before residual calculation from later disclosed changes; it does not establish that every choice preceded every run. Both fresh-background predictions precede their specifically named validation runs. No undisclosed post-result selection or backdating was established.",
+      "evidence": [
+        "proposal/logs/plan_freeze.log:1-21 records the initial freeze and three amendments; independently checked frozen-file SHA-256 is a1a387ac07f32474c38e0a25db7abb211c8ed053d837c4c92f83e6b9e6fef514.",
+        "proposal/code/sweep_plan_v0_frozen.json and proposal/code/sweep_plan.json differ only in amendments.",
+        "proposal/sections/method.tex:4-12 and proposal/sections/limitations.tex:32-38 disclose the timing distinctions and later departures.",
+        "proposal/logs/plan_freeze.log:22-23 records predictions on October 4 at 23:44:25Z and October 5 at 08:57:33Z; proposal/logs/pic_run_log.tsv:29,37 records their background runs starting October 5 at 03:59:05Z and 14:36:27Z."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "test_set_integrity.provided_pic_data_used_as_is": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The loader reads the staged archive directly, and every archived Fourier-integral curve is represented with unchanged raw gains. Offsets and calibration are disclosed analysis transformations. The new-run QC fallback does not rewrite archived measurements. No undisclosed alteration or outcome-dependent re-curation of the supplied PIC results was detected.",
+      "evidence": [
+        "proposal/code/pic_data.py:47-88 reads archive members and retains their gain and spread columns.",
+        "workdir_outside_proposal/data/pic_simulations/PIC_processed_data.zip contains 70 Fourier-integral gain curves; all 70 are referenced by proposal/logs/boundary_results.json with zero raw-gain mismatch.",
+        "proposal/sections/method.tex:14-21 describes the offset and calibration transformations.",
+        "proposal/code/sweep_plan.md:111 explicitly limits the QC fallback to new runs."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.all_sweep_cells_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "All 70 archived gain curves and nine new grouped records appear in the primary results. The failed magnetized validation and unfavorable high-intensity result remain visible. Planned magnetized intensity runs were not completed and are disclosed as dropped, rather than concealed completed outcomes. No outcome-dependent hiding of completed sweep cells was detected.",
+      "evidence": [
+        "proposal/logs/boundary_results.json contains 79 records, including 67 test cells; proposal/logs/table_main.tex:13-91 reports them.",
+        "proposal/logs/table_main.tex:85 retains the failed validation cell; line 91 retains the I=2 result, Delta=+0.46, with its invalid-comparison qualification.",
+        "proposal/sections/results.tex:163-170 discloses the unexecuted magnetized intensity and refinement cells.",
+        "proposal/attempts_log.md:315-319 and proposal/code/pic/queue_dropped.txt identify the five dropped runs.",
+        "proposal/logs/ladder_diagnostic.json and proposal/sections/results.tex:185-189 report the separately executed resolution diagnostics."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.all_seeds_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "All three executed seeds at each repeat point are retained and contribute to the pooled uncertainty. The report explicitly acknowledges single seeds elsewhere. It also preserves the less favorable primary bootstrap-seed result while disclosing the other four seeds, rather than selecting their smaller mechanism-test p-values.",
+      "evidence": [
+        "proposal/logs/boundary_results.json, rng_repeats: B=0 gains are 1.04164347, 1.01574353, and 1.13418239; B=1000 T gains are 0.41347589, 0.43577375, and 0.44955252.",
+        "proposal/logs/pic_run_log.tsv and proposal/logs/pic_new/ retain the corresponding seed-offset 0, 1, and 2 runs.",
+        "proposal/sections/limitations.tex:29-30 acknowledges single seeds for other new gain points.",
+        "proposal/logs/bootstrap_seed_sensitivity.json, proposal/sections/results.tex:234-238, and proposal/attempts_log.md:339-348 report all five bootstrap seeds and retain the primary M2 Holm p=0.1017897."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "selective_reporting.mechanism_attribution_full_set_reported": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "All four pre-stated mechanism tests are reported, including three non-rejections. The original nonlinear-ion attribution is retained but explicitly identified as confounded, and the subsequent scattered-light diagnosis is labeled post hoc. Unattributed residuals and unsuccessful explanatory candidates are also discussed. No concealed selection of favorable completed mechanism results was established.",
+      "evidence": [
+        "proposal/code/sweep_plan.py:121-126 specifies M1, M2, M3, and M5.",
+        "proposal/logs/table_mechtests.tex:5-10 reports Holm p-values 0.25, 0.102, 0.992, and 0.00815, including the M2 confounding footnote.",
+        "proposal/logs/boundary_results.json, mechanism_tests, contains the matching statistics, sample counts, and contributing records.",
+        "proposal/sections/results.tex:231-264 and proposal/logs/table_segments.tex retain the original attribution alongside the post-hoc diagnosis and unresolved mechanisms."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_replication_of_published_method.not_a_known_method_replication": {
+      "value": "no_violation_detected",
+      "confidence": "medium",
+      "reason": "The submission acknowledges the original MagCBET theory and PIC study and cites the established statistical and validation methods it uses. It distinguishes its proposed integrated-observable application from those prior ingredients. The inspected materials do not establish an identifiable prior contribution being reproduced as new without acknowledgment.",
+      "evidence": [
+        "paper.md supplies the original PIC study and its theory and analysis context.",
+        "proposal/sections/theory.tex:34-39 explicitly attributes the reconstructed theory and limits the claimed additions.",
+        "proposal/sections/related.tex:3-28 discusses prior CBET theory, kinetic studies, and magnetized interactions.",
+        "proposal/sections/related.tex:30-36 credits verification and validation practice, equivalence testing, Holm correction, max-statistic testing, and linear-response causality."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    },
+    "no_external_code.no_undisclosed_external_code": {
+      "value": "no_violation_detected",
+      "confidence": "high",
+      "reason": "The substantial reused components are permitted supplied code and are explicitly credited: EPOCH, its SDF reader, and the authors' MATLAB analysis pipeline. The remaining inspected implementation uses the disclosed local reconstruction and standard scientific libraries. Comparing 53 EPOCH Fortran source files found only the three disclosed RNG-patch files changed. No prohibited or uncredited external methodology implementation was detected.",
+      "evidence": [
+        "task_spec.md:211 permits the supplied EPOCH and MATLAB code and standard scientific libraries.",
+        "proposal/codebase_notes.md:7-35 attributes EPOCH/SDF and documents the RNG patch; lines 37-79 attribute and describe the MATLAB port.",
+        "proposal/codebase_notes.md:88-101 identifies the reconstruction and analysis implementation; proposal/code/vlasov/magcbet.py imports NumPy and SciPy primitives.",
+        "Read-only comparison of workdir_outside_proposal/code/epoch/epoch2d/src/ with proposal/code/epoch_build/epoch2d/src/ found changes only in shared_data.F90, housekeeping/setup.F90, and deck/deck_control_block.F90, matching the documented random_seed_offset feature."
+      ],
+      "requires_adjudication": false,
+      "adjudication_reason": "none"
+    }
+  }
+}
