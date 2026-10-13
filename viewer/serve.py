@@ -20,6 +20,10 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, fmt, *args):  # keep the terminal readable
         pass
 
+    def end_headers(self):  # never serve a stale copy of a file that was just rebuilt
+        self.send_header('Cache-Control', 'no-cache')
+        super().end_headers()
+
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)

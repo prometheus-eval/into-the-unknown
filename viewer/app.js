@@ -62,7 +62,8 @@
 
   async function getJSON(url) {
     if (!state.cache.has(url)) {
-      state.cache.set(url, fetch(url).then((r) => {
+      // no-cache: always revalidate with the server (cheap 304s), so an updated export shows up without a hard reload
+      state.cache.set(url, fetch(url, { cache: 'no-cache' }).then((r) => {
         if (!r.ok) throw new Error(`${r.status} ${r.statusText} — ${url}`);
         return r.json();
       }));
