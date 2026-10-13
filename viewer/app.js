@@ -233,7 +233,9 @@
 
   // Original paper links: arXiv / DOI pages, or a file of this repository (relative to its root).
   const paperUrl = (u) => (/^https?:/.test(u) ? u : `${ROOT}/${u}`);
-  const paperSource = (u) => (u.includes('arxiv.org') ? 'arXiv preprint' : u.includes('doi.org') ? 'DOI publisher page' : 'PDF in this repository (not publicly released)');
+  const paperSource = (u) => (u.includes('arxiv.org') ? 'arXiv preprint' : u.includes('researchsquare.com') ? 'Research Square preprint'
+    : u.includes('doi.org') ? 'DOI publisher page' : 'PDF in this repository (not publicly released)');
+  const paperSourceShort = (u) => paperSource(u).replace(/ (preprint|publisher page|in this repository.*)$/, '');   // arXiv, Research Square, DOI, PDF
   function renderDirections() {
     const { models, papers } = state.index;
     const domains = [...new Set(papers.map((p) => p.domain))].sort();
@@ -242,7 +244,7 @@
     const card = (p) => `<article class="dcard" id="paper-${p.id}">
         <div class="dc-top"><span class="pid">P${p.id}</span><span class="dom">${esc(p.domain)}</span>
           <span class="dc-meta">${esc(p.venue)}<span class="sep">·</span><span title="Citations as of September 14, 2026">${p.citations} citation${p.citations === 1 ? '' : 's'}</span>${p.lab ? `<span class="sep">·</span><span title="${esc(p.lab_name || p.lab)}">${esc(p.lab)}</span>` : ''}</span></div>
-        <h3 class="dc-title">${p.url ? `<a href="${esc(paperUrl(p.url))}" target="_blank" rel="noopener" title="${esc(paperSource(p.url))}">${esc(p.title)}<span class="ext">${esc(paperSource(p.url).split(' ')[0])} ↗</span></a>` : esc(p.title)}</h3>
+        <h3 class="dc-title">${p.url ? `<a href="${esc(paperUrl(p.url))}" target="_blank" rel="noopener" title="${esc(paperSource(p.url))}">${esc(p.title)}<span class="ext">${esc(paperSourceShort(p.url))} ↗</span></a>` : esc(p.title)}</h3>
         <div class="followup"><div class="lab">Follow-up direction proposed by the domain scientist</div><p>${esc(p.direction)}</p></div>
       </article>`;
     const groups = [['A', 'Group A', 'published 2024 or earlier'], ['B', 'Group B', 'submitted 2026']]
