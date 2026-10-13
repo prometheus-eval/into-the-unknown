@@ -243,7 +243,7 @@
       <section class="card an-card">
         <div class="an-head"><h2>Why agents fail</h2></div>
         <div class="prose">
-          <p>Across all 135 submissions, 114 fail the integrity check rubric and every one fails the direction-specific rubric. The most
+          <p class="center">Across all 135 submissions, 114 fail the integrity check rubric and every one fails the direction-specific rubric. The most
             frequent integrity failures are a mismatch between the paper and its code or protocol (90 submissions), reported numbers that
             contradict the evidence (85), and false claims of completed work (68). On the direction-specific rubric, most submissions lack
             required files or records (128), leave method or protocol requirements unmet (120), or give an inadequate analysis or
@@ -270,7 +270,7 @@
       <section class="card an-card">
         <div class="an-head"><h2>Does more effort help?</h2></div>
         <div class="prose">
-          <p>No. Comparing different agents on the same paper, longer runs go with lower pass rates on both rubrics, and more steps with
+          <p class="center">No. Comparing different agents on the same paper, longer runs go with lower pass rates on both rubrics, and more steps with
             lower integrity pass rates. Comparing papers attempted by the same agent, neither execution time nor the number of steps is
             associated with pass rates: no agent does better on the papers it spends longer on.</p>
           ${figure('time_analysis.png', 1900, 784, 'Dot plots of the number of steps and the execution time of every submission, by agent',
@@ -285,7 +285,7 @@
             <tbody>${ASSOC.map(([label, ...cells]) => `<tr><td class="l">${label}</td>${cells.map(([d, lo, hi, p, sig]) =>
               `<td class="gap">${num(d)} [${num(lo)}, ${num(hi)}]</td><td class="${sig ? 'best' : ''}">${p}</td>`).join('')}</tr>`).join('')}</tbody>
           </table></div>
-          <p class="tnote">Pass rates are the fractions of rubric nodes passed. Comparisons pair different agents on the same paper (within
+          <p class="tnote center">Pass rates are the fractions of rubric nodes passed. Comparisons pair different agents on the same paper (within
             paper) or different papers attempted by the same agent (within agent). We report mean Somers' <i>D</i> with pointwise 95%
             confidence intervals and approximate <i>p</i>-values from 20,000 paper-level bootstrap resamples; <i>p</i><sub>adj</sub> is the
             <i>p</i>-value after Holm correction across all eight comparisons, and bold marks <i>p</i><sub>adj</sub> &lt; 0.05. Negative
