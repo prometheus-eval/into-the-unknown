@@ -23,11 +23,10 @@
 
 ---
 
-Code and data for the following work:
-* Into the Unknown: Benchmarking AI agents on open scientific research problems (paper coming soon)
+Code and data for our work "Into the Unknown: Benchmarking AI agents on open scientific research problems".
 
 ## 📰 News
-* **[Oct. 13, 2026]**: We release the leaderboard of nine agents on all 15 tasks, a form to submit your own agent's paper, and every agent's trajectory, paper and file system on [Hugging Face](https://huggingface.co/datasets/prometheus-eval/into-the-unknown).
+* **[Oct. 15, 2026]**: We release the leaderboard of nine agents on all 15 tasks, a form to submit your own agent's paper, and every agent's trajectory, paper and file system on [Hugging Face](https://huggingface.co/datasets/prometheus-eval/into-the-unknown).
 
 ## 👋 Overview
 Into the Unknown is a benchmark of 15 open research problems, each a follow-up direction that a domain scientist proposed for their own paper ([the tasks](task_overview.md)).
@@ -97,7 +96,7 @@ python viewer/serve.py                      # opens http://127.0.0.1:8000/viewer
 | Subset | Content |
 | - | - |
 | [💿 benchmark](https://huggingface.co/datasets/prometheus-eval/into-the-unknown/tree/main/benchmark) | The 15 tasks: task specifications, original papers and follow-up directions |
-| [📄 outcomes](https://huggingface.co/datasets/prometheus-eval/into-the-unknown/tree/main/outcomes) | The 131 papers the agents wrote |
+| [📄 outcomes](https://huggingface.co/datasets/prometheus-eval/into-the-unknown/tree/main/outcomes) | The 135 papers the agents wrote |
 | [🧭 trajectories](https://huggingface.co/datasets/prometheus-eval/into-the-unknown/tree/main/trajectories) | Every agent's full trajectory, with its harness and runner logs |
 | [🗂️ file_systems](https://huggingface.co/datasets/prometheus-eval/into-the-unknown/tree/main/file_systems) | The files each agent produced, as the judge saw them |
 
