@@ -172,8 +172,12 @@
       + 'Such changes can be reasonable in research, but they mean agents cannot autonomously carry out a specified direction.'],
   ];
   const num = (v) => (v < 0 ? `−${(-v).toFixed(3)}` : v.toFixed(3));
+  // Each figure has a dark-theme twin (<name>-dark.png: transparent paper, light ink; ~/nlb_judge_runs/analysis/darkify_figures.py);
+  // CSS shows the one matching the theme, and lazy loading skips the hidden one.
   const figure = (file, w, h, alt, caption) => `<figure class="an-fig"><a href="images/${file}" target="_blank" rel="noopener" title="Open full size">
-    <img src="images/${file}" width="${w}" height="${h}" alt="${esc(alt)}" loading="lazy" decoding="async"></a><figcaption>${caption}</figcaption></figure>`;
+    <img class="for-light" src="images/${file}" width="${w}" height="${h}" alt="${esc(alt)}" loading="lazy" decoding="async">
+    <img class="for-dark" src="images/${file.replace('.png', '-dark.png')}" width="${w}" height="${h}" alt="${esc(alt)}" loading="lazy" decoding="async"></a>
+    <figcaption>${caption}</figcaption></figure>`;
 
   function renderAnalysis() {
     const { models, papers, leaderboard: L } = state.index;
