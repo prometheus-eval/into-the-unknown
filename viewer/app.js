@@ -159,6 +159,18 @@
     ['# Steps (within paper)', [-0.143, -0.219, -0.063, '0.0024', true], [-0.009, -0.072, 0.065, '1.000', false]],
     ['# Steps (within agent)', [0.016, -0.151, 0.183, '1.000', false], [0.008, -0.169, 0.194, '1.000', false]],
   ];
+  // The three behaviors behind the failures (from the trajectory audit): [svg paths, title, description].
+  const BEHAVIORS = [
+    ['<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/><path d="M7.8 10.6l1.9 1.9 3.4-3.6"/>', 'Lenient self-verification',
+      'Agents treat limited checks as evidence that broader task requirements are satisfied, or accept results as satisfactory despite '
+      + 'contradictory evidence. They are not strict enough when checking their own work and whether a task is complete.'],
+    ['<path d="M9 5 4 10l5 5"/><path d="M4 10h9.5a5.5 5.5 0 0 1 0 11H11"/>', 'Insufficient backtracking',
+      'Agents recognize an unmet requirement but, instead of trying to fix it, document the shortfall or proceed with a suboptimal '
+      + 'solution. The issue is not a negative scientific finding itself, but the decision to stop pursuing a specified objective.'],
+    ['<path d="M4 9h5V4"/><path d="M20 9h-5V4"/><path d="M4 15h5v5"/><path d="M20 15h-5v5"/>', 'Self-directed scope reduction',
+      'Agents replace required work with fewer experiments, an easier comparison, or a narrower objective without authorization. '
+      + 'Such changes can be reasonable in research, but they mean agents cannot autonomously carry out a specified direction.'],
+  ];
   const num = (v) => (v < 0 ? `−${(-v).toFixed(3)}` : v.toFixed(3));
   const figure = (file, w, h, alt, caption) => `<figure class="an-fig"><a href="images/${file}" target="_blank" rel="noopener" title="Open full size">
     <img src="images/${file}" width="${w}" height="${h}" alt="${esc(alt)}" loading="lazy" decoding="async"></a><figcaption>${caption}</figcaption></figure>`;
@@ -250,19 +262,10 @@
             explanation (104).</p>
           ${figure('failure_analysis1.png', 1886, 784, 'Heatmaps counting, for each agent, the submissions that fail each category of the two rubrics',
             "Number of each agent's 15 submissions that fail each category of the integrity check rubric (left) and the direction-specific rubric (right), from the judge's verdicts. Categories overlap; the bottom rows count the submissions that fail each rubric.")}
-          <p>Reading the agents' trajectories, we identified three behaviors that keep them from writing an honest, complete paper that
-            meets the scientist's bar:</p>
-          <ul class="behaviors">
-            <li><b>Lenient self-verification.</b> Agents treat limited checks as evidence that broader task requirements are satisfied, or
-              accept results as satisfactory despite contradictory evidence. They are not strict enough when checking their own work and
-              whether a task is complete.</li>
-            <li><b>Insufficient backtracking.</b> Agents recognize an unmet requirement but, instead of trying to fix it, document the
-              shortfall or proceed with a suboptimal solution. The issue is not a negative scientific finding itself, but the decision to
-              stop pursuing a specified objective.</li>
-            <li><b>Self-directed scope reduction.</b> Agents replace required work with fewer experiments, an easier comparison, or a
-              narrower objective without authorization. Such changes can be reasonable in research, but they mean agents cannot
-              autonomously carry out a specified direction.</li>
-          </ul>
+          <p class="center oneline">Reading the agents' trajectories, we identified three behaviors that keep them from writing an honest, complete paper that meets the scientist's bar:</p>
+          <div class="behaviors">${BEHAVIORS.map(([icon, title, text]) => `<div class="behavior">
+            <span class="bh-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">${icon}</svg></span><h3>${title}</h3><p>${text}</p></div>`).join('')}</div>
           ${figure('failure_analysis2.png', 1894, 1622, 'Annotated excerpts from a Claude-Fable-5 trajectory and a GPT-5.6-Sol trajectory',
             'Excerpts from two trajectories. Claude-Fable-5 writes its own completion checker and accepts its output (lenient self-verification); GPT-5.6-Sol acknowledges that its method misses a requirement and writes the paper around it (insufficient backtracking).')}
         </div>
