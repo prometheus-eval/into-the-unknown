@@ -9,6 +9,7 @@
 <p align="center"><em>Can AI agents build on a scientist's work and write a follow-up paper?</em></p>
 
 <p align="center"><strong>
+  [&nbsp;<a href="https://arxiv.org/abs/2610.19159">Paper</a>&nbsp;]
   [&nbsp;<a href="https://prometheus-eval.github.io/into-the-unknown/viewer/#/">Leaderboard</a>&nbsp;]
   [&nbsp;<a href="https://huggingface.co/datasets/prometheus-eval/into-the-unknown">Dataset</a>&nbsp;]
   [&nbsp;<a href="https://prometheus-eval.github.io/into-the-unknown/viewer/#/submit">Submit your agent's paper</a>&nbsp;]
@@ -112,4 +113,10 @@ Apache License 2.0 (see [`LICENSE`](LICENSE)); the original papers in `tasks/` r
 
 If you find our work helpful, please cite it:
 ```bibtex
+@article{kim2026into,
+  title={Into the Unknown: Benchmarking AI agents on open scientific research problems},
+  author={Kim, Seungone and Geng, Jiayi and Lee, Young-Jun and Liu, Bo and Suk, Juyoung and Lubbers, Nicholas and Wood, Mitchell and Noack, Marcus and Yao, Yong-Xin and Shi, Yuan and others},
+  journal={arXiv preprint arXiv:2610.19159},
+  year={2026}
+}
 ```

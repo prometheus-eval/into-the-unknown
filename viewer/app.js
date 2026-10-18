@@ -118,6 +118,13 @@
     else if (tab === 'submit') renderSubmit(); else renderLeaderboard();
   }
 
+  const CITATION = `@article{kim2026into,
+  title={Into the Unknown: Benchmarking AI agents on open scientific research problems},
+  author={Kim, Seungone and Geng, Jiayi and Lee, Young-Jun and Liu, Bo and Suk, Juyoung and Lubbers, Nicholas and Wood, Mitchell and Noack, Marcus and Yao, Yong-Xin and Shi, Yuan and others},
+  journal={arXiv preprint arXiv:2610.19159},
+  year={2026}
+}`;
+
   function renderLeaderboard() {
     const { models, papers, leaderboard: L } = state.index;
     const n = papers.length;
@@ -144,7 +151,15 @@
           <td class="num">${score(r.almost)}</td>
           <td class="num main">${score(r.strict)}</td>
           <td class="num">${timeCell(r.a)}</td></tr>`).join('')}
-        </tbody></table></div></section>`;
+        </tbody></table></div></section>
+      <section class="card cite-card">
+        <p>If you find our work helpful, please consider citing it:</p>
+        <div class="cite-box"><button type="button" class="nav-btn cite-copy" id="cite-copy">Copy</button><pre id="cite-bib">${esc(CITATION)}</pre></div>
+      </section>`;
+    document.getElementById('cite-copy').addEventListener('click', (e) => {
+      const done = (label) => { e.target.textContent = label; setTimeout(() => { e.target.textContent = 'Copy'; }, 1500); };
+      navigator.clipboard.writeText(CITATION).then(() => done('Copied'), () => done('Select and copy'));
+    });
     document.querySelectorAll('#board [data-go]').forEach((tr) => {
       tr.addEventListener('click', () => { location.hash = tr.dataset.go; });
       tr.addEventListener('keydown', (e) => { if (e.key === 'Enter') location.hash = tr.dataset.go; });
