@@ -37,6 +37,7 @@ from pathlib import Path
 # Crash-durable trajectory capture (streams events to disk; saves a canonical
 # trajectory on SIGTERM/exception/exit). Lives next to this runner.
 from trajectory_stream import streaming_events, install_crash_saver, stream_events  # noqa: E402
+from memory_watchdog import use_disk_tmpdir, start_memory_watchdog, pending_notices  # noqa: E402
 
 # ---- auth + environment (before importing the SDK) ----
 # An OPENAI_API_KEY would make the SDK bill against the API instead of the
@@ -595,6 +596,10 @@ def run(args) -> int:
     def note(**kw):
         events.append({"t_offset": round(time.monotonic() - start, 3), "harness": kw})
 
+    # The agent's experiments share the job's memory limit with the runner and the harness: keep them from ending the run.
+    use_disk_tmpdir()
+    start_memory_watchdog(workspace, on_event=lambda kind, info: note(event="memory_" + kind, **info))
+
     # Tag the engine's environment so every command the agent runs (background jobs included) carries it.
     os.environ[RUN_TAG_VAR] = f"{os.getpid()}-{time.time_ns()}"
     with Codex(CodexConfig(codex_bin=CODEX_BIN) if CODEX_BIN else None) as codex:
@@ -674,7 +679,7 @@ def run(args) -> int:
         while thread is not None and not complete and not timed_out:
             # --- run one turn on the persistent thread (with resume-on-error) ---
             try:
-                res = thread.run(prompt)
+                res = thread.run(prompt + pending_notices())   # + what the memory watchdog did, if anything
             except Exception as e:
                 wait = infra_wait(e)
                 if wait is not None:

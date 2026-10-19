@@ -47,6 +47,7 @@ import json
 import os
 import signal
 import sys
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -87,6 +88,7 @@ class StreamingEvents(list):
         self.stream_path = self.workspace / TRAJECTORY_STREAM_FILENAME
         self._since_sync = 0
         self._fh = None
+        self._lock = threading.RLock()   # the memory watchdog appends from its own thread
         try:
             self._fh = open(self.stream_path, "a", buffering=1, encoding="utf-8")
             self._write({"__meta__": self.meta, "opened_utc": _utcnow()})
@@ -111,14 +113,16 @@ class StreamingEvents(list):
 
     # --- list surface: every mutation is streamed ---------------------
     def append(self, ev) -> None:
-        super().append(ev)
-        self._write(ev)
+        with self._lock:
+            super().append(ev)
+            self._write(ev)
 
     def extend(self, evs) -> None:
         evs = list(evs)
-        super().extend(evs)
-        for ev in evs:
-            self._write(ev)
+        with self._lock:
+            super().extend(evs)
+            for ev in evs:
+                self._write(ev)
 
     def __iadd__(self, evs):
         self.extend(evs)
@@ -127,8 +131,9 @@ class StreamingEvents(list):
     # --- metadata + finalization --------------------------------------
     def note_meta(self, **kw) -> None:
         """Record current run state, so a crash-written trajectory is accurate."""
-        self.meta.update(kw)
-        self._write({"__meta_update__": kw, "at_utc": _utcnow()})
+        with self._lock:
+            self.meta.update(kw)
+            self._write({"__meta_update__": kw, "at_utc": _utcnow()})
 
     def finalize(self, metadata=None, status="clean") -> Path:
         """Write the canonical trajectory JSON. Idempotent."""

@@ -20,6 +20,10 @@
 # Every harness uses the same completion ("Ralph Wiggum") loop: an initial attempt plus up to
 # 5 resumes, stopping as soon as the placeholder check and the completion judge pass.
 #
+# Under a job memory limit (a PBS or Slurm job's cgroup) every runner also starts
+# memory_watchdog.py: an experiment that outgrows the limit is stopped, and the agent told,
+# instead of the scheduler ending the whole run with the agent. SOLVER_MEMORY_WATCHDOG=0 turns it off.
+#
 # Harness and environment per agent (endpoints and keys come only from the environment):
 #   opus-4.8, opus-5, opus-5.5, fable-5   run_agent_sdk.py (pip: claude-agent-sdk)
 #       ANTHROPIC_API_KEY, or ANTHROPIC_AUTH_TOKEN [+ ANTHROPIC_BASE_URL] for a gateway.

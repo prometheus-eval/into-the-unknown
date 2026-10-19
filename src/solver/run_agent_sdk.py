@@ -35,6 +35,7 @@ from pathlib import Path
 # Crash-durable trajectory capture (streams events to disk; saves a canonical
 # trajectory on SIGTERM/exception/exit). Lives next to this runner.
 from trajectory_stream import streaming_events, install_crash_saver  # noqa: E402
+from memory_watchdog import use_disk_tmpdir, start_memory_watchdog, pending_notices  # noqa: E402
 
 # ---- auth + environment (must run before importing the SDK) ----
 # Two auth modes:
@@ -464,6 +465,10 @@ async def run(args):
         "workspace": str(workspace), "max_resumes": MAX_RESUMES,
     })
     install_crash_saver(events)   # a batch-job walltime kill / crash still leaves a trajectory
+    # The agent's experiments share the job's memory limit with the runner and the harness: keep them from ending the run.
+    use_disk_tmpdir()
+    start_memory_watchdog(workspace, on_event=lambda kind, info: events.append(
+        {"t_offset": round(time.monotonic() - start, 3), "event": {"kind": "harness", "event": "memory_" + kind, **info}}))
     complete = False
     reason = RESTART_NOTE if RESUME_SESSION else ""
     attempt = RESUME_ATTEMPT if RESUME_SESSION else 1
@@ -482,6 +487,7 @@ async def run(args):
 
     async def send(client, prompt):
         nonlocal last_prompt, agent_active
+        prompt += pending_notices()   # what the memory watchdog did since the last prompt, if anything
         last_prompt, agent_active = prompt, False
         await client.query(prompt)
 

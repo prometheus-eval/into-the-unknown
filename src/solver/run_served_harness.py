@@ -66,6 +66,7 @@ from pathlib import Path
 # resolution, workspace staging, and trajectory serialization. Importing it does
 # not run main() (guarded by __main__); it only sets a few benign env defaults.
 import run_claude_code as rcc
+from memory_watchdog import use_disk_tmpdir, start_memory_watchdog, pending_notices
 
 HARNESS_BIN = os.environ.get("SOLVER_HARNESS_BIN", os.path.expanduser("~/.kimi-code/bin/kimi"))
 SERVED_MODEL = os.environ.get("SOLVER_SERVED_MODEL", "kimik3")
@@ -465,11 +466,16 @@ def main():
     reason = ""
     judge_verdict = None  # last same-model judge verdict, recorded in metadata
     harness_session = None  # scraped from harness stdout, used to resume with context
+    # The agent's experiments share the job's memory limit with the runner and the harness: keep them from ending the run.
+    use_disk_tmpdir()
+    start_memory_watchdog(workspace, on_event=lambda kind, info: trajectory_events.append({
+        "t_offset": round(time.monotonic() - start_wall, 3),
+        "parsed": {"type": "harness", "event": "memory_" + kind, **info}, "raw_line": None}))
     try:
         while True:
             attempt += 1
             remaining = max(1, int(deadline - time.monotonic()))
-            this_prompt = prompt if attempt == 1 else resume_prompt(reason)
+            this_prompt = (prompt if attempt == 1 else resume_prompt(reason)) + pending_notices()
             argv = build_harness_argv(
                 args.harness, args.harness_cmd, model=args.model, workspace=workspace,
                 prompt=this_prompt, resume_session=(harness_session if attempt > 1 else None),

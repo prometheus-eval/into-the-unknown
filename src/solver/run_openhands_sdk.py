@@ -33,6 +33,7 @@ from pathlib import Path
 
 import run_claude_code as rcc
 import run_served_harness as rsh  # judge_completion + resume_prompt
+from memory_watchdog import use_disk_tmpdir, start_memory_watchdog, pending_notices
 
 from pydantic import SecretStr
 from openhands.sdk import LLM, Agent, Conversation, Tool, LLMSummarizingCondenser
@@ -71,6 +72,7 @@ def main():
     prompt = rcc.build_prompt(workspace, hours=args.hours, unlimited=args.unlimited)
     timeout = rcc.resolve_timeout(hours=args.hours, unlimited=args.unlimited)
     session_id = str(uuid.uuid4())
+    use_disk_tmpdir()   # before the agent's terminal starts, so its commands inherit it
 
     print(f"[run] Harness:   openhands-sdk (LocalConversation)", flush=True)
     print(f"[run] Model:     {args.model} (served)", flush=True)
@@ -126,11 +128,16 @@ def main():
     reason = ""
     judge_verdict = None
     timed_out = False
+    # The agent's experiments share the job's memory limit with the runner and the harness: keep them from ending the run.
+    start_memory_watchdog(workspace, on_event=lambda kind, info: trajectory_events.append({
+        "t_offset": round(time.monotonic() - start_wall, 3),
+        "parsed": {"type": "harness", "event": "memory_" + kind, **info}, "raw_line": None}))
     try:
         while True:
             attempt += 1
             continuing = FIRST_ATTEMPT > 1 and attempt == FIRST_ATTEMPT
-            this_prompt = CONTINUE_MSG if continuing else (prompt if attempt == 1 else rsh.resume_prompt(reason))
+            this_prompt = (CONTINUE_MSG if continuing else (prompt if attempt == 1 else rsh.resume_prompt(reason))) \
+                + pending_notices()
             trajectory_events.append({
                 "t_offset": round(time.monotonic() - start_wall, 3),
                 "parsed": {"type": "harness", "event": "attempt_start", "attempt": attempt,
