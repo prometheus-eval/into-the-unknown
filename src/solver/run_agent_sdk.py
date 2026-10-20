@@ -89,7 +89,19 @@ JUDGE_MAX_ERROR_RETRIES = int(os.environ.get("CLAUDE_JUDGE_MAX_ERROR_RETRIES", "
 # error counts as a reconnect; a run gives up after MAX_RECONNECTS of them (5, the same for every
 # solver runner).
 CAPACITY_MARKERS = ("overloaded", "at capacity")
-EXC_LIMIT_MARKERS = ("session limit", "hit your", "usage limit", "rate limit", "rate_limit", "429")
+EXC_LIMIT_MARKERS = ("session limit", "hit your", "usage limit", "rate limit", "rate_limit", "429", "reached your")
+
+
+def _is_limit_text(text) -> bool:
+    """A subscription usage-limit banner, in any of the CLI's wordings: "Session limit reached", "You've hit your
+    limit", "usage limit", or a per-model weekly cap ("You've reached your Fable limit. ... manage usage credits at
+    claude.ai/settings/usage"). A banner is the whole (short) reply; a long agent message that mentions a limit is not."""
+    t = str(text or "").lower()
+    if len(t) > 600:
+        return False
+    return ("session limit" in t or "hit your" in t or "usage limit" in t
+            or ("reached your" in t and "limit" in t) or "settings/usage" in t)
+
 CAPACITY_WAIT_S = int(os.environ.get("CLAUDE_CAPACITY_WAIT_S", "300"))
 MAX_INFRA_WAITS = int(os.environ.get("CLAUDE_MAX_INFRA_WAITS", "400"))
 GOAL_FILE = Path(__file__).resolve().parent / "goal.md"
@@ -261,7 +273,6 @@ async def judge_completion(workspace: Path):
     # A subscription limit is an infra condition: wait for the reset and judge again
     # instead of marking the attempt incomplete. Any other judge failure (an error, no
     # verdict, malformed JSON) is retried a few times before it counts against the attempt.
-    limit_markers = ("session limit", "hit your", "usage limit")
     limit_waits = failures = 0
     while True:
         text, err = "", None
@@ -277,7 +288,7 @@ async def judge_completion(workspace: Path):
         except Exception as e:  # judge failure must not crash the run
             err = e
         probe = (f"{err!r} " if err else "") + (text if not re.search(r"\{.*\}", text, re.DOTALL) else "")
-        if any(k in probe.lower() for k in limit_markers) and limit_waits < JUDGE_MAX_LIMIT_WAITS:
+        if _is_limit_text(probe) and limit_waits < JUDGE_MAX_LIMIT_WAITS:
             limit_waits += 1
             _safe_print("[judge] subscription limit; sleeping 1800s, then judging again "
                         "-- NOT consuming an attempt.")
@@ -637,8 +648,7 @@ async def run(args):
                     _err_text = str(getattr(msg, "result", "") or "").lower()
                     # NOTE: the limit can arrive as a SUCCESS-subtype turn whose
                     # entire reply is the limit banner -- match on text alone.
-                    if ("session limit" in _err_text or "hit your" in _err_text
-                            or "usage limit" in _err_text):
+                    if _is_limit_text(_err_text):
                         limit_waits += 1
                         wait = 1800.0
                         if rate_reset_at and rate_reset_at > time.time():
@@ -684,9 +694,7 @@ async def run(args):
                     else:
                         _safe_print(f"[run] attempt {attempt}: pre-check clean; running completion judge...")
                         jc, issues = await judge_completion(workspace)
-                        if not jc and issues and any(
-                                ("session limit" in str(i).lower() or "hit your" in str(i).lower())
-                                for i in issues):
+                        if not jc and issues and any(_is_limit_text(i) for i in issues):
                             limit_waits += 1
                             _safe_print(f"[run] judge hit session limit (wait #{limit_waits}); "
                                         "sleeping 1800s and retrying judge -- NOT consuming an attempt.")
